@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMPT — Tempat data kamu, bukan tempat data orang lain</title>
+    <meta name="description" content="Platform web statis zero-knowledge untuk menyimpan data penting kamu secara aman di browser sendiri.">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    
+    <!-- JS -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="assets/js/crypto.js"></script>
+    <script src="assets/js/vault.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/ui.js"></script>
+</head>
+<body>
+
+    <!-- Header will be loaded here -->
+    <div id="header-container" hx-get="shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <section id="hero" class="text-center mt-2">
+            <h1>Tempat aman untuk semua data penting kamu</h1>
+            <p class="secondary">Tersimpan di browser-mu sendiri. Terenkripsi. Tanpa server.</p>
+            <div class="grid">
+                <div></div>
+                <div class="grid">
+                    <a href="/setup" role="button">Mulai Gratis</a>
+                    <a href="/about" role="button" class="outline">Lihat cara kerjanya</a>
+                </div>
+                <div></div>
+            </div>
+        </section>
+
+        <hr class="mt-2 mb-2">
+
+        <section id="features">
+            <div class="grid">
+                <article>
+                    <header>🔒 Aman & Privat</header>
+                    Data dienkripsi dengan AES-256-GCM langsung di browser Anda. Kami tidak pernah melihat data Anda.
+                </article>
+                <article>
+                    <header>☁ Offline-ready</header>
+                    Bekerja sepenuhnya di browser Anda. Tidak butuh koneksi internet setelah halaman dimuat.
+                </article>
+                <article>
+                    <header>🇮🇩 Buatan Indonesia</header>
+                    Dibuat dengan ❤️ di Indonesia untuk privasi dunia. Open source dan transparan.
+                </article>
+            </div>
+        </section>
+
+        <section id="apps" class="mt-2">
+            <h2 class="text-center">Aplikasi Tersedia</h2>
+            <div class="grid">
+                <article>
+                    <h3>BRANKAS</h3>
+                    <p>Personal credential & info manager. Simpan password, KTP, dan info penting lainnya.</p>
+                    <footer>
+                        <a href="/brankas" role="button" class="secondary">Buka BRANKAS</a>
+                    </footer>
+                </article>
+                <article>
+                    <h3>DAFTAR</h3>
+                    <p>To-do & list manager. Simpan daftar belanja atau tugas harian kamu.</p>
+                    <footer>
+                        <button class="secondary outline" disabled>Segera Hadir</button>
+                    </footer>
+                </article>
+                <article>
+                    <h3>CATAT</h3>
+                    <p>Secure notes. Catat ide-ide rahasia atau jurnal pribadi kamu.</p>
+                    <footer>
+                        <button class="secondary outline" disabled>Segera Hadir</button>
+                    </footer>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer will be loaded here -->
+    <div id="footer-container" hx-get="shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        // Check if vault exists and change header if needed
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.TMPT_Vault.exists()) {
+                console.log("Vault detected.");
+                // We could swap header to app-header if unlocked, 
+                // but usually the landing page stays public.
+            }
+        });
+    </script>
+</body>
+</html>

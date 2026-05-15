@@ -1,0 +1,71 @@
+/* TMPT App Styles */
+/* Based on PicoCSS - https://picocss.com */
+
+:root {
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-focus: rgba(37, 99, 235, 0.25);
+    --primary-inverse: #ffffff;
+}
+
+[data-theme="dark"] {
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-focus: rgba(59, 130, 246, 0.25);
+}
+
+/* Custom Utilities */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.mb-1 { margin-bottom: 1rem; }
+.mb-2 { margin-bottom: 2rem; }
+
+/* Layout adjustments */
+main.container {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+/* Auth Pages */
+.auth-card {
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+/* Icons */
+.icon {
+    width: 1.2em;
+    height: 1.2em;
+    vertical-align: middle;
+    fill: currentColor;
+}
+
+/* Shared Header */
+nav[aria-label="breadcrumb"] {
+    margin-bottom: 2rem;
+}
+
+/* Toasts / Notifications */
+#toast-container {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+
+.toast {
+    padding: 1rem;
+    margin-top: 0.5rem;
+    border-radius: var(--border-radius);
+    background: var(--card-background-color);
+    box-shadow: var(--card-box-shadow);
+    border: 1px solid var(--card-border-color);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}

@@ -1,0 +1,14 @@
+.git
+.agents
+.vscode
+docs/
+node_modules/
+Dockerfile
+.dockerignore
+TASKS.md
+implementation_plan.md
+task.md
+walkthrough.md
+arsip/
+tmp/
+
