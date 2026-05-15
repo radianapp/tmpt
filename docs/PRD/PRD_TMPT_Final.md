@@ -530,7 +530,7 @@ Berikut komponen yang di-share lintas halaman (lihat arsitektur di PRD sebelumny
 | `/shared/vault.js` | CRUD operation untuk data vault |
 | `/shared/backup.js` | Export/import logic, Google Drive API |
 | `/shared/ui.js` | Toast notifications, modal, loading states |
-| `/shared/app.css` | Override PicoCSS, design tokens TMPT |
+| `/assets/css/app.css` | Override PicoCSS, design tokens TMPT |
 | `/shared/icons.svg` | Tabler Icons sprite |
 
 ---

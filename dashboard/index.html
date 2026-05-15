@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/crypto.js"></script>
+    <script src="/assets/js/vault.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/ui.js"></script>
+</head>
+<body>
+
+    <script>
+        // Check auth before rendering anything
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+        })();
+    </script>
+
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <header>
+            <h1>Selamat Datang di TMPT</h1>
+            <p class="secondary">Pilih aplikasi untuk mulai mengelola data Anda.</p>
+        </header>
+
+        <section class="grid">
+            <article>
+                <header>
+                    <h3>BRANKAS</h3>
+                </header>
+                <p>Simpan dan kelola kredensial serta informasi penting Anda dengan enkripsi tingkat tinggi.</p>
+                <footer>
+                    <a href="/brankas" role="button">Buka Aplikasi</a>
+                </footer>
+            </article>
+
+            <article>
+                <header>
+                    <h3 class="secondary">DAFTAR</h3>
+                </header>
+                <p>Kelola daftar tugas dan belanja Anda secara privat.</p>
+                <footer>
+                    <button class="outline secondary" disabled>Segera Hadir</button>
+                </footer>
+            </article>
+
+            <article>
+                <header>
+                    <h3 class="secondary">CATAT</h3>
+                </header>
+                <p>Catatan terenkripsi untuk ide-ide dan jurnal pribadi Anda.</p>
+                <footer>
+                    <button class="outline secondary" disabled>Segera Hadir</button>
+                </footer>
+            </article>
+        </section>
+
+        <section class="mt-2">
+            <article>
+                <header>Status Keamanan</header>
+                <ul>
+                    <li>Status Brankas: <mark>Terbuka</mark></li>
+                    <li>Lokasi Data: <mark>Browser Lokal</mark></li>
+                    <li>Enkripsi: <mark>AES-256-GCM</mark></li>
+                </ul>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

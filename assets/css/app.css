@@ -24,8 +24,33 @@
 
 /* Layout adjustments */
 main.container {
-    padding-top: 2rem;
-    padding-bottom: 4rem;
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+}
+
+@media (min-width: 992px) {
+    main.container {
+        padding-top: 2rem;
+        padding-bottom: 4rem;
+    }
+}
+
+/* Responsive Navigation */
+@media (max-width: 768px) {
+    nav ul li {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+    }
+    
+    nav ul li a, nav ul li button {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* For public header specifically, maybe hide some items or make them smaller */
+    .hide-mobile {
+        display: none;
+    }
 }
 
 /* Auth Pages */
@@ -68,4 +93,202 @@ nav[aria-label="breadcrumb"] {
 @keyframes slideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
+}
+
+/* Logo handling (SVG) */
+.logo-img {
+    height: 28px;
+    width: auto;
+    transition: filter 0.3s ease;
+}
+
+[data-theme="dark"] .logo-img {
+    filter: brightness(0) invert(1);
+}
+
+/* Red Danger Button */
+.btn-danger {
+    background-color: #d32f2f !important;
+    border-color: #d32f2f !important;
+    color: #ffffff !important;
+}
+
+.btn-danger:hover {
+    background-color: #b71c1c !important;
+    border-color: #b71c1c !important;
+}
+/* Slide to Confirm */
+.slide-confirm-container {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    background: rgba(255, 0, 0, 0.1);
+    border-radius: 25px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--del-color);
+}
+
+.slide-confirm-text {
+    position: absolute;
+    font-size: 0.85rem;
+    color: var(--del-color);
+    pointer-events: none;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.slide-confirm-input {
+    appearance: none;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    outline: none;
+    margin: 0;
+    cursor: pointer;
+    z-index: 2;
+    border: none; /* Hilangkan garis pinggir */
+    box-shadow: none; /* Hilangkan shadow */
+}
+
+/* Hilangkan track bawaan browser */
+.slide-confirm-input::-webkit-slider-runnable-track { background: transparent; border: none; }
+.slide-confirm-input::-moz-range-track { background: transparent; border: none; }
+
+.slide-confirm-input::-webkit-slider-thumb {
+    appearance: none;
+    width: 40px;
+    height: 40px;
+    background: var(--del-color);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: -100vw 0 0 100vw rgba(255, 0, 0, 0.2);
+    border: none;
+}
+
+/* Samakan tinggi tombol di Modal */
+dialog footer .grid > * {
+    margin-bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.slide-confirm-input::-moz-range-thumb {
+    width: 40px;
+    height: 40px;
+    background: var(--del-color);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+/* Info Alert - Theme Aware */
+.info-alert {
+    background: rgba(255, 152, 0, 0.1);
+    border-left: 4px solid #ff9800;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+}
+
+.info-alert p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #e65100;
+}
+
+[data-theme="dark"] .info-alert {
+    background: rgba(255, 183, 77, 0.1);
+    border-left-color: #ffb74d;
+}
+
+[data-theme="dark"] .info-alert p {
+    color: #ffd180; /* Super light orange for maximum contrast */
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    box-shadow: none;
+    margin: 0;
+    width: auto;
+}
+
+.theme-toggle:hover {
+    background: rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .theme-toggle:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.theme-toggle svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Vault Item Cards */
+.vault-item-card {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--muted-border-color);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border-radius: 8px;
+    background: var(--card-background-color);
+}
+
+.vault-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    border-color: var(--primary);
+}
+
+[data-theme="dark"] .vault-item-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.vault-item-card h4 {
+    color: var(--primary);
+}
+
+.vault-item-card mark {
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Badges */
+.badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: bold;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+[data-theme="dark"] .badge {
+    background: var(--primary-focus);
+}
+
+/* Pagination Fix */
+#pagination-container button {
+    padding: 0.5rem 1rem;
+    margin-bottom: 0;
+}
+
+#pagination-container button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }

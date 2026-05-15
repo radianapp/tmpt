@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/crypto.js"></script>
+    <script src="/assets/js/vault.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/ui.js"></script>
+</head>
+<body>
+
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <article class="auth-card">
+            <header>
+                <h2 class="text-center">Buat Brankas Baru</h2>
+                <p class="text-center secondary">Langkah pertama untuk mengamankan data Anda.</p>
+            </header>
+
+            <div class="info-alert">
+                <p>
+                    <strong>💡 Tips Keamanan:</strong> Jika menggunakan mode <strong>Incognito/Private</strong>, data akan <strong>hilang otomatis</strong> saat browser ditutup. Gunakan fitur <strong>Backup</strong> untuk mengamankan data Anda.
+                </p>
+            </div>
+            
+
+            <dialog id="vault-exists-modal">
+                <article>
+                    <header>
+                        <h3 style="color: var(--del-color); margin: 0;">⚠️ Brankas Terdeteksi</h3>
+                    </header>
+                    <p>Browser ini sudah memiliki Brankas. Jika Anda membuat yang baru, <strong>semua data lama akan terhapus selamanya dan tidak bisa dikembalikan.</strong></p>
+                    
+                    <div class="slide-confirm-container mt-1">
+                        <span class="slide-confirm-text" id="slide-text">Geser untuk konfirmasi</span>
+                        <input type="range" min="0" max="100" value="0" class="slide-confirm-input" id="confirm-slider" oninput="handleSlider(this.value)">
+                    </div>
+
+                    <footer>
+                        <div class="grid" style="align-items: stretch;">
+                            <a href="/login" role="button" class="secondary outline" style="margin-bottom: 0;">Batal & Kembali</a>
+                            <button id="modal-confirm-btn" disabled style="background-color: var(--del-color); border-color: var(--del-color); margin-bottom: 0;" onclick="closeModal()">Lanjut (Timpa Data)</button>
+                        </div>
+                    </footer>
+                </article>
+            </dialog>
+
+            <form id="setup-form">
+                <label for="password">
+                    Master Password
+                    <input type="password" id="password" name="password" placeholder="Minimal 12 karakter" required minlength="12">
+                    <small>Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal.</small>
+                </label>
+
+                <label for="confirm_password">
+                    Konfirmasi Password
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Ulangi password" required>
+                </label>
+
+                <label for="hint">
+                    Password Hint (Opsional)
+                    <input type="text" id="hint" name="hint" placeholder="Contoh: Nama kucing + tahun lahir">
+                    <small>Teks ini akan ditampilkan jika Anda lupa password. Jangan masukkan password asli di sini.</small>
+                </label>
+
+                <label>
+                    <input type="checkbox" required>
+                    Saya mengerti bahwa <strong>lupa master password = data tidak bisa dipulihkan</strong>.
+                </label>
+
+                <button type="submit" id="submit-btn" class="mt-1">Buat Brankas Sekarang</button>
+            </form>
+
+            <footer class="text-center">
+                <p>Sudah punya Brankas? <a href="/login">Buka Brankas</a></p>
+            </footer>
+        </article>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        // Gunakan pageshow untuk pengecekan Brankas lama
+        window.addEventListener('pageshow', async (event) => {
+            await window.TMPT_Auth.init();
+            
+            // Beri sedikit nafas agar DOM benar-benar siap
+            setTimeout(() => {
+                if (window.TMPT_Vault.exists()) {
+                    const modal = document.getElementById('vault-exists-modal');
+                    if (modal && !modal.hasAttribute('open')) {
+                        modal.setAttribute('open', true);
+                        document.getElementById('submit-btn').disabled = true;
+                        document.getElementById('submit-btn').textContent = 'Konfirmasi Dibutuhkan';
+                    }
+                }
+            }, 200);
+        });
+
+        let isConfirmed = false;
+
+        function closeModal() {
+            document.getElementById('vault-exists-modal').removeAttribute('open');
+            window.TMPT_UI.toast("Konfirmasi diterima. Silakan lanjutkan pengisian form.", "info");
+        }
+
+        function handleSlider(value) {
+            const modalBtn = document.getElementById('modal-confirm-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            const slideText = document.getElementById('slide-text');
+            
+            if (value >= 95) {
+                isConfirmed = true;
+                modalBtn.disabled = false;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Timpa Brankas & Mulai Baru';
+                submitBtn.style.backgroundColor = 'var(--del-color)';
+                submitBtn.style.borderColor = 'var(--del-color)';
+                slideText.textContent = "KONFIRMASI BERHASIL";
+                slideText.style.color = "white";
+                document.getElementById('confirm-slider').value = 100;
+            } else {
+                isConfirmed = false;
+                modalBtn.disabled = true;
+                slideText.textContent = "Geser untuk konfirmasi";
+                slideText.style.color = "var(--del-color)";
+            }
+        }
+
+        document.getElementById('setup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (window.TMPT_Vault.exists() && !isConfirmed) {
+                document.getElementById('vault-exists-modal').setAttribute('open', true);
+                return;
+            }
+            
+            const password = document.getElementById('password').value;
+            const confirm = document.getElementById('confirm_password').value;
+            const hint = document.getElementById('hint').value;
+
+            if (password !== confirm) {
+                window.TMPT_UI.toast("Password konfirmasi tidak cocok.", "error");
+                return;
+            }
+
+            window.TMPT_UI.setLoading('#submit-btn', true);
+
+            try {
+                // 1. Generate Salts
+                const saltAuth = window.TMPT_Crypto.generateSalt();
+                const saltEnc = window.TMPT_Crypto.generateSalt();
+                
+                // 2. Derive Key
+                const key = await window.TMPT_Crypto.deriveKey(password, saltEnc);
+                
+                // 3. Create Initial Payload (empty array for credentials)
+                const encryptedPayload = await window.TMPT_Crypto.encrypt("[]", key);
+                
+                // 4. Prepare Vault Data
+                const vaultData = {
+                    salt_auth: window.TMPT_Crypto.bufferToBase64(saltAuth),
+                    salt_enc: window.TMPT_Crypto.bufferToBase64(saltEnc),
+                    iterations: window.TMPT_Crypto.PBKDF2_ITERATIONS,
+                    hint: hint,
+                    payload: encryptedPayload,
+                    created_at: new Date().toISOString()
+                };
+
+                // 5. Save to Brankas
+                await window.TMPT_Vault.save(vaultData);
+
+                window.TMPT_UI.toast("Brankas berhasil dibuat!", "success");
+                
+                // Automatically unlock and redirect
+                window.TMPT_Auth._activeKey = key;
+                const exportedKey = await crypto.subtle.exportKey("raw", key);
+                sessionStorage.setItem('tmpt_vault_key', window.TMPT_Crypto.bufferToBase64(exportedKey));
+                sessionStorage.setItem('tmpt_is_unlocked', 'true');
+                
+                setTimeout(() => {
+                    window.location.href = '/brankas';
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                window.TMPT_UI.toast("Gagal membuat vault. Silakan coba lagi.", "error");
+            } finally {
+                window.TMPT_UI.setLoading('#submit-btn', false);
+            }
+        });
+    </script>
+</body>
+</html>

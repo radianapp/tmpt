@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - TMPT Brankas</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <style>
+        details {
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: var(--pico-border-radius);
+            padding: 0.5rem 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        details[open] {
+            border-color: var(--pico-primary-border-color);
+            background: rgba(var(--pico-primary-rgb), 0.03);
+        }
+        summary {
+            font-weight: 600;
+            cursor: pointer;
+        }
+        summary::after {
+            float: right;
+        }
+        .faq-section {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header dimuat via HTMX -->
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <div class="faq-section">
+            <hgroup style="text-align: center; margin-bottom: 3rem;">
+                <h1>Pusat Bantuan & FAQ</h1>
+                <p>Pelajari cara kerja keamanan data di TMPT Brankas</p>
+            </hgroup>
+
+            <details open>
+                <summary>Di mana data saya disimpan?</summary>
+                <p>
+                    Data Anda disimpan <strong>100% di dalam memori browser perangkat Anda</strong> (menggunakan LocalStorage). 
+                    Kami tidak memiliki server untuk menyimpan data Anda. Ini memastikan privasi total, namun berarti Anda bertanggung jawab penuh atas keamanan data tersebut.
+                </p>
+            </details>
+
+            <details>
+                <summary>Bagaimana jika saya lupa Master Password?</summary>
+                <p>
+                    Karena kami mengusung prinsip <em>Zero-Knowledge</em>, <strong>tidak ada fitur "Lupa Password" atau Reset Password</strong>. 
+                    Jika Anda lupa password, data Anda tidak akan pernah bisa dibuka kembali oleh siapapun. 
+                    Kami sangat menyarankan Anda mencatat Master Password di tempat fisik yang aman.
+                </p>
+            </details>
+
+            <details>
+                <summary>Apa itu file cadangan (.tmpt)?</summary>
+                <p>
+                    File <code>.tmpt</code> adalah salinan Brankas Anda yang sudah terenkripsi. 
+                    Meskipun seseorang mendapatkan file tersebut, mereka tidak akan bisa membacanya tanpa Master Password Anda. 
+                    Selalu lakukan backup secara rutin sebelum membersihkan cache browser.
+                </p>
+            </details>
+
+            <details>
+                <summary>Password X vs Password Y (Edukasi Pemulihan)</summary>
+                <p>
+                    Saat Anda melakukan <strong>"Pulihkan Data"</strong>, Anda mengganti seluruh Brankas lama dengan isi file backup. 
+                    Maka, Anda harus menggunakan <strong>Password yang digunakan saat file backup tersebut dibuat</strong>. 
+                    Password lama Anda otomatis tidak berlaku lagi karena datanya sudah digantikan oleh data dari file backup.
+                </p>
+            </details>
+
+            <details>
+                <summary>Bolehkah saya mengubah isi file .tmpt secara manual?</summary>
+                <p>
+                    <strong>Sangat tidak disarankan.</strong> TMPT menggunakan enkripsi <em>AES-256-GCM</em>. 
+                    Jika Anda mengubah satu karakter saja di dalam file tersebut, sistem akan mendeteksi bahwa file telah rusak/dimodifikasi dan akan menolak untuk membukanya demi keamanan Anda.
+                </p>
+            </details>
+
+            <details>
+                <summary>Apakah TMPT aman dari Hacker?</summary>
+                <p>
+                    Data Anda jauh lebih aman karena tidak pernah dikirim ke internet. 
+                    Namun, keamanan tetap bergantung pada kekuatan Master Password Anda dan kebersihan perangkat Anda dari malware/keylogger.
+                </p>
+            </details>
+        </div>
+    </main>
+
+    <footer class="container" style="text-align: center; margin-top: 4rem; opacity: 0.6;">
+        <small>&copy; 2026 TMPT - Keamanan Tanpa Kompromi.</small>
+    </footer>
+</body>
+</html>

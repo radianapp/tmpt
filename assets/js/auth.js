@@ -1,20 +1,53 @@
 /**
  * TMPT Auth Module
- * Handles session state, locking/unlocking the vault.
+ * Handles session state, locking/unlocking, and key management.
  */
 
 const AuthModule = {
-    // The active encryption key (not persisted to disk)
     _activeKey: null,
-    
+
     /**
-     * Initialize the session from sessionStorage
+     * Check if the vault is currently unlocked in this session
+     */
+    isUnlocked() {
+        return this._activeKey !== null;
+    },
+
+    /**
+     * Get the active CryptoKey
+     */
+    getKey() {
+        if (!this.isUnlocked()) return null;
+        return this._activeKey;
+    },
+
+    /**
+     * Initialize the auth state from sessionStorage
      */
     async init() {
-        // We can't easily store CryptoKey in sessionStorage
-        // If we want to persist across reloads, we'd need to store it encrypted or as raw bytes
-        // For now, let's follow the rule: keys only live in RAM.
-        // This means reload = relock.
+        console.log("[BRANKAS] Inisialisasi Auth...");
+        const storedKey = sessionStorage.getItem('tmpt_vault_key');
+        const isUnlocked = sessionStorage.getItem('tmpt_is_unlocked') === 'true';
+        
+        if (storedKey && isUnlocked) {
+            try {
+                const keyBuffer = window.TMPT_Crypto.base64ToBuffer(storedKey);
+                this._activeKey = await crypto.subtle.importKey(
+                    "raw",
+                    keyBuffer,
+                    { name: "AES-GCM" },
+                    false,
+                    ["encrypt", "decrypt"]
+                );
+                console.log("[BRANKAS] Auth Init Selesai. Unlocked: true");
+                return true;
+            } catch (e) {
+                console.error("Failed to restore session key", e);
+                this.lock();
+            }
+        }
+        console.log("[BRANKAS] Auth Init Selesai. Unlocked: false");
+        return false;
     },
 
     /**
@@ -28,25 +61,42 @@ const AuthModule = {
         const meta = window.TMPT_Vault.getMetadata();
         const saltEnc = window.TMPT_Crypto.base64ToBuffer(meta.salt_enc);
         
-        // Derive key
+        // 1. Derive key from password
         const key = await window.TMPT_Crypto.deriveKey(password, saltEnc, meta.iterations);
         
-        // Test key by trying to decrypt the payload
+        // 2. Test key by trying to decrypt the payload
         const payload = window.TMPT_Vault.getPayload();
+        
         try {
-            const iv = window.TMPT_Crypto.base64ToBuffer(payload.iv);
-            const ciphertext = window.TMPT_Crypto.base64ToBuffer(payload.ciphertext);
+            // Gunakan payload_verify jika ada, atau payload biasa untuk tes
+            const testPayload = meta.payload_verify || payload;
+            if (!testPayload) throw new Error("Brankas kosong atau rusak.");
+
+            await window.TMPT_Crypto.decrypt(testPayload, key);
             
-            // Decrypt dummy check or actual data
-            await window.TMPT_Crypto.decrypt(ciphertext, key, iv);
-            
-            // Success! Store key in RAM
+            // 3. Success! Store key in RAM
             this._activeKey = key;
+            
+            // 4. Export key to store in sessionStorage (survives refresh)
+            const exportedBuffer = await crypto.subtle.exportKey("raw", key);
+            sessionStorage.setItem('tmpt_vault_key', window.TMPT_Crypto.bufferToBase64(exportedBuffer));
             sessionStorage.setItem('tmpt_is_unlocked', 'true');
+            
             return true;
-        } catch (e) {
-            console.error("Unlock failed", e);
-            throw new Error("Password salah.");
+        } catch (decErr) {
+            console.error("[AUTH] Unlock failed:", decErr);
+            
+            // Pesan error spesifik untuk file yang dimodifikasi
+            if (decErr.name === 'InvalidCharacterError' || (decErr.message && decErr.message.includes('atob'))) {
+                throw new Error("File Brankas rusak atau telah dimodifikasi (Karakter Ilegal).");
+            }
+            
+            // OperationError biasanya berarti password salah (MAC mismatch)
+            if (decErr.name === 'OperationError') {
+                throw new Error("Password Salah atau File Brankas mungkin telah dimodifikasi.");
+            }
+            
+            throw new Error("Password salah atau data tidak valid.");
         }
     },
 
@@ -56,31 +106,34 @@ const AuthModule = {
     lock() {
         this._activeKey = null;
         sessionStorage.removeItem('tmpt_is_unlocked');
+        sessionStorage.removeItem('tmpt_vault_key');
         window.location.href = '/login';
     },
 
     /**
-     * Check if the vault is currently unlocked
-     */
-    isUnlocked() {
-        return this._activeKey !== null && sessionStorage.getItem('tmpt_is_unlocked') === 'true';
-    },
-
-    /**
-     * Get the active key (only available while unlocked)
-     */
-    getKey() {
-        if (!this.isUnlocked()) throw new Error("Vault terkunci.");
-        return this._activeKey;
-    },
-
-    /**
-     * Middleware-like check for protected pages
+     * Helper: Require authentication to access a page
      */
     requireAuth() {
         if (!this.isUnlocked()) {
             window.location.href = '/login';
         }
+    },
+
+    /**
+     * Auto-lock on idle (Fase 4 sneak peek)
+     */
+    setupIdleListeners() {
+        let timeout;
+        const resetTimer = () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => this.lock(), 15 * 60 * 1000); // 15 menit
+        };
+        window.onload = resetTimer;
+        window.onmousemove = resetTimer;
+        window.onmousedown = resetTimer; 
+        window.ontouchstart = resetTimer;
+        window.onclick = resetTimer;
+        window.onkeydown = resetTimer;
     }
 };
 

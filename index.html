@@ -1,20 +1,24 @@
 <!DOCTYPE html>
-<html lang="id" data-theme="light">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TMPT — Tempat data kamu, bukan tempat data orang lain</title>
-    <meta name="description" content="Platform web statis zero-knowledge untuk menyimpan data penting kamu secara aman di browser sendiri.">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <meta name="theme-color" content="#2563eb">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
-    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
     
     <!-- JS -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="assets/js/pwa.js"></script>
     <script src="assets/js/crypto.js"></script>
     <script src="assets/js/vault.js"></script>
     <script src="assets/js/auth.js"></script>
+    <script src="/assets/js/version.js"></script>
     <script src="assets/js/ui.js"></script>
 </head>
 <body>
@@ -88,11 +92,11 @@
 
     <script>
         // Check if vault exists and change header if needed
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.TMPT_Auth.init();
+            
             if (window.TMPT_Vault.exists()) {
                 console.log("Vault detected.");
-                // We could swap header to app-header if unlocked, 
-                // but usually the landing page stays public.
             }
         });
     </script>

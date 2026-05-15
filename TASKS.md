@@ -14,11 +14,11 @@
 - [x] Pembuatan `index.html` (Landing Page awal)
 
 ## Fase 2: Auth & Platform Core
-- [ ] Halaman `/setup` (Buat Vault Baru)
-- [ ] Halaman `/login` (Buka Vault)
-- [ ] Dashboard TMPT (`/dashboard`)
-- [ ] Global Settings (`/settings`)
-- [ ] Mekanisme Auto-lock
+- [x] Halaman `/setup` (Buat Vault Baru)
+- [x] Halaman `/login` (Buka Vault)
+- [x] Dashboard TMPT (`/dashboard`)
+- [x] Global Settings (`/settings`)
+- [x] Mekanisme Auto-lock
 
 ## Fase 3: BRANKAS App
 - [ ] Dashboard BRANKAS (`/brankas`)

@@ -20,13 +20,7 @@ const VaultModule = {
         const raw = localStorage.getItem(this.STORAGE_KEY);
         if (!raw) return null;
         try {
-            const data = JSON.parse(raw);
-            return {
-                salt_auth: data.salt_auth,
-                salt_enc: data.salt_enc,
-                iterations: data.iterations,
-                hint: data.hint
-            };
+            return JSON.parse(raw);
         } catch (e) {
             console.error("Failed to parse vault metadata", e);
             return null;
@@ -37,12 +31,12 @@ const VaultModule = {
      * Save a new vault or update existing
      */
     async save(vaultData) {
-        // vaultData should have: salt_auth, salt_enc, iterations, hint, payload { iv, ciphertext }
+        console.log("[VAULT] Saving full vault data...");
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(vaultData));
     },
 
     /**
-     * Load the encrypted payload
+     * Load the encrypted payload ( {iv, ciphertext} )
      */
     getPayload() {
         const raw = localStorage.getItem(this.STORAGE_KEY);
@@ -56,11 +50,34 @@ const VaultModule = {
     },
 
     /**
+     * Update ONLY the encrypted payload in the existing vault
+     */
+    updatePayload(encryptedPayload) {
+        console.log("[VAULT] Updating payload...");
+        const raw = localStorage.getItem(this.STORAGE_KEY);
+        if (!raw) {
+            console.error("[VAULT] Update failed: No vault found in localStorage");
+            return false;
+        }
+        try {
+            const data = JSON.parse(raw);
+            data.payload = encryptedPayload;
+            localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data));
+            console.log("[VAULT] Payload updated successfully!");
+            return true;
+        } catch (e) {
+            console.error("[VAULT] Update failed:", e);
+            return false;
+        }
+    },
+
+    /**
      * Delete the entire vault (Nuclear option)
      */
     destroy() {
         localStorage.removeItem(this.STORAGE_KEY);
         sessionStorage.clear();
+        window.location.href = '/';
     }
 };
 

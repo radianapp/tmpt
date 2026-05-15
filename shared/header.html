@@ -2,22 +2,44 @@
     <nav>
         <ul>
             <li>
-                <a href="/" class="contrast">
+                <a href="/" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                    <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img">
                     <strong>TMPT</strong>
                 </a>
             </li>
         </ul>
         <ul>
-            <li><a href="/about" class="secondary">Tentang</a></li>
-            <li><a href="/pricing" class="secondary">Harga</a></li>
-            <li><a href="/tools" class="secondary">Tools</a></li>
-            <li><a href="/faq" class="secondary">FAQ</a></li>
+            <li class="hide-mobile"><a href="/about" class="secondary">Tentang</a></li>
+            <li class="hide-mobile"><a href="/pricing" class="secondary">Harga</a></li>
+            <li class="hide-mobile"><a href="/tools" class="secondary">Tools</a></li>
+            <li class="hide-mobile"><a href="/faq" class="secondary">FAQ</a></li>
             <li>
-                <a href="/login" class="outline">Buka Vault</a>
+                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+                    </svg>
+                </button>
             </li>
             <li>
-                <a href="/setup" role="button">Buat Vault Baru</a>
+                <a href="/login" class="outline" id="nav-login-btn">Buka Brankas</a>
+            </li>
+            <li>
+                <a href="/setup" role="button" id="nav-setup-btn">Buat Brankas Baru</a>
             </li>
         </ul>
     </nav>
 </header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.TMPT_Vault && window.TMPT_Vault.exists()) {
+            const setupBtn = document.getElementById('nav-setup-btn');
+            if (setupBtn) {
+                setupBtn.classList.add('secondary', 'outline');
+                setupBtn.textContent = 'Reset / Buat Baru';
+            }
+        }
+        window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
+    });
+</script>

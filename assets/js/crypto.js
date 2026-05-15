@@ -2,20 +2,21 @@
  * TMPT Crypto Module
  * Uses native Web Crypto API for zero-knowledge encryption.
  * Algorithm: AES-256-GCM
- * Key Derivation: PBKDF2 with SHA-256
  */
 
 const CryptoModule = {
-    // Config
     PBKDF2_ITERATIONS: 100000,
     AES_KEY_LEN: 256,
     SALT_LEN: 16,
     IV_LEN: 12,
 
     /**
-     * Derive an encryption key from a password and salt
+     * Derive an encryption key
      */
     async deriveKey(password, salt, iterations = this.PBKDF2_ITERATIONS) {
+        // Jika salt dalam bentuk Base64, ubah ke Buffer
+        const saltBuffer = typeof salt === 'string' ? this.base64ToBuffer(salt) : salt;
+        
         const encoder = new TextEncoder();
         const baseKey = await crypto.subtle.importKey(
             "raw",
@@ -28,7 +29,7 @@ const CryptoModule = {
         return await crypto.subtle.deriveKey(
             {
                 name: "PBKDF2",
-                salt: salt,
+                salt: saltBuffer,
                 iterations: iterations,
                 hash: "SHA-256"
             },
@@ -40,53 +41,57 @@ const CryptoModule = {
     },
 
     /**
-     * Encrypt plaintext string
+     * Encrypt plaintext string -> returns {iv, ciphertext} as Base64
      */
     async encrypt(plaintext, key) {
         const encoder = new TextEncoder();
         const iv = crypto.getRandomValues(new Uint8Array(this.IV_LEN));
         const encryptedContent = await crypto.subtle.encrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
+            { name: "AES-GCM", iv: iv },
             key,
             encoder.encode(plaintext)
         );
 
         return {
-            ciphertext: encryptedContent,
-            iv: iv
+            ciphertext: this.bufferToBase64(encryptedContent),
+            iv: this.bufferToBase64(iv)
         };
     },
 
     /**
-     * Decrypt ArrayBuffer
+     * Decrypt data
+     * payload: can be {iv, ciphertext} object (Base64) or ciphertext buffer
+     * key: CryptoKey
+     * iv: optional if payload is object
      */
-    async decrypt(ciphertext, key, iv) {
+    async decrypt(payload, key, iv = null) {
+        let ciphertextBuffer;
+        let ivBuffer;
+
+        // Jika input adalah objek {iv, ciphertext} Base64
+        if (payload.iv && payload.ciphertext) {
+            ivBuffer = this.base64ToBuffer(payload.iv);
+            ciphertextBuffer = this.base64ToBuffer(payload.ciphertext);
+        } else {
+            // Jika input manual (buffer)
+            ciphertextBuffer = payload;
+            ivBuffer = iv;
+        }
+
         const decoder = new TextDecoder();
         const decryptedContent = await crypto.subtle.decrypt(
-            {
-                name: "AES-GCM",
-                iv: iv
-            },
+            { name: "AES-GCM", iv: ivBuffer },
             key,
-            ciphertext
+            ciphertextBuffer
         );
 
         return decoder.decode(decryptedContent);
     },
 
-    /**
-     * Helper to convert ArrayBuffer to Base64
-     */
     bufferToBase64(buffer) {
         return btoa(String.fromCharCode(...new Uint8Array(buffer)));
     },
 
-    /**
-     * Helper to convert Base64 to ArrayBuffer
-     */
     base64ToBuffer(base64) {
         const binaryString = atob(base64);
         const bytes = new Uint8Array(binaryString.length);
@@ -96,13 +101,9 @@ const CryptoModule = {
         return bytes.buffer;
     },
 
-    /**
-     * Generate random salt
-     */
     generateSalt() {
         return crypto.getRandomValues(new Uint8Array(this.SALT_LEN));
     }
 };
 
-// Export for use in other scripts
 window.TMPT_Crypto = CryptoModule;

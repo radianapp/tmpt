@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pengaturan — TMPT</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/crypto.js"></script>
+    <script src="/assets/js/vault.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/backup.js"></script>
+    <script src="/assets/js/version.js"></script>
+</head>
+<body>
+
+    <script>
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+        })();
+    </script>
+
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <hgroup>
+            <h1>Pengaturan</h1>
+            <p>Kelola preferensi dan keamanan Brankas Anda.</p>
+        </hgroup>
+
+        <div class="grid">
+            <!-- Tampilan & Preferensi -->
+            <section>
+                <h3>Tampilan</h3>
+                <article>
+                    <label for="theme">
+                        Tema Aplikasi
+                        <select id="theme" onchange="updateSetting('theme', this.value)">
+                            <option value="system">Ikuti Sistem</option>
+                            <option value="light">Terang</option>
+                            <option value="dark">Gelap</option>
+                        </select>
+                    </label>
+                </article>
+            </section>
+
+            <!-- Keamanan -->
+            <section>
+                <h3>Keamanan</h3>
+                <article>
+                    <label for="autolock">
+                        Auto-lock Otomatis
+                        <select id="autolock" onchange="updateSetting('autoLock', parseInt(this.value))">
+                            <option value="1">1 Menit</option>
+                            <option value="5">5 Menit</option>
+                            <option value="15">15 Menit</option>
+                            <option value="30">30 Menit</option>
+                            <option value="60">1 Jam</option>
+                            <option value="0">Jangan Pernah</option>
+                        </select>
+                    </label>
+                </article>
+            </section>
+        </div>
+
+        <!-- Backup & Restore -->
+        <section>
+            <h3>Data & Backup</h3>
+            <article>
+                <div class="grid">
+                    <div>
+                        <strong>Cadangkan Data</strong>
+                        <p><small>Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt.</small></p>
+                        <button class="outline" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
+                    </div>
+                    <div>
+                        <strong>Pulihkan Data</strong>
+                        <p><small>Timpa data saat ini dengan data dari file backup Anda.</small></p>
+                        <button class="outline secondary" onclick="document.getElementById('import-input').click()">Pilih File Backup</button>
+                        <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this)">
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <hr>
+
+        <!-- Zona Bahaya -->
+        <section>
+            <h3 style="color: var(--pico-error-color);">Zona Bahaya</h3>
+            <article style="border-color: var(--pico-error-border-color);">
+                <header>Hapus Brankas Permanen</header>
+                <p>Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</p>
+                <footer>
+                    <button class="btn-danger" onclick="handleDestroyVault()">Hapus Seluruh Brankas</button>
+                </footer>
+            </article>
+        <!-- Info Aplikasi -->
+        <section>
+            <p><small class="secondary">
+                TMPT Version: <span class="tmpt-version"></span><br>
+                Codename: "Pico Rise"<br>
+                Last Update: 2026-05-15
+            </small></p>
+        </section>
+    </main>
+
+    <!-- Modal Konfirmasi (Wajib ada untuk TMPT_UI.confirm) -->
+    <dialog id="confirm-modal">
+        <article>
+            <h3 id="confirm-title">Konfirmasi</h3>
+            <p id="confirm-message">Apakah Anda yakin?</p>
+            <footer>
+                <div class="grid">
+                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
+                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+                </div>
+            </footer>
+        </article>
+    </dialog>
+
+    <script>
+        // Modal helpers
+        function closeConfirm(val) {
+            const modal = document.getElementById('confirm-modal');
+            if (modal._resolve) modal._resolve(val);
+            modal.close();
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load current data/settings from vault
+            const encryptedPayload = window.TMPT_Vault.getPayload();
+            if (encryptedPayload) {
+                try {
+                    const key = window.TMPT_Auth.getKey();
+                    const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
+                    const data = JSON.parse(decrypted);
+                    
+                    if (data.settings) {
+                        if (data.settings.theme) document.getElementById('theme').value = data.settings.theme;
+                        if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
+                    }
+                } catch (e) {
+                    console.error("Failed to load settings from vault", e);
+                }
+            }
+        });
+
+        async function updateSetting(key, value) {
+            try {
+                // Ambil data saat ini
+                const encryptedPayload = window.TMPT_Vault.getPayload();
+                const authKey = window.TMPT_Auth.getKey();
+                const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, authKey);
+                
+                let data = JSON.parse(decrypted);
+                // Migrasi jika masih format array
+                if (Array.isArray(data)) data = { items: data, settings: {} };
+                
+                if (!data.settings) data.settings = {};
+                data.settings[key] = value;
+                data.updated_at = new Date().toISOString();
+
+                // Simpan kembali
+                const encrypted = await window.TMPT_Crypto.encrypt(JSON.stringify(data), authKey);
+                window.TMPT_Vault.updatePayload(encrypted);
+
+                // Jika ganti tema, terapkan langsung
+                if (key === 'theme') {
+                    window.TMPT_UI.applyTheme(value);
+                    localStorage.setItem('tmpt_theme', value);
+                }
+
+                window.TMPT_UI.toast("Pengaturan disimpan.", "success");
+            } catch (e) {
+                console.error("Failed to save setting", e);
+                window.TMPT_UI.toast("Gagal menyimpan pengaturan.", "error");
+            }
+        }
+
+        async function handleDestroyVault() {
+            const confirmed = await window.TMPT_UI.confirm("TINDAKAN BERBAHAYA! Anda akan menghapus SELURUH data Brankas secara permanen. Anda yakin?");
+            if (confirmed) {
+                window.TMPT_Vault.destroy();
+                localStorage.removeItem('tmpt_theme');
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>

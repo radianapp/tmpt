@@ -1,0 +1,1 @@
+// Incognito detection removed in favor of permanent UI warning for better reliability.

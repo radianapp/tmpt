@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BRANKAS — TMPT</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/crypto.js"></script>
+    <script src="/assets/js/vault.js"></script>
+    <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/backup.js"></script>
+</head>
+<body>
+
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <!-- Banner Edukasi Backup - Redesigned -->
+        <article id="backup-warning" style="border: none; background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border-left: 4px solid var(--primary); padding: 1.5rem; margin-bottom: 2.5rem; position: relative;">
+            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+                <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">⚠️</div>
+                <div style="flex: 1; min-width: 280px;">
+                    <h4 style="margin-bottom: 0.5rem; color: var(--primary);">Penting: Data Anda Tersimpan Lokal</h4>
+                    <p class="secondary" style="margin-bottom: 1rem; line-height: 1.6;">
+                        TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun. 
+                        <strong>Kehilangan perangkat = Kehilangan data.</strong> Selalu simpan file backup Anda di tempat aman.
+                    </p>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button onclick="window.TMPT_Backup.exportVault()" style="width: auto; padding: 0.5rem 1.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Unduh Backup (.tmpt)
+                        </button>
+                        <button onclick="document.getElementById('import-file').click()" class="secondary outline" style="width: auto; padding: 0.5rem 1.5rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
+                            Pulihkan Data
+                        </button>
+                        <input type="file" id="import-file" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
+                    </div>
+                </div>
+                <button onclick="this.closest('article').remove()" class="secondary outline" style="position: absolute; top: 1rem; right: 1rem; border: none; padding: 0; background: none; width: auto;">✕</button>
+            </div>
+        </article>
+
+        <header class="grid" style="align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h1 style="margin-bottom: 0;">BRANKAS</h1>
+                <p class="secondary">Penyimpanan aman di sisi klien.</p>
+            </div>
+            <div style="text-align: right;">
+                <button onclick="openAddModal()" class="primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><path d="M12 5v14M5 12h14"/></svg>
+                    Tambah Data
+                </button>
+            </div>
+        </header>
+
+        <div class="grid">
+            <div style="flex: 2;">
+                <input type="search" id="search-input" placeholder="Cari data..." oninput="resetPageAndRender()">
+            </div>
+            <div style="flex: 1;">
+                <select id="category-filter" onchange="resetPageAndRender()">
+                    <option value="all">Semua Kategori</option>
+                    <option value="Login">Login</option>
+                    <option value="Catatan">Catatan</option>
+                    <option value="Kartu">Kartu</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <select id="sort-order" onchange="resetPageAndRender()">
+                    <option value="newest">Terbaru (Default)</option>
+                    <option value="oldest">Terlama</option>
+                    <option value="az">Nama (A-Z)</option>
+                    <option value="za">Nama (Z-A)</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="vault-items-container">
+            <article aria-busy="true">Memuat data Brankas...</article>
+        </div>
+
+        <!-- Pagination -->
+        <nav id="pagination-container" style="display: none; justify-content: center; margin-top: 2rem;">
+            <ul style="display: flex; gap: 0.5rem; list-style: none;">
+                <li><button class="outline secondary" id="prev-page" onclick="changePage(-1)">←</button></li>
+                <li><span id="page-info" style="line-height: 2.5rem; padding: 0 1rem;">Halaman 1 dari 1</span></li>
+                <li><button class="outline secondary" id="next-page" onclick="changePage(1)">→</button></li>
+            </ul>
+        </nav>
+    </main>
+
+    <!-- Modal: Tambah/Edit Data -->
+    <dialog id="item-modal">
+        <article style="width: 100%; max-width: 600px;">
+            <header>
+                <a href="#close" aria-label="Close" class="close" onclick="closeModal()"></a>
+                <h3 id="modal-title">Tambah Data</h3>
+            </header>
+            <form id="item-form" onsubmit="saveItem(event)">
+                <input type="hidden" id="item-id">
+                <div class="grid">
+                    <label for="title">Judul <input type="text" id="title" required></label>
+                    <label for="category">Kategori 
+                        <select id="category">
+                            <option value="Login">Login</option>
+                            <option value="Catatan">Catatan</option>
+                            <option value="Kartu">Kartu</option>
+                        </select>
+                    </label>
+                </div>
+                <label for="username">Username / Email <input type="text" id="username"></label>
+                
+                <label for="password">Password</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1rem;">
+                    <input type="password" id="password" style="margin-bottom: 0; flex: 1;">
+                    <button type="button" class="outline secondary" onclick="togglePasswordVisibility()" style="width: 50px; padding: 0.5rem; margin-bottom: 0;">👁️</button>
+                </div>
+
+                <label for="url">URL <input type="url" id="url"></label>
+                <label for="notes">Catatan <textarea id="notes" rows="3"></textarea></label>
+                
+                <footer>
+                    <div style="display: flex; justify-content: space-between; gap: 1rem;">
+                        <button type="button" id="delete-btn" class="outline" style="color: var(--del-color); border-color: var(--del-color); display: none;" onclick="deleteItem()">Hapus</button>
+                        <div style="display: flex; gap: 1rem; flex: 1; justify-content: flex-end;">
+                            <button type="button" class="secondary outline" onclick="closeModal()">Batal</button>
+                            <button type="submit" id="save-btn">Simpan</button>
+                        </div>
+                    </div>
+                </footer>
+            </form>
+        </article>
+    </dialog>
+
+    <!-- Modal: Konfirmasi (Generic) -->
+    <dialog id="confirm-modal">
+        <article>
+            <h3 id="confirm-title">Konfirmasi</h3>
+            <p id="confirm-message">Apakah Anda yakin?</p>
+            <footer>
+                <div class="grid">
+                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
+                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+                </div>
+            </footer>
+        </article>
+    </dialog>
+
+    <!-- ============================================================ -->
+    <!-- SATU BLOK SCRIPT: Semua logic ada di sini, tidak ada split   -->
+    <!-- ============================================================ -->
+    <script>
+        console.log("[BRANKAS v2] Script dimuat.");
+
+        let allItems = [];
+        let allSettings = {
+            theme: localStorage.getItem('tmpt_theme') || 'dark',
+            autoLock: 15
+        };
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        // ── INISIALISASI ──────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("[BRANKAS] DOMContentLoaded → mulai init auth...");
+            
+            try {
+                const authOk = await window.TMPT_Auth.init();
+                console.log("[BRANKAS] Auth init selesai. Key restored:", authOk);
+
+                // Cek apakah user sudah unlock
+                if (!window.TMPT_Auth.isUnlocked()) {
+                    console.warn("[BRANKAS] Vault terkunci, redirect ke login...");
+                    window.location.href = '/login';
+                    return;
+                }
+
+                window.TMPT_Auth.setupIdleListeners();
+                console.log("[BRANKAS] Auth OK. Memuat data...");
+                await loadData();
+
+            } catch (err) {
+                console.error("[BRANKAS] Fatal error saat init:", err);
+                window.location.href = '/login';
+            }
+        });
+
+        // ── LOAD DATA ─────────────────────────────────────────────
+        async function loadData() {
+            console.log("[BRANKAS] loadData() dipanggil.");
+
+            try {
+                const encryptedPayload = window.TMPT_Vault.getPayload();
+                console.log("[BRANKAS] Payload dari localStorage:", encryptedPayload ? "ADA" : "KOSONG/NULL");
+
+                if (!encryptedPayload) {
+                    allItems = [];
+                } else {
+                    const key = window.TMPT_Auth.getKey();
+                    console.log("[BRANKAS] Key dari auth:", key ? "ADA" : "NULL");
+
+                    const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
+                    console.log("[BRANKAS] Dekripsi berhasil, panjang:", decrypted.length);
+
+                    if (decrypted === "vault_initialized") {
+                        allItems = [];
+                    } else {
+                        const parsed = JSON.parse(decrypted);
+                        if (Array.isArray(parsed)) {
+                            allItems = parsed;
+                        } else {
+                            allItems = parsed.items || [];
+                            allSettings = { ...allSettings, ...(parsed.settings || {}) };
+                        }
+                        
+                        // Terapkan setting tema yang dimuat
+                        if (allSettings.theme) {
+                            window.TMPT_UI.applyTheme(allSettings.theme);
+                        }
+                    }
+                }
+
+                console.log(`[BRANKAS] Total item dimuat: ${allItems.length}`);
+                renderItems();
+
+            } catch (e) {
+                console.error("[BRANKAS] Gagal memuat data:", e);
+                // Jika error dekripsi, tampilkan empty state, jangan toast terus-menerus
+                allItems = [];
+                renderItems();
+            }
+        }
+
+        // ── RENDER ────────────────────────────────────────────────
+        function resetPageAndRender() {
+            currentPage = 1;
+            renderItems();
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            renderItems();
+        }
+
+        function renderItems() {
+            const container = document.getElementById('vault-items-container');
+            const pagination = document.getElementById('pagination-container');
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const categoryFilter = document.getElementById('category-filter').value;
+            const sortOrder = document.getElementById('sort-order').value;
+
+            // 1. Filtering
+            let filtered = allItems.filter(item => {
+                const matchesSearch = item.title.toLowerCase().includes(searchTerm) || 
+                                     (item.username && item.username.toLowerCase().includes(searchTerm));
+                const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            // 2. Sorting
+            filtered.sort((a, b) => {
+                switch (sortOrder) {
+                    case 'az':
+                        return a.title.localeCompare(b.title);
+                    case 'za':
+                        return b.title.localeCompare(a.title);
+                    case 'oldest':
+                        return new Date(a.updated_at) - new Date(b.updated_at);
+                    case 'newest':
+                    default:
+                        return new Date(b.updated_at) - new Date(a.updated_at);
+                }
+            });
+
+            // 3. Empty State
+            if (filtered.length === 0) {
+                pagination.style.display = 'none';
+                
+                // Tentukan teks dinamis berdasarkan filter
+                let emptyTitle = "Belum Ada Data";
+                let emptyDesc = "Brankas Anda masih kosong atau tidak ada hasil yang cocok.";
+                let btnText = "Buat Data Pertama";
+                
+                if (categoryFilter !== 'all') {
+                    emptyTitle = `Belum Ada ${categoryFilter}`;
+                    emptyDesc = `Anda belum menyimpan data dalam kategori ${categoryFilter}.`;
+                    btnText = `Buat ${categoryFilter} Pertama`;
+                }
+
+                container.innerHTML = `
+                    <article class="text-center" style="padding: 3rem 1rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
+                        <h3>${emptyTitle}</h3>
+                        <p class="secondary">${emptyDesc}</p>
+                        <button onclick="openAddModalWithCategory('${categoryFilter}')" class="outline">${btnText}</button>
+                    </article>
+                `;
+                return;
+            }
+
+            // Pagination Logic
+            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+            if (currentPage > totalPages) currentPage = totalPages;
+            if (currentPage < 1) currentPage = 1;
+
+            const start = (currentPage - 1) * itemsPerPage;
+            const paginated = filtered.slice(start, start + itemsPerPage);
+
+            container.innerHTML = paginated.map(item => `
+                <article class="vault-item-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span class="badge">${item.category}</span>
+                                <h4 style="margin: 0;">${item.title}</h4>
+                            </div>
+                            <small class="secondary">${item.username || '(Tanpa Username)'}</small>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="outline secondary" onclick="copyPassword('${item.id}')" title="Salin Password">📋</button>
+                            <button class="outline" onclick="editItem('${item.id}')">Edit</button>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+
+            if (totalPages > 1 || filtered.length > itemsPerPage) {
+                pagination.style.display = 'flex';
+                const startItem = (currentPage - 1) * itemsPerPage + 1;
+                const endItem = Math.min(currentPage * itemsPerPage, filtered.length);
+                
+                document.getElementById('page-info').innerHTML = `
+                    <span style="font-size: 0.9rem; opacity: 0.8;">
+                        ${startItem}–${endItem} dari ${filtered.length}
+                    </span>
+                `;
+                document.getElementById('prev-page').disabled = currentPage === 1;
+                document.getElementById('next-page').disabled = currentPage === totalPages;
+            } else {
+                pagination.style.display = 'none';
+            }
+        }
+
+        // ── SAVE ──────────────────────────────────────────────────
+        async function saveItem(event) {
+            event.preventDefault();
+            window.TMPT_UI.setLoading('#save-btn', true);
+
+            const id = document.getElementById('item-id').value || crypto.randomUUID();
+            const newItem = {
+                id,
+                title: document.getElementById('title').value,
+                category: document.getElementById('category').value,
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+                url: document.getElementById('url').value,
+                notes: document.getElementById('notes').value,
+                updated_at: new Date().toISOString()
+            };
+
+            const index = allItems.findIndex(i => i.id === id);
+            if (index > -1) allItems[index] = newItem;
+            else allItems.push(newItem);
+
+            await syncToVault();
+            window.TMPT_UI.toast("Berhasil disimpan!", "success");
+            closeModal();
+            renderItems();
+            window.TMPT_UI.setLoading('#save-btn', false);
+        }
+
+        // ── DELETE ────────────────────────────────────────────────
+        let pendingDeleteId = null;
+
+        function deleteItem() {
+            pendingDeleteId = document.getElementById('item-id').value;
+            if (!pendingDeleteId) return;
+            
+            // Tutup modal edit dulu, buka modal konfirmasi
+            closeModal();
+            document.getElementById('confirm-modal').showModal();
+        }
+
+        async function closeConfirm(confirmed) {
+            document.getElementById('confirm-modal').close();
+            
+            if (confirmed && pendingDeleteId) {
+                // Filter untuk membuang ID yang dipilih
+                allItems = allItems.filter(i => i.id !== pendingDeleteId);
+                await syncToVault();
+                window.TMPT_UI.toast("Data berhasil dihapus.", "info");
+                renderItems();
+            }
+
+            // PENTING: Resolve promise untuk pemanggil (seperti Module Backup)
+            const modal = document.getElementById('confirm-modal');
+            if (modal._resolve) {
+                modal._resolve(confirmed);
+                modal._resolve = null;
+            }
+            
+            pendingDeleteId = null;
+        }
+
+        // ── SYNC TO VAULT ─────────────────────────────────────────
+        async function syncToVault() {
+            console.log(`[BRANKAS] Menyinkronkan ${allItems.length} item ke vault...`);
+            try {
+                // Bungkus dalam satu objek besar
+                const vaultData = {
+                    items: allItems,
+                    settings: allSettings,
+                    updated_at: new Date().toISOString()
+                };
+
+                const encrypted = await window.TMPT_Crypto.encrypt(
+                    JSON.stringify(vaultData),
+                    window.TMPT_Auth.getKey()
+                );
+                const success = window.TMPT_Vault.updatePayload(encrypted);
+                
+                if (success) {
+                    console.log("[BRANKAS] Sinkronisasi berhasil!");
+                    // Verifikasi: baca kembali dari localStorage
+                    const verify = window.TMPT_Vault.getPayload();
+                    console.log("[BRANKAS] Verifikasi payload tersimpan:", verify ? "OK" : "GAGAL");
+                } else {
+                    console.error("[BRANKAS] Sinkronisasi GAGAL!");
+                }
+            } catch (e) {
+                console.error("[BRANKAS] Error sinkronisasi:", e);
+                window.TMPT_UI.toast("Gagal menyimpan data!", "error");
+            }
+        }
+
+        // ── UTILITIES ─────────────────────────────────────────────
+        function copyPassword(id) {
+            const item = allItems.find(i => i.id === id);
+            if (item && item.password) {
+                navigator.clipboard.writeText(item.password);
+                window.TMPT_UI.toast("Password disalin!", "success");
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('item-form').reset();
+            document.getElementById('item-id').value = "";
+            document.getElementById('modal-title').textContent = "Tambah Data Baru";
+            document.getElementById('delete-btn').style.display = "none";
+            document.getElementById('item-modal').showModal();
+        }
+
+        function openAddModalWithCategory(cat) {
+            openAddModal();
+            if (cat !== 'all') {
+                document.getElementById('category').value = cat;
+            }
+        }
+
+        function editItem(id) {
+            const item = allItems.find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('modal-title').textContent = "Edit Data";
+            document.getElementById('item-id').value = item.id;
+            document.getElementById('title').value = item.title;
+            document.getElementById('category').value = item.category;
+            document.getElementById('username').value = item.username;
+            document.getElementById('password').value = item.password;
+            document.getElementById('url').value = item.url;
+            document.getElementById('notes').value = item.notes;
+
+            document.getElementById('delete-btn').style.display = "block";
+            document.getElementById('item-modal').showModal();
+        }
+
+        function closeModal() {
+            document.getElementById('item-modal').close();
+        }
+
+        function togglePasswordVisibility() {
+            const passInput = document.getElementById('password');
+            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        }
+
+        // --- DEV ONLY: Generate Dummy Data ---
+        async function generateDummyData(count = 100) {
+            console.log(`[DEV] Generating ${count} dummy records...`);
+            const categories = ['Login', 'Catatan', 'Kartu'];
+            const apps = ['Google', 'Facebook', 'Twitter', 'GitHub', 'Netflix', 'Spotify', 'Amazon', 'Bank', 'Email', 'Work'];
+            
+            for (let i = 1; i <= count; i++) {
+                const app = apps[Math.floor(Math.random() * apps.length)];
+                const cat = categories[Math.floor(Math.random() * categories.length)];
+                
+                allItems.push({
+                    id: crypto.randomUUID(),
+                    title: `${app} Test ${i}`,
+                    category: cat,
+                    username: `user${i}@tmpt.id`,
+                    password: Math.random().toString(36).slice(-10),
+                    url: `https://${app.toLowerCase()}.com`,
+                    notes: `Ini adalah data dummy ke-${i} untuk testing pagination.`,
+                    updated_at: new Date().toISOString()
+                });
+            }
+            
+            await syncToVault();
+            renderItems();
+            window.TMPT_UI.toast(`${count} data dummy berhasil dibuat!`, "success");
+            console.log("[DEV] Done.");
+        }
+    </script>
+</body>
+</html>
