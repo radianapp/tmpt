@@ -1,10 +1,10 @@
 window.TMPT_VERSION = {
     major: 2,
     minor: 0,
-    patch: 1,
-    full: "2.0.1",
+    patch: 2,
+    full: "2.0.2",
     codename: "Pico Rise",
-    last_update: "2026-05-15"
+    last_update: "2026-05-16"
 };
 
 // Fungsi untuk mengisi versi ke elemen HTML
@@ -20,3 +20,4 @@ document.addEventListener('DOMContentLoaded', populateVersion);
 
 // Jalankan setiap kali HTMX melakukan swap konten (untuk footer dll)
 document.addEventListener('htmx:afterSwap', populateVersion);
+
