@@ -13,6 +13,7 @@
     <script src="/assets/js/vault.js"></script>
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/backup.js"></script>
 </head>
 <body>
 
@@ -27,14 +28,20 @@
 
             <div id="no-vault-message" style="display: none;">
                 <p class="text-center">Brankas tidak ditemukan di browser ini.</p>
-                <a href="/setup" role="button" class="contrast">Buat Brankas Baru</a>
+                <div class="grid">
+                    <a href="/setup" role="button" class="contrast">Buat Baru</a>
+                    <button class="outline" onclick="document.getElementById('import-file-login').click()">📥 Import (.tmpt)</button>
+                </div>
             </div>
 
+            <input type="file" id="import-file-login" accept=".tmpt" style="display: none;" onchange="handleLoginImport(event)">
+
             <form id="login-form">
-                <label for="password">
-                    Master Password
+                <label for="password">Master Password</label>
+                <div class="pwd-input-row">
                     <input type="password" id="password" name="password" required>
-                </label>
+                    <button type="button" class="outline secondary" onclick="toggleLoginVisibility('password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                </div>
 
                 <div id="hint-container" style="display: none; margin-bottom: 1rem;">
                     <details>
@@ -47,14 +54,53 @@
             </form>
 
             <footer class="text-center">
-                <p>Belum punya Brankas? <a href="/setup">Buat Brankas Baru</a></p>
+                <p id="footer-no-vault" style="display: none;">Punya file backup (.tmpt)? <a href="#" onclick="document.getElementById('import-file-login').click(); return false;">Import Brankas</a></p>
+                <p id="footer-has-vault" style="display: none;">Ingin restore data lama? <a href="#" onclick="document.getElementById('import-file-login').click(); return false;">Import File (.tmpt)</a></p>
             </footer>
         </article>
     </main>
 
     <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
+    <!-- Modal Konfirmasi -->
+    <dialog id="confirm-modal">
+        <article>
+            <h3 id="confirm-title">Konfirmasi</h3>
+            <p id="confirm-message">Apakah Anda yakin?</p>
+            <div id="confirm-input-container" style="display: none; margin-top: 1rem;">
+                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
+            </div>
+            <footer>
+                <div class="grid">
+                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
+                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+                </div>
+            </footer>
+        </article>
+    </dialog>
+
     <script>
+        // Modal helpers
+        function closeConfirm(val) {
+            const modal = document.getElementById('confirm-modal');
+            if (modal._resolve) modal._resolve(val);
+            modal.close();
+        }
+
+        async function handleLoginImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const success = await window.TMPT_Backup.importVault(file);
+                if (success) {
+                    window.location.reload();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+            e.target.value = '';
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             await window.TMPT_Auth.init();
             
@@ -62,7 +108,9 @@
             if (!vaultExists) {
                 document.getElementById('login-form').style.display = 'none';
                 document.getElementById('no-vault-message').style.display = 'block';
+                document.getElementById('footer-no-vault').style.display = 'block';
             } else {
+                document.getElementById('footer-has-vault').style.display = 'block';
                 const meta = window.TMPT_Vault.getMetadata();
                 if (meta && meta.hint) {
                     document.getElementById('hint-container').style.display = 'block';
@@ -70,6 +118,17 @@
                 }
             }
         });
+
+        function toggleLoginVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.style.opacity = "0.5";
+            } else {
+                input.type = "password";
+                btn.style.opacity = "1";
+            }
+        }
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();

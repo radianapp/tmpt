@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harga - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/version.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <hgroup class="text-center" style="margin-bottom: 2rem;">
+            <h1>Harga &amp; Rencana Bisnis</h1>
+            <p>Gratis untuk kebutuhan personal. Lisensi premium untuk fitur otomatisasi lanjutan.</p>
+        </hgroup>
+
+        <div class="grid" style="max-width: 900px; margin: 0 auto;">
+            <!-- Free Tier -->
+            <article class="text-center" style="border: 2px solid var(--pico-primary); position: relative;">
+                <span class="badge" style="position: absolute; top: -10px; right: 20px; font-size: 0.8rem; padding: 4px 12px;">TERPOPULER</span>
+                <header>
+                    <h2>Personal (Free)</h2>
+                </header>
+                <p style="font-size: 3rem; font-weight: 700; margin: 1rem 0;">Rp 0</p>
+                <p class="secondary">Gratis selamanya</p>
+                <ul class="no-bullets" style="text-align: left; margin: 1.5rem 0;">
+                    <li style="margin-bottom: 0.75rem;">✅ Enkripsi lokal AES-256-GCM</li>
+                    <li style="margin-bottom: 0.75rem;">✅ 1 Brankas (Vault) utama</li>
+                    <li style="margin-bottom: 0.75rem;">✅ Penyimpanan data &amp; catatan tak terbatas</li>
+                    <li style="margin-bottom: 0.75rem;">✅ Backup manual via file <code>.tmpt</code></li>
+                    <li style="margin-bottom: 0.75rem;">✅ Akses PWA &amp; Offline-first</li>
+                    <li style="margin-bottom: 0.75rem;">✅ Semua tools generator &amp; utilitas</li>
+                </ul>
+                <a href="/setup" role="button" style="width: 100%;">Mulai Sekarang — Gratis</a>
+                <footer style="margin-top: 1rem;">
+                    <small class="secondary">Tanpa iklan, tanpa pelacakan data.</small>
+                </footer>
+            </article>
+
+            <!-- Pro Tier (Roadmap v1.2) -->
+            <article class="text-center" style="opacity: 0.85; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <header>
+                        <h2 style="color: var(--pico-secondary);">Pro Edition</h2>
+                    </header>
+                    <p style="font-size: 3rem; font-weight: 700; margin: 1rem 0; color: var(--pico-secondary);">Rp 15<small style="font-size: 1.25rem;">k</small></p>
+                    <p class="secondary">per bulan (atau Rp 150k / tahun)</p>
+                    <ul class="no-bullets" style="text-align: left; margin: 1.5rem 0;">
+                        <li style="margin-bottom: 0.75rem;">⚡ <strong>Semua fitur Personal, plus:</strong></li>
+                        <li style="margin-bottom: 0.75rem;">⚡ Auto-backup terjadwal ke Google Drive</li>
+                        <li style="margin-bottom: 0.75rem;">⚡ Multi-Vault (Brankas kerja, pribadi, dsb)</li>
+                        <li style="margin-bottom: 0.75rem;">⚡ Template eksport kustom (.csv, .json)</li>
+                        <li style="margin-bottom: 0.75rem;">⚡ Recovery code generator darurat</li>
+                    </ul>
+                </div>
+                <div>
+                    <button class="outline secondary" disabled style="width: 100%;">Segera Hadir (Roadmap v1.2)</button>
+                    <footer style="margin-top: 1rem;">
+                        <small class="secondary">Sistem lisensi aman berbasis Cloudflare Worker.</small>
+                    </footer>
+                </div>
+            </article>
+        </div>
+
+        <section class="mt-2 text-center" style="max-width: 600px; margin: 3rem auto 0;">
+            <h3>Transparansi Bisnis Kami</h3>
+            <p>Karena TMPT menggunakan arsitektur <em>Zero-Knowledge</em> dan beroperasi 100% di browser, kami tidak mengeluarkan biaya sewa server atau database untuk menyimpan data Anda. Oleh karena itu, versi Personal dapat kami sediakan secara gratis selamanya.</p>
+            <p>Monetisasi (Pro Edition) ditujukan bagi pengguna yang membutuhkan kemudahan sinkronisasi otomatis antar-perangkat dan manajemen banyak Brankas sekaligus.</p>
+        </section>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

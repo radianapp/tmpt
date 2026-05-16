@@ -9,27 +9,44 @@
             </li>
         </ul>
         <ul>
-            <li class="hide-mobile"><a href="/about" class="secondary">Tentang</a></li>
-            <li class="hide-mobile"><a href="/pricing" class="secondary">Harga</a></li>
             <li class="hide-mobile"><a href="/tools" class="secondary">Tools</a></li>
-            <li class="hide-mobile"><a href="/faq" class="secondary">FAQ</a></li>
+            <li class="hide-mobile"><a href="/harga" class="secondary">Harga</a></li>
             <li>
-                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema">
+                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema">
                     <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                         <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
                     </svg>
                 </button>
             </li>
-            <li>
-                <a href="/login" class="outline" id="nav-login-btn">Buka Brankas</a>
+            <li class="hide-mobile">
+                <a href="/login" class="outline" id="nav-login-btn">Buka</a>
             </li>
-            <li>
-                <a href="/setup" role="button" id="nav-setup-btn">Buat Brankas Baru</a>
+            <li class="hide-mobile">
+                <a href="/setup" role="button" id="nav-setup-btn">Buat Baru</a>
+            </li>
+            <li class="show-mobile" style="display: none;">
+                <button class="outline secondary" aria-label="Menu Navigasi" onclick="document.getElementById('mobile-nav-modal').showModal()" style="padding: 0.35rem 0.75rem; margin-bottom: 0;">☰</button>
             </li>
         </ul>
     </nav>
 </header>
+
+<!-- Mobile Menu Dialog -->
+<dialog id="mobile-nav-modal">
+    <article>
+        <header style="display: flex; justify-content: space-between; align-items: center;">
+            <strong>Menu TMPT</strong>
+            <button class="close" aria-label="Tutup" onclick="document.getElementById('mobile-nav-modal').close()" style="margin-bottom: 0;"></button>
+        </header>
+        <ul style="list-style: none !important; padding-left: 0 !important;">
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()">Tools & Generator</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/harga" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()">Harga (Gratis)</a></li>            
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/login" role="button" class="outline" style="width: 100%; text-align: center; display: block;" onclick="document.getElementById('mobile-nav-modal').close()">Buka Brankas</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/setup" role="button" style="width: 100%; text-align: center; display: block;" onclick="document.getElementById('mobile-nav-modal').close()">Buat Brankas Baru</a></li>
+        </ul>
+    </article>
+</dialog>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {

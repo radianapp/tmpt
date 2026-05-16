@@ -85,14 +85,20 @@ const UIModule = {
         const devicePath = "M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10z M7 20h10 M9 16v4 M15 16v4";
 
         let targetPath = devicePath;
-        if (theme === 'light') targetPath = moonPath; // Show moon when light (to switch to dark)
-        else if (theme === 'dark') targetPath = sunPath; // Show sun when dark (to switch to system)
-        else if (theme === 'system') targetPath = sunPath; // Default cycle
+        if (theme === 'light') targetPath = sunPath;
+        else if (theme === 'dark') targetPath = moonPath;
+        else if (theme === 'system') targetPath = devicePath;
 
         icons.forEach(icon => {
             const paths = icon.querySelectorAll('path');
             if (paths.length > 1) {
                 paths[1].setAttribute('d', targetPath);
+            }
+            const btn = icon.closest('button');
+            if (btn) {
+                const titleStr = theme === 'system' ? 'Tema: System' : theme === 'light' ? 'Tema: Terang' : 'Tema: Gelap';
+                btn.setAttribute('aria-label', titleStr);
+                btn.setAttribute('title', titleStr);
             }
         });
     },
@@ -107,18 +113,46 @@ const UIModule = {
     /**
      * Generic Confirm Modal (Promise based)
      */
-    async confirm(message) {
+    async confirm(message, requiredText = null) {
         return new Promise((resolve) => {
             const modal = document.getElementById('confirm-modal');
             const msgEl = document.getElementById('confirm-message');
+            const inputContainer = document.getElementById('confirm-input-container');
+            const inputEl = document.getElementById('confirm-input');
+            const okBtn = document.getElementById('confirm-ok-btn');
             
-            if (!modal || !msgEl) {
+            if (!modal || !msgEl || !okBtn) {
                 // Fallback jika modal tidak ada di HTML
-                resolve(window.confirm(message));
+                if (requiredText) {
+                    const promptVal = window.prompt(`${message}\n\nKetik "${requiredText}" untuk konfirmasi:`);
+                    resolve(promptVal === requiredText);
+                } else {
+                    resolve(window.confirm(message));
+                }
                 return;
             }
 
             msgEl.textContent = message;
+            
+            if (requiredText && inputContainer && inputEl) {
+                inputContainer.style.display = 'block';
+                inputEl.value = '';
+                inputEl.placeholder = `Ketik "${requiredText}"`;
+                okBtn.disabled = true;
+                
+                inputEl.oninput = (e) => {
+                    if (e.target.value === requiredText) {
+                        okBtn.disabled = false;
+                    } else {
+                        okBtn.disabled = true;
+                    }
+                };
+            } else if (inputContainer) {
+                inputContainer.style.display = 'none';
+                okBtn.disabled = false;
+            } else {
+                okBtn.disabled = false;
+            }
             
             // Simpan resolve function di element agar bisa dipanggil saat tombol diklik
             modal._resolve = resolve;

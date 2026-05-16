@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kebijakan Privasi - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/version.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <div style="max-width: 720px; margin: 0 auto;">
+            <hgroup style="margin-bottom: 2rem;">
+                <h1>Kebijakan Privasi</h1>
+                <p>Terakhir diperbarui: Mei 2026</p>
+            </hgroup>
+
+            <section>
+                <h3>Komitmen Kami</h3>
+                <p>TMPT dirancang sejak awal untuk <strong>tidak mengumpulkan data pribadi Anda</strong>. Kebijakan privasi ini menjelaskan bahwa: kami tidak memiliki data Anda untuk dilindungi, karena kami tidak pernah menerimanya.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>Data yang Tidak Kami Kumpulkan</h3>
+                <ul>
+                    <li>❌ Nama, email, atau informasi identitas lainnya.</li>
+                    <li>❌ Password atau kunci enkripsi Anda.</li>
+                    <li>❌ Data yang Anda simpan di dalam Brankas.</li>
+                    <li>❌ Riwayat penggunaan, klik, atau perilaku di dalam aplikasi.</li>
+                    <li>❌ Alamat IP atau data lokasi.</li>
+                </ul>
+            </section>
+
+            <section class="mt-2">
+                <h3>Data yang Tersimpan Secara Lokal</h3>
+                <p>Satu-satunya data yang "tersimpan" adalah data Brankas terenkripsi di <strong>Local Storage browser perangkat Anda sendiri</strong>. Data ini tidak dapat diakses oleh kami maupun pihak ketiga mana pun.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>Layanan Pihak Ketiga</h3>
+                <p>Aplikasi ini menggunakan beberapa aset pihak ketiga yang dimuat langsung di browser Anda:</p>
+                <ul>
+                    <li><strong>PicoCSS</strong> — via CDN jsDelivr (hanya file CSS statis, tidak ada pelacakan)</li>
+                    <li><strong>HTMX</strong> — via CDN unpkg (hanya library JS statis, tidak ada pelacakan)</li>
+                </ul>
+                <p>Pengunduhan aset dari CDN tersebut mungkin merekam alamat IP Anda sesuai kebijakan privasi masing-masing layanan CDN.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>Hubungi Kami</h3>
+                <p>Jika ada pertanyaan terkait kebijakan ini, silakan hubungi kami melalui <a href="/contact">halaman Kontak</a> atau melalui <a href="https://github.com/radianapp/tmpt" target="_blank" rel="noopener noreferrer">GitHub ↗</a>.</p>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

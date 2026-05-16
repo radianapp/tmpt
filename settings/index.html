@@ -16,6 +16,7 @@
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/backup.js"></script>
     <script src="/assets/js/version.js"></script>
+    <script src="/assets/js/generator.js"></script>
 </head>
 <body>
 
@@ -65,6 +66,52 @@
                             <option value="0">Jangan Pernah</option>
                         </select>
                     </label>
+
+                    <hr>
+                    
+                    <details>
+                        <summary><strong>🔐 Ganti Master Password</strong></summary>
+                        <div style="margin-top: 1rem;">
+                            <div class="info-alert" style="margin-bottom: 1rem; border-left: 4px solid var(--pico-color); padding-left: 1rem;">
+                                <small>⚠️ Mengganti master password akan mengenkripsi ulang seluruh data Anda. Pastikan Anda mengingat password baru ini dan mem-backup data Anda terlebih dahulu!</small>
+                            </div>
+
+                            <form id="change-password-form" onsubmit="handleChangePassword(event)">
+                                <label for="current_password">Password Saat Ini
+                                    <input type="password" id="current_password" required>
+                                </label>
+                                
+                                <label for="new_password">Password Baru</label>
+                                <div class="pwd-input-row mb-half">
+                                    <input type="password" id="new_password" required minlength="12" placeholder="Minimal 12 karakter">
+                                    <button type="button" class="outline secondary" onclick="toggleSettingsVisibility('new_password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                                </div>
+                                <details class="mb-1">
+                                    <summary><strong>💡 Bingung bikin password? Buat otomatis</strong></summary>
+                                    <div class="pwd-generator-box">
+                                        <p><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
+                                        <button type="button" class="outline" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
+                                        <div class="generator-link">
+                                            <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer">Buka Tools Generator Lengkap ↗</a></small>
+                                        </div>
+                                    </div>
+                                </details>
+
+                                <label for="confirm_new_password">Konfirmasi Password Baru</label>
+                                <div class="pwd-input-row">
+                                    <input type="password" id="confirm_new_password" required placeholder="Ulangi password baru">
+                                    <button type="button" class="outline secondary" onclick="toggleSettingsVisibility('confirm_new_password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                                </div>
+
+                                <label for="new_hint">Password Hint Baru (Opsional)
+                                    <input type="text" id="new_hint" placeholder="Contoh: Nama kucing + tahun lahir">
+                                    <small>Hint sebelumnya akan ditimpa.</small>
+                                </label>
+
+                                <button type="submit" id="btn-change-pwd" class="mt-1">Ganti Password</button>
+                            </form>
+                        </div>
+                    </details>
                 </article>
             </section>
         </div>
@@ -116,6 +163,9 @@
         <article>
             <h3 id="confirm-title">Konfirmasi</h3>
             <p id="confirm-message">Apakah Anda yakin?</p>
+            <div id="confirm-input-container" style="display: none; margin-top: 1rem;">
+                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
+            </div>
             <footer>
                 <div class="grid">
                     <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
@@ -185,11 +235,118 @@
         }
 
         async function handleDestroyVault() {
-            const confirmed = await window.TMPT_UI.confirm("TINDAKAN BERBAHAYA! Anda akan menghapus SELURUH data Brankas secara permanen. Anda yakin?");
+            const confirmed = await window.TMPT_UI.confirm("TINDAKAN BERBAHAYA! Anda akan menghapus SELURUH data Brankas secara permanen. Anda yakin?", "HAPUS PERMANEN");
             if (confirmed) {
                 window.TMPT_Vault.destroy();
                 localStorage.removeItem('tmpt_theme');
                 window.location.href = '/';
+            }
+        }
+
+        function toggleSettingsVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.style.opacity = "0.5";
+            } else {
+                input.type = "password";
+                btn.style.opacity = "1";
+            }
+        }
+
+        async function autoGenerateMaster() {
+            const newPassword = window.TMPT_Generator.generateMemorable(4, '-', true, true);
+            
+            const pwdInput = document.getElementById('new_password');
+            const confirmInput = document.getElementById('confirm_new_password');
+            const hintInput = document.getElementById('new_hint');
+
+            pwdInput.value = newPassword;
+            confirmInput.value = newPassword;
+            
+            const wordsOnly = newPassword.split('-').slice(0, 4).join(' ');
+            hintInput.value = `Otomatis: ${wordsOnly}`;
+
+            if (pwdInput.type === 'password') toggleSettingsVisibility('new_password', pwdInput.nextElementSibling);
+            if (confirmInput.type === 'password') toggleSettingsVisibility('confirm_new_password', confirmInput.nextElementSibling);
+
+            try {
+                await navigator.clipboard.writeText(newPassword);
+                window.TMPT_UI.toast("Passphrase dibuat dan disalin ke clipboard!", "success");
+            } catch (err) {
+                console.error("Failed to copy:", err);
+                window.TMPT_UI.toast("Passphrase otomatis dibuat! (Gagal menyalin ke clipboard)", "success");
+            }
+        }
+
+        async function handleChangePassword(e) {
+            e.preventDefault();
+            const currentPass = document.getElementById('current_password').value;
+            const newPass = document.getElementById('new_password').value;
+            const confirmPass = document.getElementById('confirm_new_password').value;
+
+            if (newPass !== confirmPass) {
+                window.TMPT_UI.toast("Password baru dan konfirmasi tidak cocok.", "error");
+                return;
+            }
+
+            if (newPass.length < 12) {
+                window.TMPT_UI.toast("Password baru minimal 12 karakter.", "error");
+                return;
+            }
+
+            window.TMPT_UI.setLoading('#btn-change-pwd', true);
+
+            try {
+                // 1. Verifikasi password saat ini
+                const vaultData = window.TMPT_Vault.getMetadata();
+                if (!vaultData) throw new Error("Brankas tidak ditemukan.");
+
+                const oldSaltEnc = window.TMPT_Crypto.base64ToBuffer(vaultData.salt_enc);
+                const oldKey = await window.TMPT_Crypto.deriveKey(currentPass, oldSaltEnc);
+                
+                let decryptedPayload;
+                try {
+                    decryptedPayload = await window.TMPT_Crypto.decrypt(vaultData.payload, oldKey);
+                } catch (decErr) {
+                    throw new Error("Password saat ini salah.");
+                }
+
+                // 2. Jika sukses dekripsi, buat key baru
+                const newSaltAuth = window.TMPT_Crypto.generateSalt();
+                const newSaltEnc = window.TMPT_Crypto.generateSalt();
+                const newKey = await window.TMPT_Crypto.deriveKey(newPass, newSaltEnc);
+
+                // 3. Enkripsi payload lama dengan key baru
+                const newEncryptedPayload = await window.TMPT_Crypto.encrypt(decryptedPayload, newKey);
+
+                // 4. Update vault data
+                vaultData.salt_auth = window.TMPT_Crypto.bufferToBase64(newSaltAuth);
+                vaultData.salt_enc = window.TMPT_Crypto.bufferToBase64(newSaltEnc);
+                vaultData.payload = newEncryptedPayload;
+                
+                const newHint = document.getElementById('new_hint').value;
+                if (newHint) vaultData.hint = newHint;
+                // if no new hint is provided, we might keep the old one, but wait, old hint is probably irrelevant.
+                // It's better to clear it if it's empty because the password changed.
+                if (!newHint) delete vaultData.hint;
+
+                window.TMPT_Vault.save(vaultData);
+
+                // 5. Update session
+                window.TMPT_Auth._activeKey = newKey;
+                const exportedKey = await window.crypto.subtle.exportKey("raw", newKey);
+                sessionStorage.setItem('tmpt_vault_key', window.TMPT_Crypto.bufferToBase64(exportedKey));
+
+                // Clean form
+                document.getElementById('change-password-form').reset();
+                window.TMPT_UI.toast("Master Password berhasil diganti. Segera backup data Anda!", "success");
+
+            } catch (err) {
+                console.error(err);
+                window.TMPT_UI.toast(err.message || "Gagal mengganti password.", "error");
+            } finally {
+                window.TMPT_UI.setLoading('#btn-change-pwd', false);
             }
         }
     </script>

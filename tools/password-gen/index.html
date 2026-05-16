@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator Aman - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/generator.js"></script>
+    <script src="/assets/js/ui.js"></script>
+</head>
+<body>
+
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <hgroup class="text-center" style="margin-bottom: 2rem;">
+            <h1>Password Generator</h1>
+            <p>Buat kata sandi acak, aman, dan kuat langsung di browser Anda. Tidak ada data yang dikirim ke server.</p>
+        </hgroup>
+
+        <article style="max-width: 600px; margin: 0 auto;">
+            <div class="pwd-generator-box" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span id="gen-result" style="font-family: monospace; font-size: 1.5rem; word-break: break-all; margin-right: 1rem;">Memuat...</span>
+                    <button class="outline" onclick="copyResult()" style="width: auto; padding: 0.5rem 1rem; margin-bottom: 0;">Salin</button>
+                </div>
+                <div id="hint-container" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); display: none;">
+                    <small class="secondary">Rekomendasi Password Hint:</small><br>
+                    <strong id="gen-hint" style="color: var(--pico-primary);"></strong>
+                </div>
+            </div>
+
+            <nav style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color);">
+                <ul>
+                    <li><a href="#" class="tab-link active" onclick="switchTab('random', event)">Acak Kuat</a></li>
+                    <li><a href="#" class="tab-link" onclick="switchTab('memorable', event)">Mudah Diingat</a></li>
+                    <li><a href="#" class="tab-link" onclick="switchTab('pin', event)">PIN Angka</a></li>
+                </ul>
+            </nav>
+
+            <div id="tab-random" class="tab-content">
+                <label for="random-length">Panjang: <span id="length-val">16</span></label>
+                <input type="range" id="random-length" min="8" max="64" value="16" oninput="document.getElementById('length-val').innerText = this.value; generate()">
+                
+                <div class="grid mt-1">
+                    <label><input type="checkbox" id="chk-upper" checked onchange="generate()"> Huruf Besar (A-Z)</label>
+                    <label><input type="checkbox" id="chk-lower" checked onchange="generate()" disabled> Huruf Kecil (a-z)</label>
+                    <label><input type="checkbox" id="chk-num" checked onchange="generate()"> Angka (0-9)</label>
+                    <label><input type="checkbox" id="chk-sym" checked onchange="generate()"> Simbol (!@#$)</label>
+                </div>
+            </div>
+
+            <div id="tab-memorable" class="tab-content" style="display: none;">
+                <label for="memo-words">Jumlah Kata: <span id="words-val">4</span></label>
+                <input type="range" id="memo-words" min="3" max="8" value="4" oninput="document.getElementById('words-val').innerText = this.value; generate()">
+                
+                <div class="grid mt-1">
+                    <label><input type="checkbox" id="chk-cap" checked onchange="generate()"> Huruf Besar Awal</label>
+                    <label><input type="checkbox" id="chk-addnum" checked onchange="generate()"> Tambah Angka</label>
+                    <label><input type="checkbox" id="chk-addsym" onchange="generate()"> Tambah Simbol</label>
+                    <label>Pemisah: 
+                        <select id="memo-sep" onchange="generate()">
+                            <option value="-">Strip (-)</option>
+                            <option value=" ">Spasi ( )</option>
+                            <option value=".">Titik (.)</option>
+                            <option value="">Tanpa Pemisah</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <div id="tab-pin" class="tab-content" style="display: none;">
+                <label for="pin-length">Panjang PIN: <span id="pin-val">6</span> digit</label>
+                <input type="range" id="pin-length" min="4" max="12" value="6" oninput="document.getElementById('pin-val').innerText = this.value; generate()">
+            </div>
+
+            <button onclick="generate()" class="mt-1" style="width: 100%;">Ganti Password Baru 🔄</button>
+        </article>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        let currentTab = 'random';
+
+        function switchTab(tabId, event) {
+            if (event) event.preventDefault();
+            currentTab = tabId;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            // Remove active class
+            document.querySelectorAll('.tab-link').forEach(el => {
+                el.classList.remove('active');
+                el.style.color = 'var(--pico-secondary)';
+                el.style.borderBottom = 'none';
+            });
+            
+            // Show selected tab
+            document.getElementById(`tab-${tabId}`).style.display = 'block';
+            
+            // Add active class
+            const activeLink = event ? event.target : document.querySelector('.tab-link');
+            activeLink.classList.add('active');
+            activeLink.style.color = 'var(--pico-primary)';
+            activeLink.style.borderBottom = '2px solid var(--pico-primary)';
+
+            generate();
+        }
+
+        function generate() {
+            let result = '';
+            let hint = '';
+            if (currentTab === 'random') {
+                const len = parseInt(document.getElementById('random-length').value);
+                const opts = {
+                    uppercase: document.getElementById('chk-upper').checked,
+                    numbers: document.getElementById('chk-num').checked,
+                    symbols: document.getElementById('chk-sym').checked
+                };
+                result = window.TMPT_Generator.generateRandom(len, opts);
+                hint = '';
+            } else if (currentTab === 'memorable') {
+                const words = parseInt(document.getElementById('memo-words').value);
+                const cap = document.getElementById('chk-cap').checked;
+                const addNum = document.getElementById('chk-addnum').checked;
+                const addSym = document.getElementById('chk-addsym').checked;
+                const sep = document.getElementById('memo-sep').value;
+                result = window.TMPT_Generator.generateMemorable(words, sep, cap, addNum, addSym);
+                
+                // Construct hint
+                const parts = result.split(sep || /(?=[A-Z])/); // fallback regex if no separator
+                const wordsOnly = parts.filter(p => isNaN(p)).join(' ');
+                hint = `Otomatis: ${wordsOnly}`;
+            } else if (currentTab === 'pin') {
+                const len = parseInt(document.getElementById('pin-length').value);
+                result = window.TMPT_Generator.generatePIN(len);
+                hint = '';
+            }
+
+            document.getElementById('gen-result').innerText = result;
+            const hintContainer = document.getElementById('hint-container');
+            if (hint) {
+                document.getElementById('gen-hint').innerText = hint;
+                hintContainer.style.display = 'block';
+            } else {
+                hintContainer.style.display = 'none';
+            }
+        }
+
+        function copyResult() {
+            const text = document.getElementById('gen-result').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                window.TMPT_UI.toast("Password disalin ke clipboard!", "success");
+            });
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            const activeLink = document.querySelector('.tab-link.active');
+            activeLink.style.color = 'var(--pico-primary)';
+            activeLink.style.borderBottom = '2px solid var(--pico-primary)';
+            generate();
+        });
+    </script>
+</body>
+</html>

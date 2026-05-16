@@ -15,6 +15,7 @@
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/backup.js"></script>
+    <script src="/assets/js/generator.js"></script>
 </head>
 <body>
 
@@ -26,10 +27,11 @@
             <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
                 <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">⚠️</div>
                 <div style="flex: 1; min-width: 280px;">
-                    <h4 style="margin-bottom: 0.5rem; color: var(--primary);">Penting: Data Anda Tersimpan Lokal</h4>
+                    <h4 style="margin-bottom: 0.5rem; color: var(--primary);">Penting: Data Anda Tersimpan Lokal / Browser</h4>
                     <p class="secondary" style="margin-bottom: 1rem; line-height: 1.6;">
                         TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun. 
-                        <strong>Kehilangan perangkat = Kehilangan data.</strong> Selalu simpan file backup Anda di tempat aman.
+                        <p><strong>Kehilangan perangkat = Kehilangan data.</strong></p>
+                        <p>Selalu simpan file backup Anda di tempat aman.</p>
                     </p>
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                         <button onclick="window.TMPT_Backup.exportVault()" style="width: auto; padding: 0.5rem 1.5rem;">
@@ -118,9 +120,13 @@
                 <label for="username">Username / Email <input type="text" id="username"></label>
                 
                 <label for="password">Password</label>
-                <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 1rem;">
-                    <input type="password" id="password" style="margin-bottom: 0; flex: 1;">
-                    <button type="button" class="outline secondary" onclick="togglePasswordVisibility()" style="width: 50px; padding: 0.5rem; margin-bottom: 0;">👁️</button>
+                <div class="pwd-input-row mb-half">
+                    <input type="password" id="password">
+                    <button type="button" class="outline secondary" onclick="togglePasswordVisibility()" title="Tampilkan/Sembunyikan">👁️</button>
+                    <button type="button" class="outline" onclick="autoGeneratePassword()" title="Generate Password Kuat">🎲 Generate</button>
+                </div>
+                <div style="margin-bottom: 1rem; text-align: right;">
+                    <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer">Buka Tools Generator Lengkap ↗</a></small>
                 </div>
 
                 <label for="url">URL <input type="url" id="url"></label>
@@ -144,6 +150,9 @@
         <article>
             <h3 id="confirm-title">Konfirmasi</h3>
             <p id="confirm-message">Apakah Anda yakin?</p>
+            <div id="confirm-input-container" style="display: none; margin-top: 1rem;">
+                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
+            </div>
             <footer>
                 <div class="grid">
                     <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
@@ -349,6 +358,25 @@
         }
 
         // ── SAVE ──────────────────────────────────────────────────
+        function autoGeneratePassword() {
+            // Generate a strong random password (16 chars, all options)
+            const newPassword = window.TMPT_Generator.generateRandom(16);
+            const passwordInput = document.getElementById('password');
+            passwordInput.value = newPassword;
+            
+            // Show password briefly so user can see what was generated
+            if (passwordInput.type === 'password') {
+                togglePasswordVisibility(); // show it
+                setTimeout(() => {
+                    if (passwordInput.type === 'text') {
+                        togglePasswordVisibility(); // hide it after 3 seconds
+                    }
+                }, 3000);
+            }
+            
+            window.TMPT_UI.toast("Password acak dibuat!", "success");
+        }
+
         async function saveItem(event) {
             event.preventDefault();
             window.TMPT_UI.setLoading('#save-btn', true);

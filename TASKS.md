@@ -21,12 +21,13 @@
 - [x] Mekanisme Auto-lock
 
 ## Fase 3: BRANKAS App
-- [ ] Dashboard BRANKAS (`/brankas`)
-- [ ] Credential CRUD
-- [ ] Records CRUD
-- [ ] BRANKAS Settings
+- [x] Dashboard BRANKAS (`/brankas`)
+- [x] Credential CRUD
+- [x] Records CRUD
+- [x] BRANKAS Settings (Terintegrasi dengan `/settings`)
 
 ## Fase 4: Backup & Tools
-- [ ] Backup/Restore (Local file)
-- [ ] Standalone Tools (Password generator, dll)
+- [x] Backup/Restore (Local file `.tmpt`)
+- [x] Standalone Tools (Password generator)
+- [ ] Dokumentasi & Sinkronisasi Git Versioning (Skrip & Panduan manual)
 - [ ] Halaman standar (About, FAQ, Help, dll)

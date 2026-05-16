@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TMPT — Tempat data kamu, bukan tempat data orang lain</title>
+    <meta name="description" content="Platform penyimpanan data pribadi terenkripsi yang berjalan 100% di browser Anda. Tanpa server, tanpa pelacakan.">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
     <meta name="theme-color" content="#2563eb">
     
     <!-- CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <link rel="stylesheet" href="/assets/css/app.css?v=3">
     
     <!-- JS -->
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
@@ -19,82 +20,96 @@
     <script src="assets/js/vault.js"></script>
     <script src="assets/js/auth.js"></script>
     <script src="/assets/js/version.js"></script>
-    <script src="assets/js/ui.js"></script>
+    <script src="assets/js/ui.js?v=4"></script>
 </head>
 <body>
 
-    <!-- Header will be loaded here -->
+    <!-- Header -->
     <div id="header-container" hx-get="shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <section id="hero" class="text-center mt-2">
-            <h1>Tempat aman untuk semua data penting kamu</h1>
-            <p class="secondary">Tersimpan di browser-mu sendiri. Terenkripsi. Tanpa server.</p>
-            <div class="grid">
-                <div></div>
-                <div class="grid">
-                    <a href="/setup" role="button">Mulai Gratis</a>
-                    <a href="/about" role="button" class="outline">Lihat cara kerjanya</a>
+
+        <!-- Hero Section: Two-column layout -->
+        <section class="hero-section">
+            <div class="hero-text">
+                <h1>Amankan Identitas Digital Kamu</h1>
+                <p class="secondary">
+                    Kelola credential, tugas, dan catatan penting dalam satu platform. 
+                    Terenkripsi secara lokal, tanpa server. Data kamu, kendali kamu.
+                </p>
+                <div class="hero-actions">
+                    <a href="/setup" role="button" class="hero-btn-primary">Mulai Gratis</a>
+                    <a href="/help" role="button" class="outline hero-btn-secondary">Pelajari Lebih Lanjut</a>
                 </div>
-                <div></div>
+            </div>
+            <div class="hero-image">
+                <img src="/assets/img/hero-preview.png" alt="Tampilan dashboard BRANKAS" loading="lazy">
             </div>
         </section>
 
-        <hr class="mt-2 mb-2">
-
-        <section id="features">
+        <!-- Apps Section -->
+        <section class="apps-section">
+            <h2>Tools Privat Kamu</h2>
             <div class="grid">
-                <article>
-                    <header>🔒 Aman & Privat</header>
-                    Data dienkripsi dengan AES-256-GCM langsung di browser Anda. Kami tidak pernah melihat data Anda.
+                <!-- BRANKAS -->
+                <article class="app-card">
+                    <div class="app-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"/>
+                            <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/>
+                            <path d="M8 11v-4a4 4 0 1 1 8 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>Brankas</h3>
+                    <p class="secondary">Simpan password, data identitas, dan informasi sensitif dengan aman dan terenkripsi.</p>
+                    <a href="/brankas" role="button" class="app-card-btn">Buka Brankas</a>
                 </article>
-                <article>
-                    <header>☁ Offline-ready</header>
-                    Bekerja sepenuhnya di browser Anda. Tidak butuh koneksi internet setelah halaman dimuat.
+
+                <!-- DAFTAR -->
+                <article class="app-card app-card-soon">
+                    <div class="app-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/>
+                            <path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/>
+                            <path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/>
+                            <path d="M11 6l9 0"/>
+                            <path d="M11 12l9 0"/>
+                            <path d="M11 18l9 0"/>
+                        </svg>
+                    </div>
+                    <h3>Daftar</h3>
+                    <p class="secondary">Kelola tugas dan daftar harian kamu secara efisien dan privat.</p>
+                    <button class="outline secondary app-card-btn" disabled>Segera Hadir</button>
                 </article>
-                <article>
-                    <header>🇮🇩 Buatan Indonesia</header>
-                    Dibuat dengan ❤️ di Indonesia untuk privasi dunia. Open source dan transparan.
+
+                <!-- CATAT -->
+                <article class="app-card app-card-soon">
+                    <div class="app-card-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                            <path d="M5 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/>
+                            <path d="M9 7l6 0"/>
+                            <path d="M9 11l6 0"/>
+                            <path d="M9 15l4 0"/>
+                        </svg>
+                    </div>
+                    <h3>Catat</h3>
+                    <p class="secondary">Tulis catatan rahasia dan ide-ide pribadi kamu secara privat.</p>
+                    <button class="outline secondary app-card-btn" disabled>Segera Hadir</button>
                 </article>
             </div>
         </section>
 
-        <section id="apps" class="mt-2">
-            <h2 class="text-center">Aplikasi Tersedia</h2>
-            <div class="grid">
-                <article>
-                    <h3>BRANKAS</h3>
-                    <p>Personal credential & info manager. Simpan password, KTP, dan info penting lainnya.</p>
-                    <footer>
-                        <a href="/brankas" role="button" class="secondary">Buka BRANKAS</a>
-                    </footer>
-                </article>
-                <article>
-                    <h3>DAFTAR</h3>
-                    <p>To-do & list manager. Simpan daftar belanja atau tugas harian kamu.</p>
-                    <footer>
-                        <button class="secondary outline" disabled>Segera Hadir</button>
-                    </footer>
-                </article>
-                <article>
-                    <h3>CATAT</h3>
-                    <p>Secure notes. Catat ide-ide rahasia atau jurnal pribadi kamu.</p>
-                    <footer>
-                        <button class="secondary outline" disabled>Segera Hadir</button>
-                    </footer>
-                </article>
-            </div>
-        </section>
     </main>
 
-    <!-- Footer will be loaded here -->
+    <!-- Footer -->
     <div id="footer-container" hx-get="shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <script>
-        // Check if vault exists and change header if needed
         document.addEventListener('DOMContentLoaded', async () => {
             await window.TMPT_Auth.init();
-            
             if (window.TMPT_Vault.exists()) {
                 console.log("Vault detected.");
             }

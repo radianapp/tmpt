@@ -13,6 +13,7 @@
     <script src="/assets/js/vault.js"></script>
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/generator.js"></script>
 </head>
 <body>
 
@@ -54,16 +55,31 @@
             </dialog>
 
             <form id="setup-form">
-                <label for="password">
-                    Master Password
+                <label for="password">Master Password</label>
+                <div class="pwd-input-row mb-half">
                     <input type="password" id="password" name="password" placeholder="Minimal 12 karakter" required minlength="12">
-                    <small>Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal.</small>
-                </label>
+                    <button type="button" class="outline secondary" onclick="toggleSetupVisibility('password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                </div>
+                <small style="display: block; margin-bottom: 1rem;">Gunakan kombinasi huruf, angka, dan simbol untuk keamanan maksimal.</small>
 
-                <label for="confirm_password">
-                    Konfirmasi Password
+                <details class="mb-1">
+                    <summary><strong>💡 Bingung bikin password? Buat otomatis</strong></summary>
+                    <div class="pwd-generator-box">
+                        <p><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
+                        <button type="button" class="outline" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
+                        <div class="generator-link">
+                            <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer">Buka Tools Generator Lengkap ↗</a></small>
+                        </div>
+                    </div>
+                </details>
+
+
+                <label for="confirm_password">Konfirmasi Password</label>
+                <div class="pwd-input-row">
                     <input type="password" id="confirm_password" name="confirm_password" placeholder="Ulangi password" required>
-                </label>
+                    <button type="button" class="outline secondary" onclick="toggleSetupVisibility('confirm_password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                </div>
+
 
                 <label for="hint">
                     Password Hint (Opsional)
@@ -106,6 +122,46 @@
         });
 
         let isConfirmed = false;
+
+        function toggleSetupVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.style.opacity = "0.5";
+            } else {
+                input.type = "password";
+                btn.style.opacity = "1";
+            }
+        }
+
+        async function autoGenerateMaster() {
+            // Generate a 4-word memorable password separated by hyphen and a number
+            const newPassword = window.TMPT_Generator.generateMemorable(4, '-', true, true);
+            
+            // Fill inputs
+            const pwdInput = document.getElementById('password');
+            const confirmInput = document.getElementById('confirm_password');
+            const hintInput = document.getElementById('hint');
+
+            pwdInput.value = newPassword;
+            confirmInput.value = newPassword;
+            
+            // Set hint to just the words without the number, or something obscure
+            const wordsOnly = newPassword.split('-').slice(0, 4).join(' ');
+            hintInput.value = `Otomatis: ${wordsOnly}`;
+
+            // Temporarily show passwords so user can memorize/write it down
+            if (pwdInput.type === 'password') toggleSetupVisibility('password', pwdInput.nextElementSibling);
+            if (confirmInput.type === 'password') toggleSetupVisibility('confirm_password', confirmInput.nextElementSibling);
+
+            try {
+                await navigator.clipboard.writeText(newPassword);
+                window.TMPT_UI.toast("Passphrase dibuat dan disalin ke clipboard!", "success");
+            } catch (err) {
+                console.error("Failed to copy:", err);
+                window.TMPT_UI.toast("Passphrase otomatis dibuat! (Gagal menyalin ke clipboard)", "success");
+            }
+        }
 
         function closeModal() {
             document.getElementById('vault-exists-modal').removeAttribute('open');

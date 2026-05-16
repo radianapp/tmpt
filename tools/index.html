@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tools - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/version.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <hgroup class="text-center" style="margin-bottom: 2rem;">
+            <h1>Tools</h1>
+            <p>Alat-alat gratis yang berjalan langsung di browser Anda. Tidak ada data yang dikirim ke server.</p>
+        </hgroup>
+
+        <div class="grid">
+            <article class="text-center" style="padding-top: 1.5rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔑</div>
+                <h3>Password Generator</h3>
+                <p>Buat kata sandi acak, passphrase mudah diingat, atau PIN angka yang aman. Lengkap dengan rekomendasi Password Hint.</p>
+                <footer style="margin-top: 1rem;">
+                    <a href="/tools/password-gen/" role="button" style="width: 100%;">Buka Tool</a>
+                </footer>
+            </article>
+            <article class="text-center" style="padding-top: 1.5rem; opacity: 0.5;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                <h3>Password Checker</h3>
+                <p>Cek seberapa kuat kata sandi Anda. Analisis dilakukan 100% lokal, password Anda tidak pernah dikirim ke mana pun.</p>
+                <footer style="margin-top: 1rem;">
+                    <button class="outline secondary" disabled style="width: 100%;">Segera Hadir</button>
+                </footer>
+            </article>
+            <article class="text-center" style="padding-top: 1.5rem; opacity: 0.5;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                <h3>Notes Encryptor</h3>
+                <p>Enkripsi teks atau catatan pendek dengan password, dan bagikan hasil enkripsinya dengan aman.</p>
+                <footer style="margin-top: 1rem;">
+                    <button class="outline secondary" disabled style="width: 100%;">Segera Hadir</button>
+                </footer>
+            </article>
+        </div>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>
