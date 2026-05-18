@@ -1,0 +1,91 @@
+/* =====================================================
+   NORDIC FROST THEME
+   ===================================================== */
+:root {
+    --pico-background-color: #eceff4 !important;
+    --pico-card-background-color: #e5e9f0 !important;
+    --pico-color: #2e3440 !important;
+    --pico-h1-color: #2e3440 !important;
+    --pico-primary: #5e81ac !important;
+    --pico-primary-hover: #81a1c1 !important;
+    --pico-muted-border-color: #d8dee9 !important;
+    --pico-border-color: #d8dee9 !important;
+
+    --tmpt-primary: #5e81ac;
+    --tmpt-primary-hover: #81a1c1;
+    --tmpt-accent: #88c0d0;
+    --tmpt-bg-gradient: linear-gradient(135deg, #eceff4 0%, #e5e9f0 100%);
+    --tmpt-card-bg: #e5e9f0;
+    --tmpt-card-border: #d8dee9;
+    --tmpt-card-shadow: 0 10px 25px rgba(46,52,64,0.08);
+    --tmpt-card-shadow-hover: 0 15px 35px rgba(94,129,172,0.2);
+    --tmpt-border-active: #81a1c1;
+}
+
+[data-theme="dark"] {
+    --pico-background-color: #2e3440 !important;
+    --pico-card-background-color: #3b4252 !important;
+    --pico-color: #d8dee9 !important;
+    --pico-h1-color: #eceff4 !important;
+    --pico-muted-border-color: #434c5e !important;
+    --pico-border-color: #4c566a !important;
+
+    --tmpt-bg-gradient: linear-gradient(135deg, #2e3440 0%, #3b4252 100%);
+    --tmpt-card-bg: #3b4252;
+    --tmpt-card-border: #434c5e;
+    --tmpt-card-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    --tmpt-card-shadow-hover: 0 15px 35px rgba(136,192,208,0.25);
+    --tmpt-border-active: #88c0d0;
+}
+
+body {
+    background: var(--pico-background-color) !important;
+    color: var(--pico-color) !important;
+}
+
+/* Override Tombol */
+.btn-navy {
+    background: #5e81ac !important;
+    border-color: #5e81ac !important;
+    color: #eceff4 !important;
+    box-shadow: 0 4px 12px rgba(94,129,172,0.3) !important;
+}
+
+.btn-navy:hover {
+    background: #81a1c1 !important;
+    border-color: #81a1c1 !important;
+}
+
+.btn-gray {
+    background: var(--pico-muted-border-color) !important;
+    border-color: var(--pico-muted-border-color) !important;
+    color: var(--pico-color) !important;
+}
+
+/* Kartu */
+.app-selector-card, .settings-card {
+    border: 1px solid var(--tmpt-card-border) !important;
+    background: var(--tmpt-card-bg) !important;
+    box-shadow: var(--tmpt-card-shadow) !important;
+}
+
+.app-selector-card:hover, .settings-card:hover {
+    border-color: var(--tmpt-border-active) !important;
+    box-shadow: var(--tmpt-card-shadow-hover) !important;
+}
+
+.security-status-card {
+    border: 1px solid var(--tmpt-card-border) !important;
+    background: var(--tmpt-card-bg) !important;
+    box-shadow: var(--tmpt-card-shadow) !important;
+}
+
+.dot-green { background-color: #a3be8c !important; box-shadow: 0 0 8px #a3be8c !important; }
+.dot-blue { background-color: #88c0d0 !important; box-shadow: 0 0 8px #88c0d0 !important; }
+.dot-purple { background-color: #b48ead !important; box-shadow: 0 0 8px #b48ead !important; }
+
+.banner-backup {
+    background: #434c5e !important;
+    color: #eceff4 !important;
+    border: 1px solid #88c0d0 !important;
+}

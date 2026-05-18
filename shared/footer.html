@@ -1,4 +1,4 @@
-<footer class="container">
+<footer id="app-footer" class="container" style="transition: opacity 0.3s ease;">
     <hr>
     <div class="grid">
         <div>
@@ -30,4 +30,18 @@
             </ul>
         </div>
     </div>
+    <script>
+        (() => {
+            const isUnlocked = (window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) || sessionStorage.getItem('tmpt_is_unlocked') === 'true' || sessionStorage.getItem('tmpt_vault_key');
+            if (isUnlocked) {
+                const el = document.getElementById('app-footer');
+                if (el) el.style.display = 'none';
+            }
+            if (window.TMPT_Version) {
+                document.querySelectorAll('.tmpt-version').forEach(span => {
+                    span.textContent = window.TMPT_Version;
+                });
+            }
+        })();
+    </script>
 </footer>

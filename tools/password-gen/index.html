@@ -6,7 +6,7 @@
     <title>Password Generator Aman - TMPT</title>
     <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <link rel="stylesheet" href="/assets/css/app.css?v=3">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="/assets/js/generator.js"></script>
     <script src="/assets/js/ui.js"></script>
@@ -16,53 +16,123 @@
     <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <hgroup class="text-center" style="margin-bottom: 2rem;">
-            <h1>Password Generator</h1>
-            <p>Buat kata sandi acak, aman, dan kuat langsung di browser Anda. Tidak ada data yang dikirim ke server.</p>
+        <hgroup class="text-center" style="margin-bottom: 2.5rem;">
+            <div class="shield-header">
+                <div class="shield-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+                        <circle cx="12" cy="11" r="1" />
+                        <line x1="12" y1="12" x2="12" y2="14.5" />
+                    </svg>
+                </div>
+                <h1 style="margin: 0; font-size: 2.25rem; font-weight: 700;">Password Generator</h1>
+            </div>
+            <p class="secondary" style="font-size: 1.1rem;">Buat kata sandi acak, aman, dan kuat langsung di browser Anda.<br>Tidak ada data yang dikirim ke server.</p>
         </hgroup>
 
-        <article style="max-width: 600px; margin: 0 auto;">
-            <div class="pwd-generator-box" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between;">
-                    <span id="gen-result" style="font-family: monospace; font-size: 1.5rem; word-break: break-all; margin-right: 1rem;">Memuat...</span>
-                    <button class="outline" onclick="copyResult()" style="width: auto; padding: 0.5rem 1rem; margin-bottom: 0;">Salin</button>
-                </div>
-                <div id="hint-container" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); display: none;">
-                    <small class="secondary">Rekomendasi Password Hint:</small><br>
-                    <strong id="gen-hint" style="color: var(--pico-primary);"></strong>
-                </div>
+        <article class="generator-card">
+            <!-- Output / Result Box -->
+            <fieldset role="group" class="generator-result-group">
+                <input type="text" id="gen-result" class="generator-input" readonly value="Memuat..." aria-label="Hasil Password" />
+                <button id="btn-copy" class="generator-btn-copy" onclick="copyResult()" title="Salin ke Clipboard">
+                    Salin
+                </button>
+            </fieldset>
+
+            <!-- Password Hint Container -->
+            <div id="hint-container" class="info-alert text-center" style="display: none; margin-bottom: 1.5rem; animation: slideIn 0.3s ease;">
+                <small class="secondary" style="font-weight: 600;">💡 Rekomendasi Password Hint:</small>
+                <div id="gen-hint" style="font-size: 1.1rem; font-weight: 700; color: var(--pico-primary); margin-top: 0.25rem;"></div>
             </div>
 
-            <nav style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color);">
+            <!-- Tabs Navigation -->
+            <nav class="generator-tabs">
                 <ul>
-                    <li><a href="#" class="tab-link active" onclick="switchTab('random', event)">Acak Kuat</a></li>
-                    <li><a href="#" class="tab-link" onclick="switchTab('memorable', event)">Mudah Diingat</a></li>
-                    <li><a href="#" class="tab-link" onclick="switchTab('pin', event)">PIN Angka</a></li>
+                    <li>
+                        <a href="#" id="link-random" class="tab-link active" onclick="switchTab('random', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <rect x="4" y="4" width="16" height="16" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1" fill="currentColor" />
+                                <circle cx="15.5" cy="8.5" r="1" fill="currentColor" />
+                                <circle cx="8.5" cy="15.5" r="1" fill="currentColor" />
+                                <circle cx="15.5" cy="15.5" r="1" fill="currentColor" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                            </svg>
+                            Acak Kuat
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="link-memorable" class="tab-link" onclick="switchTab('memorable', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8" />
+                                <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8" />
+                                <path d="M17.5 16a3.5 3.5 0 0 0 0 -7h-.5" />
+                                <path d="M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0" />
+                                <path d="M6.5 16a3.5 3.5 0 0 1 0 -7h.5" />
+                                <path d="M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10" />
+                            </svg>
+                            Mudah Diingat
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="link-pin" class="tab-link" onclick="switchTab('pin', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8" cy="8" r="1" fill="currentColor" />
+                                <circle cx="12" cy="8" r="1" fill="currentColor" />
+                                <circle cx="16" cy="8" r="1" fill="currentColor" />
+                                <circle cx="8" cy="12" r="1" fill="currentColor" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                                <circle cx="16" cy="12" r="1" fill="currentColor" />
+                                <circle cx="8" cy="16" r="1" fill="currentColor" />
+                                <circle cx="12" cy="16" r="1" fill="currentColor" />
+                                <circle cx="16" cy="16" r="1" fill="currentColor" />
+                            </svg>
+                            PIN Angka
+                        </a>
+                    </li>
                 </ul>
             </nav>
 
+            <!-- Tab Content: Random -->
             <div id="tab-random" class="tab-content">
-                <label for="random-length">Panjang: <span id="length-val">16</span></label>
-                <input type="range" id="random-length" min="8" max="64" value="16" oninput="document.getElementById('length-val').innerText = this.value; generate()">
+                <div class="generator-range-wrapper">
+                    <div class="generator-range-header">
+                        <label for="random-length" style="margin: 0;">Panjang Karakter</label>
+                        <span id="length-val" class="generator-badge">16</span>
+                    </div>
+                    <input type="range" id="random-length" min="8" max="64" value="16" oninput="document.getElementById('length-val').innerText = this.value; generate()" aria-label="Pengatur Panjang Password">
+                </div>
                 
-                <div class="grid mt-1">
+                <div class="options-grid">
                     <label><input type="checkbox" id="chk-upper" checked onchange="generate()"> Huruf Besar (A-Z)</label>
-                    <label><input type="checkbox" id="chk-lower" checked onchange="generate()" disabled> Huruf Kecil (a-z)</label>
+                    <label><input type="checkbox" id="chk-lower" checked onchange="generate()"> Huruf Kecil (a-z)</label>
                     <label><input type="checkbox" id="chk-num" checked onchange="generate()"> Angka (0-9)</label>
                     <label><input type="checkbox" id="chk-sym" checked onchange="generate()"> Simbol (!@#$)</label>
                 </div>
             </div>
 
+            <!-- Tab Content: Memorable -->
             <div id="tab-memorable" class="tab-content" style="display: none;">
-                <label for="memo-words">Jumlah Kata: <span id="words-val">4</span></label>
-                <input type="range" id="memo-words" min="3" max="8" value="4" oninput="document.getElementById('words-val').innerText = this.value; generate()">
+                <div class="generator-range-wrapper">
+                    <div class="generator-range-header">
+                        <label for="memo-words" style="margin: 0;">Jumlah Kata</label>
+                        <span id="words-val" class="generator-badge">4</span>
+                    </div>
+                    <input type="range" id="memo-words" min="3" max="8" value="4" oninput="document.getElementById('words-val').innerText = this.value; generate()" aria-label="Pengatur Jumlah Kata">
+                </div>
                 
-                <div class="grid mt-1">
+                <div class="options-grid">
                     <label><input type="checkbox" id="chk-cap" checked onchange="generate()"> Huruf Besar Awal</label>
                     <label><input type="checkbox" id="chk-addnum" checked onchange="generate()"> Tambah Angka</label>
                     <label><input type="checkbox" id="chk-addsym" onchange="generate()"> Tambah Simbol</label>
-                    <label>Pemisah: 
-                        <select id="memo-sep" onchange="generate()">
+                    <label style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                        <span style="font-size: 0.85rem; color: var(--pico-secondary);">Pemisah Kata</span>
+                        <select id="memo-sep" onchange="generate()" style="margin: 0; padding: 0.4rem 0.75rem;">
                             <option value="-">Strip (-)</option>
                             <option value=" ">Spasi ( )</option>
                             <option value=".">Titik (.)</option>
@@ -72,12 +142,26 @@
                 </div>
             </div>
 
+            <!-- Tab Content: PIN -->
             <div id="tab-pin" class="tab-content" style="display: none;">
-                <label for="pin-length">Panjang PIN: <span id="pin-val">6</span> digit</label>
-                <input type="range" id="pin-length" min="4" max="12" value="6" oninput="document.getElementById('pin-val').innerText = this.value; generate()">
+                <div class="generator-range-wrapper" style="margin-bottom: 2.5rem;">
+                    <div class="generator-range-header">
+                        <label for="pin-length" style="margin: 0;">Panjang PIN</label>
+                        <span id="pin-val" class="generator-badge">6 digit</span>
+                    </div>
+                    <input type="range" id="pin-length" min="4" max="12" value="6" oninput="document.getElementById('pin-val').innerText = this.value + ' digit'; generate()" aria-label="Pengatur Panjang PIN">
+                </div>
             </div>
 
-            <button onclick="generate()" class="mt-1" style="width: 100%;">Ganti Password Baru 🔄</button>
+            <!-- Generate Button -->
+            <button onclick="generate()" class="btn-generate">
+                Ganti Password Baru
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+                    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+                </svg>
+            </button>
         </article>
     </main>
 
@@ -93,30 +177,28 @@
             // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
             // Remove active class
-            document.querySelectorAll('.tab-link').forEach(el => {
-                el.classList.remove('active');
-                el.style.color = 'var(--pico-secondary)';
-                el.style.borderBottom = 'none';
-            });
+            document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
             
             // Show selected tab
-            document.getElementById(`tab-${tabId}`).style.display = 'block';
+            const targetContent = document.getElementById(`tab-${tabId}`);
+            if (targetContent) targetContent.style.display = 'block';
             
             // Add active class
-            const activeLink = event ? event.target : document.querySelector('.tab-link');
-            activeLink.classList.add('active');
-            activeLink.style.color = 'var(--pico-primary)';
-            activeLink.style.borderBottom = '2px solid var(--pico-primary)';
+            const activeLink = document.getElementById(`link-${tabId}`);
+            if (activeLink) activeLink.classList.add('active');
 
             generate();
         }
 
         function generate() {
+            if (!window.TMPT_Generator) return;
+            
             let result = '';
             let hint = '';
             if (currentTab === 'random') {
                 const len = parseInt(document.getElementById('random-length').value);
                 const opts = {
+                    lowercase: document.getElementById('chk-lower').checked,
                     uppercase: document.getElementById('chk-upper').checked,
                     numbers: document.getElementById('chk-num').checked,
                     symbols: document.getElementById('chk-sym').checked
@@ -133,7 +215,7 @@
                 
                 // Construct hint
                 const parts = result.split(sep || /(?=[A-Z])/); // fallback regex if no separator
-                const wordsOnly = parts.filter(p => isNaN(p)).join(' ');
+                const wordsOnly = parts.filter(p => isNaN(p) && p.length > 0).join(' ');
                 hint = `Otomatis: ${wordsOnly}`;
             } else if (currentTab === 'pin') {
                 const len = parseInt(document.getElementById('pin-length').value);
@@ -141,29 +223,51 @@
                 hint = '';
             }
 
-            document.getElementById('gen-result').innerText = result;
+            const inputRes = document.getElementById('gen-result');
+            if (inputRes) inputRes.value = result;
+            
             const hintContainer = document.getElementById('hint-container');
             if (hint) {
                 document.getElementById('gen-hint').innerText = hint;
-                hintContainer.style.display = 'block';
+                if (hintContainer) hintContainer.style.display = 'block';
             } else {
-                hintContainer.style.display = 'none';
+                if (hintContainer) hintContainer.style.display = 'none';
             }
         }
 
         function copyResult() {
-            const text = document.getElementById('gen-result').innerText;
+            const inputRes = document.getElementById('gen-result');
+            if (!inputRes) return;
+            
+            const text = inputRes.value;
             navigator.clipboard.writeText(text).then(() => {
-                window.TMPT_UI.toast("Password disalin ke clipboard!", "success");
+                if (window.TMPT_UI && typeof window.TMPT_UI.toast === 'function') {
+                    window.TMPT_UI.toast("Password disalin ke clipboard!", "success");
+                }
+                
+                const copyBtn = document.getElementById('btn-copy');
+                if (copyBtn) {
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `✓ Tersalin`;
+                    copyBtn.style.backgroundColor = '#2e7d32';
+                    copyBtn.style.borderColor = '#2e7d32';
+                    copyBtn.style.color = '#ffffff';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHtml;
+                        copyBtn.style.backgroundColor = '';
+                        copyBtn.style.borderColor = '';
+                        copyBtn.style.color = '';
+                    }, 2000);
+                }
             });
         }
 
         // Init
         document.addEventListener('DOMContentLoaded', () => {
-            const activeLink = document.querySelector('.tab-link.active');
-            activeLink.style.color = 'var(--pico-primary)';
-            activeLink.style.borderBottom = '2px solid var(--pico-primary)';
-            generate();
+            if (typeof generate === 'function') {
+                generate();
+            }
         });
     </script>
 </body>

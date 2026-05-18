@@ -1,0 +1,76 @@
+/* =====================================================
+   MIDNIGHT GOLD THEME
+   ===================================================== */
+:root {
+    --pico-background-color: #121212 !important;
+    --pico-card-background-color: #1e1e1e !important;
+    --pico-color: #e0e0e0 !important;
+    --pico-h1-color: #f59e0b !important;
+    --pico-primary: #d97706 !important;
+    --pico-primary-hover: #f59e0b !important;
+    --pico-muted-border-color: #333333 !important;
+    --pico-border-color: #444444 !important;
+
+    --tmpt-primary: #d97706;
+    --tmpt-primary-hover: #f59e0b;
+    --tmpt-accent: #fbbf24;
+    --tmpt-bg-gradient: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
+    --tmpt-card-bg: #1e1e1e;
+    --tmpt-card-border: #d9770644;
+    --tmpt-card-shadow: 0 10px 30px rgba(217,119,6,0.08);
+    --tmpt-card-shadow-hover: 0 15px 40px rgba(245,158,11,0.25);
+    --tmpt-border-active: #f59e0b;
+}
+
+body {
+    background: var(--pico-background-color) !important;
+    color: var(--pico-color) !important;
+}
+
+/* Override Tombol */
+.btn-navy {
+    background: linear-gradient(90deg, #b45309 0%, #d97706 100%) !important;
+    border-color: #d97706 !important;
+    color: #121212 !important;
+    font-weight: 800 !important;
+    box-shadow: 0 4px 15px rgba(217,119,6,0.3) !important;
+}
+
+.btn-navy:hover {
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%) !important;
+    box-shadow: 0 6px 20px rgba(245,158,11,0.5) !important;
+}
+
+.btn-gray {
+    background: #2a2a2a !important;
+    border-color: #333333 !important;
+    color: #888888 !important;
+}
+
+/* Kartu */
+.app-selector-card, .settings-card {
+    border: 1px solid var(--tmpt-card-border) !important;
+    background: var(--tmpt-card-bg) !important;
+    box-shadow: var(--tmpt-card-shadow) !important;
+}
+
+.app-selector-card:hover, .settings-card:hover {
+    border-color: var(--tmpt-border-active) !important;
+    box-shadow: var(--tmpt-card-shadow-hover) !important;
+}
+
+.security-status-card {
+    border: 1px solid #f59e0b55 !important;
+    background: #1e1e1e !important;
+    box-shadow: 0 0 25px rgba(245,158,11,0.12) !important;
+}
+
+.dot-green { background-color: #10b981 !important; box-shadow: 0 0 8px #10b981 !important; }
+.dot-blue { background-color: #3b82f6 !important; box-shadow: 0 0 8px #3b82f6 !important; }
+.dot-purple { background-color: #f59e0b !important; box-shadow: 0 0 10px #f59e0b !important; }
+
+.banner-backup {
+    background: linear-gradient(135deg, #262626 0%, #171717 100%) !important;
+    border: 1px solid #d97706 !important;
+    box-shadow: 0 0 30px rgba(217,119,6,0.15) !important;
+}

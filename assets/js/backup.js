@@ -9,21 +9,35 @@ const BackupModule = {
      */
     async exportVault() {
         try {
-            const vaultData = localStorage.getItem('tmpt_vault_v1');
-            if (!vaultData) {
+            const vaultDataStr = localStorage.getItem('tmpt_vault_v1');
+            if (!vaultDataStr) {
                 window.TMPT_UI.toast("Brankas tidak ditemukan untuk di-backup.", "error");
                 return;
             }
 
-            // Buat Blob dari data JSON (yang sudah terenkripsi)
-            const blob = new Blob([vaultData], { type: 'application/json' });
+            const vaultObj = JSON.parse(vaultDataStr);
+
+            // Bundel seluruh ekosistem TMPT (Brankas + Catat)
+            const bundle = {
+                app: "TMPT-Ecosystem",
+                version: 2,
+                exported_at: new Date().toISOString(),
+                vault_v1: vaultObj,
+                catat: {
+                    security_mode: localStorage.getItem('catat_security_mode') || 'standard',
+                    notes: localStorage.getItem('catat_notes') || null,
+                    lists: localStorage.getItem('catat_lists') || null,
+                    notes_enc: localStorage.getItem('catat_notes_enc') || null,
+                    lists_enc: localStorage.getItem('catat_lists_enc') || null
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             
-            // Format nama file: TMPT-Backup-YYYY-MM-DD.tmpt
             const date = new Date().toISOString().split('T')[0];
             const fileName = `TMPT-Backup-${date}.tmpt`;
 
-            // Trigger download
             const link = document.createElement('a');
             link.href = url;
             link.download = fileName;
@@ -32,7 +46,7 @@ const BackupModule = {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
 
-            window.TMPT_UI.toast("Backup berhasil diunduh!", "success");
+            window.TMPT_UI.toast("Backup ekosistem berhasil diunduh!", "success");
         } catch (err) {
             console.error("Export failed:", err);
             window.TMPT_UI.toast("Gagal mengekspor backup.", "error");
@@ -42,8 +56,12 @@ const BackupModule = {
     /**
      * Import a vault from a .tmpt file
      */
-    async importVault(file) {
+    async importVault(fileInput) {
         return new Promise((resolve, reject) => {
+            let file = fileInput;
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                file = fileInput.files[0];
+            }
             if (!file) {
                 console.error("[BACKUP] No file selected.");
                 return reject("Tidak ada file dipilih.");
@@ -57,23 +75,41 @@ const BackupModule = {
                     const parsed = JSON.parse(content);
 
                     console.log("[BACKUP] File parsed successfully. Validating structure...");
-                    if (!parsed.salt_enc || !parsed.payload) {
+                    
+                    let isV2 = parsed.version === 2 && parsed.vault_v1;
+                    let targetVaultObj = isV2 ? parsed.vault_v1 : parsed;
+
+                    if (!targetVaultObj.salt_enc || !targetVaultObj.payload) {
                         throw new Error("Format file .tmpt tidak valid (Missing keys).");
                     }
 
-                    if (localStorage.getItem('tmpt_vault_v1')) {
+                    if (localStorage.getItem('tmpt_vault_v1') && !window._backupConfirmed) {
                         console.log("[BACKUP] Existing vault found, asking for confirmation...");
-                        const confirmed = await window.TMPT_UI.confirm("Mengimpor data akan MENGHAPUS Brankas yang ada sekarang. Lanjutkan?");
+                        const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Pemulihan data akan MENIMPA dan MENGHAPUS seluruh isi Brankas dan Catatan saat ini. Apakah Anda yakin data aktif saat ini sudah di-backup terlebih dahulu?", "KONFIRMASI PEMULIHAN");
                         if (!confirmed) {
                             console.log("[BACKUP] Import cancelled by user.");
                             return resolve(false);
                         }
                     }
+                    window._backupConfirmed = false;
 
                     console.log("[BACKUP] Confirmation received. Overwriting localStorage...");
-                    localStorage.setItem('tmpt_vault_v1', content);
+                    localStorage.setItem('tmpt_vault_v1', JSON.stringify(targetVaultObj));
                     
-                    window.TMPT_UI.toast("Brankas berhasil dipulihkan!", "success");
+                    if (isV2 && parsed.catat) {
+                        if (parsed.catat.security_mode) localStorage.setItem('catat_security_mode', parsed.catat.security_mode);
+                        if (parsed.catat.notes) localStorage.setItem('catat_notes', parsed.catat.notes);
+                        else localStorage.removeItem('catat_notes');
+                        if (parsed.catat.lists) localStorage.setItem('catat_lists', parsed.catat.lists);
+                        else localStorage.removeItem('catat_lists');
+                        if (parsed.catat.notes_enc) localStorage.setItem('catat_notes_enc', parsed.catat.notes_enc);
+                        else localStorage.removeItem('catat_notes_enc');
+                        if (parsed.catat.lists_enc) localStorage.setItem('catat_lists_enc', parsed.catat.lists_enc);
+                        else localStorage.removeItem('catat_lists_enc');
+                        console.log("[BACKUP] Data Catatan dan Daftar Tugas ikut dipulihkan.");
+                    }
+                    
+                    window.TMPT_UI.toast("Brankas dan Catatan berhasil dipulihkan!", "success");
                     
                     setTimeout(() => {
                         console.log("[BACKUP] Redirecting to lock...");

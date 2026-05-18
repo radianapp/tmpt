@@ -30,34 +30,45 @@
     <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <hgroup>
-            <h1>Pengaturan</h1>
-            <p>Kelola preferensi dan keamanan Brankas Anda.</p>
-        </hgroup>
+        <header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
+            <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color);">Pengaturan</h1>
+            <p class="secondary" style="font-size: 1.15rem;">Kelola preferensi dan keamanan Brankas Anda.</p>
+        </header>
 
-        <div class="grid">
+        <div class="grid" style="gap: 2rem;">
             <!-- Tampilan & Preferensi -->
             <section>
-                <h3>Tampilan</h3>
-                <article>
-                    <label for="theme">
-                        Tema Aplikasi
-                        <select id="theme" onchange="updateSetting('theme', this.value)">
-                            <option value="system">Ikuti Sistem</option>
-                            <option value="light">Terang</option>
-                            <option value="dark">Gelap</option>
-                        </select>
-                    </label>
+                <article class="settings-card">
+                    <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🎨 Tampilan</h3>
+                    <div class="grid" style="gap: 1.5rem;">
+                        <label for="theme">
+                            <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Tema Aplikasi (Mode)</span>
+                            <select id="theme" style="border-radius: 10px;" onchange="updateSetting('theme', this.value)">
+                                <option value="system">Ikuti Sistem</option>
+                                <option value="light">Terang</option>
+                                <option value="dark">Gelap</option>
+                            </select>
+                        </label>
+                        <label for="theme_stylesheet">
+                            <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Gaya Visual (Palet Warna)</span>
+                            <select id="theme_stylesheet" style="border-radius: 10px;" onchange="updateSetting('themeStylesheet', this.value)">
+                                <option value="tmpt.css">TMPT Premium (Default)</option>
+                                <option value="cyberpunk.css">Neon Cyberpunk</option>
+                                <option value="nord.css">Nordic Frost</option>
+                                <option value="midnight-gold.css">Midnight Gold</option>
+                            </select>
+                        </label>
+                    </div>
                 </article>
             </section>
 
             <!-- Keamanan -->
             <section>
-                <h3>Keamanan</h3>
-                <article>
+                <article class="settings-card">
+                    <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🔒 Keamanan</h3>
                     <label for="autolock">
-                        Auto-lock Otomatis
-                        <select id="autolock" onchange="updateSetting('autoLock', parseInt(this.value))">
+                        <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Auto-lock Otomatis</span>
+                        <select id="autolock" style="border-radius: 10px;" onchange="updateSetting('autoLock', parseInt(this.value))">
                             <option value="1">1 Menit</option>
                             <option value="5">5 Menit</option>
                             <option value="15">15 Menit</option>
@@ -67,48 +78,48 @@
                         </select>
                     </label>
 
-                    <hr>
+                    <hr style="margin: 2rem 0; opacity: 0.2;">
                     
                     <details>
-                        <summary><strong>🔐 Ganti Master Password</strong></summary>
-                        <div style="margin-top: 1rem;">
-                            <div class="info-alert" style="margin-bottom: 1rem; border-left: 4px solid var(--pico-color); padding-left: 1rem;">
-                                <small>⚠️ Mengganti master password akan mengenkripsi ulang seluruh data Anda. Pastikan Anda mengingat password baru ini dan mem-backup data Anda terlebih dahulu!</small>
+                        <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer;">🔐 Ganti Master Password</summary>
+                        <div style="margin-top: 1.5rem;">
+                            <div class="info-alert" style="margin-bottom: 1.5rem; border-left: 4px solid var(--tmpt-border-active); background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: 0 10px 10px 0;">
+                                <small style="line-height: 1.5; display: block;">⚠️ Mengganti master password akan mengenkripsi ulang seluruh data Anda. Pastikan Anda mengingat password baru ini dan mem-backup data Anda terlebih dahulu!</small>
                             </div>
 
                             <form id="change-password-form" onsubmit="handleChangePassword(event)">
-                                <label for="current_password">Password Saat Ini
-                                    <input type="password" id="current_password" required>
+                                <label for="current_password" style="font-weight: 600;">Password Saat Ini
+                                    <input type="password" id="current_password" style="border-radius: 10px; margin-top: 0.5rem;" required>
                                 </label>
                                 
-                                <label for="new_password">Password Baru</label>
-                                <div class="pwd-input-row mb-half">
-                                    <input type="password" id="new_password" required minlength="12" placeholder="Minimal 12 karakter">
-                                    <button type="button" class="outline secondary" onclick="toggleSettingsVisibility('new_password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                                <label for="new_password" style="font-weight: 600; margin-top: 1rem;">Password Baru</label>
+                                <div class="pwd-input-row mb-half" style="display: flex; gap: 0.5rem;">
+                                    <input type="password" id="new_password" required minlength="12" placeholder="Minimal 12 karakter" style="border-radius: 10px; margin-bottom: 0;">
+                                    <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 10px;">👁️</button>
                                 </div>
-                                <details class="mb-1">
-                                    <summary><strong>💡 Bingung bikin password? Buat otomatis</strong></summary>
-                                    <div class="pwd-generator-box">
-                                        <p><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
-                                        <button type="button" class="outline" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
-                                        <div class="generator-link">
-                                            <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer">Buka Tools Generator Lengkap ↗</a></small>
+                                <details class="mb-1" style="margin-top: 0.75rem;">
+                                    <summary style="font-weight: 600; font-size: 0.95rem; cursor: pointer;">💡 Bingung bikin password? Buat otomatis</summary>
+                                    <div class="pwd-generator-box" style="margin-top: 0.75rem; padding: 1rem; background: rgba(0,0,0,0.1); border-radius: 10px;">
+                                        <p style="margin-bottom: 1rem;"><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
+                                        <button type="button" class="btn-navy" style="width: 100%; font-size: 0.95rem; padding: 0.6rem 1rem;" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
+                                        <div class="generator-link" style="text-align: center; margin-top: 0.75rem;">
+                                            <small><a href="/tools/password-gen/" target="_blank" rel="noopener noreferrer" style="color: var(--tmpt-border-active); font-weight: 600;">Buka Tools Generator Lengkap ↗</a></small>
                                         </div>
                                     </div>
                                 </details>
 
-                                <label for="confirm_new_password">Konfirmasi Password Baru</label>
-                                <div class="pwd-input-row">
-                                    <input type="password" id="confirm_new_password" required placeholder="Ulangi password baru">
-                                    <button type="button" class="outline secondary" onclick="toggleSettingsVisibility('confirm_new_password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                                <label for="confirm_new_password" style="font-weight: 600; margin-top: 1.25rem;">Konfirmasi Password Baru</label>
+                                <div class="pwd-input-row" style="display: flex; gap: 0.5rem;">
+                                    <input type="password" id="confirm_new_password" required placeholder="Ulangi password baru" style="border-radius: 10px; margin-bottom: 0;">
+                                    <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('confirm_new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 10px;">👁️</button>
                                 </div>
 
-                                <label for="new_hint">Password Hint Baru (Opsional)
-                                    <input type="text" id="new_hint" placeholder="Contoh: Nama kucing + tahun lahir">
-                                    <small>Hint sebelumnya akan ditimpa.</small>
+                                <label for="new_hint" style="font-weight: 600; margin-top: 1.25rem;">Password Hint Baru (Opsional)
+                                    <input type="text" id="new_hint" placeholder="Contoh: Nama kucing + tahun lahir" style="border-radius: 10px; margin-top: 0.5rem;">
+                                    <small class="secondary" style="display: block; margin-top: 0.25rem;">Hint sebelumnya akan ditimpa.</small>
                                 </label>
 
-                                <button type="submit" id="btn-change-pwd" class="mt-1">Ganti Password</button>
+                                <button type="submit" id="btn-change-pwd" class="btn-navy" style="width: 100%; margin-top: 1.5rem;">Ganti Password</button>
                             </form>
                         </div>
                     </details>
@@ -118,43 +129,52 @@
 
         <!-- Backup & Restore -->
         <section>
-            <h3>Data & Backup</h3>
-            <article>
-                <div class="grid">
+            <article class="settings-card">
+                <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">💾 Data & Backup</h3>
+                <div class="grid" style="gap: 2.5rem; align-items: center;">
                     <div>
-                        <strong>Cadangkan Data</strong>
-                        <p><small>Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt.</small></p>
-                        <button class="outline" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
+                        <strong style="font-size: 1.15rem; display: block; margin-bottom: 0.5rem;">Cadangkan Data</strong>
+                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;"><small>Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt dengan enkripsi aman.</small></p>
+                        <button class="btn-navy" style="width: 100%;" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
                     </div>
                     <div>
-                        <strong>Pulihkan Data</strong>
-                        <p><small>Timpa data saat ini dengan data dari file backup Anda.</small></p>
-                        <button class="outline secondary" onclick="document.getElementById('import-input').click()">Pilih File Backup</button>
-                        <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this)">
+                        <strong style="font-size: 1.15rem; display: block; margin-bottom: 0.5rem;">Pulihkan Data</strong>
+                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;"><small>Timpa data saat ini dengan data dari file backup (.tmpt) Anda secara instan.</small></p>
+                        <button class="btn-gray" style="width: 100%; cursor: pointer; opacity: 1;" onclick="handleRestoreClick()">Pilih File Backup</button>
+                        <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
                     </div>
                 </div>
             </article>
         </section>
 
-        <hr>
-
         <!-- Zona Bahaya -->
         <section>
-            <h3 style="color: var(--pico-error-color);">Zona Bahaya</h3>
-            <article style="border-color: var(--pico-error-border-color);">
-                <header>Hapus Brankas Permanen</header>
-                <p>Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</p>
-                <footer>
+            <article class="settings-card" style="border: 1px solid #ef444455 !important; background: rgba(239, 68, 68, 0.03) !important;">
+                <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: #ef4444;">⚠️ Zona Bahaya</h3>
+                <p class="secondary" style="margin-bottom: 2rem; font-size: 1.05rem;">Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</p>
+                <div style="text-align: right;">
                     <button class="btn-danger" onclick="handleDestroyVault()">Hapus Seluruh Brankas</button>
-                </footer>
+                </div>
             </article>
-        <!-- Info Aplikasi -->
-        <section>
-            <p><small class="secondary">
-                TMPT Version: <span class="tmpt-version"></span><br>
-                Codename: "Pico Rise"<br>
-                Last Update: 2026-05-15
-            </small></p>
+        </section>
+
+        <!-- Informasi Sistem & Versi (Gambar 2) -->
+        <section class="security-status-card" style="margin-top: 1.5rem; margin-bottom: 4rem;">
+            <h4 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">Status Sistem & Versi</h4>
+            <div class="security-info-grid">
+                <div class="security-info-item">
+                    <span class="dot dot-green"></span>
+                    <span>TMPT Version: <span class="tmpt-version"></span></span>
+                </div>
+                <div class="security-info-item" style="justify-content: center;">
+                    <span class="dot dot-blue"></span>
+                    <span>Codename: "Pico Rise"</span>
+                </div>
+                <div class="security-info-item" style="justify-content: flex-end;">
+                    <span class="dot dot-purple"></span>
+                    <span>Last Update: 2026-05-15</span>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -167,9 +187,9 @@
                 <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
             </div>
             <footer>
-                <div class="grid">
-                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
-                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+                <div class="grid" style="gap: 1rem;">
+                    <button class="btn-gray" onclick="closeConfirm(false)">Batal</button>
+                    <button class="btn-navy" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
                 </div>
             </footer>
         </article>
@@ -194,6 +214,7 @@
                     
                     if (data.settings) {
                         if (data.settings.theme) document.getElementById('theme').value = data.settings.theme;
+                        if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
                         if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
                     }
                 } catch (e) {
@@ -225,6 +246,9 @@
                 if (key === 'theme') {
                     window.TMPT_UI.applyTheme(value);
                     localStorage.setItem('tmpt_theme', value);
+                } else if (key === 'themeStylesheet') {
+                    window.TMPT_UI.applyThemeStylesheet(value);
+                    localStorage.setItem('tmpt_theme_stylesheet', value);
                 }
 
                 window.TMPT_UI.toast("Pengaturan disimpan.", "success");
@@ -241,6 +265,15 @@
                 localStorage.removeItem('tmpt_theme');
                 window.location.href = '/';
             }
+        }
+
+        async function handleRestoreClick() {
+            if (localStorage.getItem('tmpt_vault_v1')) {
+                const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Pemulihan data akan MENIMPA seluruh isi Brankas saat ini. Apakah Anda yakin data aktif saat ini sudah di-backup terlebih dahulu?", "KONFIRMASI PEMULIHAN");
+                if (!confirmed) return;
+                window._backupConfirmed = true;
+            }
+            document.getElementById('import-input').click();
         }
 
         function toggleSettingsVisibility(inputId, btn) {
@@ -300,7 +333,7 @@
             try {
                 // 1. Verifikasi password saat ini
                 const vaultData = window.TMPT_Vault.getMetadata();
-                if (!vaultData) throw new Error("Brankas tidak ditemukan.");
+                if (!vaultData || !vaultData.salt_enc) throw new Error("Data Brankas rusak atau format tidak valid.");
 
                 const oldSaltEnc = window.TMPT_Crypto.base64ToBuffer(vaultData.salt_enc);
                 const oldKey = await window.TMPT_Crypto.deriveKey(currentPass, oldSaltEnc);

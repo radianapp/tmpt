@@ -34,29 +34,97 @@
 
 <!-- Mobile Menu Dialog -->
 <dialog id="mobile-nav-modal">
-    <article>
-        <header style="display: flex; justify-content: space-between; align-items: center;">
-            <strong>Menu TMPT</strong>
-            <button class="close" aria-label="Tutup" onclick="document.getElementById('mobile-nav-modal').close()" style="margin-bottom: 0;"></button>
+    <article style="border-radius: 20px; padding: 1.5rem 2rem;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 1rem;">
+            <strong style="font-size: 1.25rem;">Menu TMPT</strong>
+            <button class="close" aria-label="Tutup" onclick="document.getElementById('mobile-nav-modal').close()" style="margin-bottom: 0; background: transparent; border: none; font-size: 1.5rem; color: var(--pico-secondary); padding: 0; width: auto; height: auto;">✕</button>
         </header>
-        <ul style="list-style: none !important; padding-left: 0 !important;">
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()">Tools & Generator</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/harga" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()">Harga (Gratis)</a></li>            
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/login" role="button" class="outline" style="width: 100%; text-align: center; display: block;" onclick="document.getElementById('mobile-nav-modal').close()">Buka Brankas</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/setup" role="button" style="width: 100%; text-align: center; display: block;" onclick="document.getElementById('mobile-nav-modal').close()">Buat Brankas Baru</a></li>
+        <ul id="mobile-menu-list" style="list-style: none !important; padding-left: 0 !important; margin: 0;">
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()" style="font-weight: 600;">Tools & Generator</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/harga" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()" style="font-weight: 600;">Harga (Gratis)</a></li>            
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/login" role="button" class="outline" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-nav-modal').close()">Buka Brankas</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/setup" role="button" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-nav-modal').close()">Buat Brankas Baru</a></li>
         </ul>
     </article>
 </dialog>
 
 <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        if (window.TMPT_Vault && window.TMPT_Vault.exists()) {
-            const setupBtn = document.getElementById('nav-setup-btn');
-            if (setupBtn) {
-                setupBtn.classList.add('secondary', 'outline');
-                setupBtn.textContent = 'Reset / Buat Baru';
+    function lockVaultFallback() {
+        if (window.TMPT_Auth && typeof window.TMPT_Auth.lock === 'function') {
+            window.TMPT_Auth.lock();
+        } else {
+            sessionStorage.removeItem('tmpt_is_unlocked');
+            sessionStorage.removeItem('tmpt_vault_key');
+            window.location.href = '/login';
+        }
+    }
+    window.TMPT_lockVault = lockVaultFallback;
+
+    function initTMPTHeader() {
+        // Cek apakah user sedang membuka brankas (unlocked)
+        const isUnlocked = (window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) || sessionStorage.getItem('tmpt_is_unlocked') === 'true' || sessionStorage.getItem('tmpt_vault_key');
+        
+        if (isUnlocked) {
+            // Sembunyikan footer publik
+            const appFooter = document.getElementById('app-footer');
+            if (appFooter) appFooter.style.display = 'none';
+
+            // Ubah link logo ke /dashboard
+            const logoLink = document.querySelector('header nav ul:first-of-type a');
+            if (logoLink) logoLink.href = "/dashboard";
+
+            // Ubah header desktop kanan menjadi mode App Header (Dashboard)
+            const navRightUl = document.querySelector('header nav ul:last-of-type');
+            if (navRightUl) {
+                navRightUl.innerHTML = `
+                    <li class="hide-mobile"><a href="/dashboard" class="secondary">Dashboard</a></li>
+                    <li class="hide-mobile"><a href="/tools" class="secondary">Tools</a></li>
+                    <li class="hide-mobile"><a href="/settings" class="secondary">Pengaturan</a></li>
+                    <li>
+                        <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+                            </svg>
+                        </button>
+                    </li>
+                    <li class="hide-mobile">
+                        <button onclick="window.TMPT_lockVault()" class="outline secondary" style="border-radius: 10px; padding: 0.4rem 1rem; margin-bottom: 0;">Kunci Vault</button>
+                    </li>
+                    <li class="show-mobile" style="display: none;">
+                        <button class="outline secondary" aria-label="Menu Navigasi" onclick="document.getElementById('mobile-nav-modal').showModal()" style="padding: 0.35rem 0.75rem; margin-bottom: 0;">☰</button>
+                    </li>
+                `;
+            }
+
+            // Ubah daftar menu seluler
+            const mobileMenu = document.getElementById('mobile-menu-list');
+            if (mobileMenu) {
+                mobileMenu.innerHTML = `
+                    <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/dashboard" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()" style="font-weight: 600;">Dashboard</a></li>
+                    <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()" style="font-weight: 600;">Tools & Generator</a></li>
+                    <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/settings" class="secondary" onclick="document.getElementById('mobile-nav-modal').close()" style="font-weight: 600;">Pengaturan</a></li>
+                    <li style="margin-top: 2rem; list-style: none !important;">
+                        <button role="button" class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-nav-modal').close(); window.TMPT_lockVault();">Kunci Vault</button>
+                    </li>
+                `;
+            }
+        } else {
+            if (window.TMPT_Vault && window.TMPT_Vault.exists()) {
+                const setupBtn = document.getElementById('nav-setup-btn');
+                if (setupBtn) {
+                    setupBtn.classList.add('secondary', 'outline');
+                    setupBtn.textContent = 'Reset / Buat Baru';
+                }
             }
         }
-        window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
-    });
+        if (window.TMPT_UI) window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTMPTHeader);
+    } else {
+        initTMPTHeader();
+    }
 </script>
+

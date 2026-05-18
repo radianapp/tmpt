@@ -104,11 +104,29 @@ const UIModule = {
     },
 
     /**
+     * Apply theme stylesheet dynamically
+     */
+    applyThemeStylesheet(filename) {
+        localStorage.setItem('tmpt_theme_stylesheet', filename);
+        let linkEl = document.getElementById('tmpt-theme-stylesheet');
+        if (!linkEl) {
+            linkEl = document.createElement('link');
+            linkEl.id = 'tmpt-theme-stylesheet';
+            linkEl.rel = 'stylesheet';
+            document.head.appendChild(linkEl);
+        }
+        linkEl.href = `/assets/css/theme/${filename}?v=${Date.now()}`;
+    },
+
+    /**
      * Initialize theme from localStorage
      */
     initTheme() {
         const savedTheme = localStorage.getItem('tmpt_theme') || 'system';
         this.applyTheme(savedTheme);
+
+        const savedStylesheet = localStorage.getItem('tmpt_theme_stylesheet') || 'tmpt.css';
+        this.applyThemeStylesheet(savedStylesheet);
     },
     /**
      * Generic Confirm Modal (Promise based)
@@ -152,6 +170,12 @@ const UIModule = {
                 okBtn.disabled = false;
             } else {
                 okBtn.disabled = false;
+            }
+            
+            if (requiredText === "HAPUS PERMANEN" || message.includes("menghapus SELURUH data")) {
+                okBtn.className = "btn-danger";
+            } else {
+                okBtn.className = "btn-navy";
             }
             
             // Simpan resolve function di element agar bisa dipanggil saat tombol diklik

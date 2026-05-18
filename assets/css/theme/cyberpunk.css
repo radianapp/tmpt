@@ -1,0 +1,86 @@
+/* =====================================================
+   NEON CYBERPUNK THEME
+   ===================================================== */
+:root {
+    --pico-background-color: #09090b !important;
+    --pico-card-background-color: #18181b !important;
+    --pico-color: #e4e4e7 !important;
+    --pico-h1-color: #fef08a !important;
+    --pico-primary: #f43f5e !important;
+    --pico-primary-hover: #e11d48 !important;
+    --pico-muted-border-color: #27272a !important;
+    --pico-border-color: #3f3f46 !important;
+
+    --tmpt-primary: #f43f5e;
+    --tmpt-primary-hover: #e11d48;
+    --tmpt-accent: #06b6d4;
+    --tmpt-bg-gradient: linear-gradient(135deg, #09090b 0%, #18181b 100%);
+    --tmpt-card-bg: #18181b;
+    --tmpt-card-border: #f43f5e33;
+    --tmpt-card-shadow: 0 0 25px rgba(244,63,94,0.1);
+    --tmpt-card-shadow-hover: 0 0 40px rgba(6,182,212,0.3);
+    --tmpt-border-active: #06b6d4;
+}
+
+body {
+    background: var(--pico-background-color) !important;
+    color: var(--pico-color) !important;
+}
+
+/* Override Tombol */
+.btn-navy {
+    background: linear-gradient(90deg, #f43f5e 0%, #9f1239 100%) !important;
+    border-color: #f43f5e !important;
+    color: #fff !important;
+    box-shadow: 0 0 15px rgba(244,63,94,0.4) !important;
+}
+
+.btn-navy:hover {
+    background: linear-gradient(90deg, #e11d48 0%, #881337 100%) !important;
+    box-shadow: 0 0 25px rgba(244,63,94,0.7) !important;
+}
+
+.btn-gray {
+    background: #27272a !important;
+    border-color: #3f3f46 !important;
+    color: #a1a1aa !important;
+}
+
+/* Kartu */
+.app-selector-card, .settings-card {
+    border: 1px solid var(--tmpt-card-border) !important;
+    background: var(--tmpt-card-bg) !important;
+    box-shadow: var(--tmpt-card-shadow) !important;
+}
+
+.app-selector-card:hover, .settings-card:hover {
+    border-color: var(--tmpt-border-active) !important;
+    box-shadow: var(--tmpt-card-shadow-hover) !important;
+}
+
+.security-status-card {
+    border: 1px solid #06b6d444 !important;
+    background: #18181b !important;
+    box-shadow: 0 0 20px rgba(6,182,212,0.15) !important;
+}
+
+.dot-green {
+    background-color: #22c55e !important;
+    box-shadow: 0 0 12px #22c55e !important;
+}
+
+.dot-blue {
+    background-color: #06b6d4 !important;
+    box-shadow: 0 0 12px #06b6d4 !important;
+}
+
+.dot-purple {
+    background-color: #f43f5e !important;
+    box-shadow: 0 0 12px #f43f5e !important;
+}
+
+.banner-backup {
+    background: linear-gradient(135deg, #27272a 0%, #18181b 100%) !important;
+    border: 1px solid #f43f5e !important;
+    box-shadow: 0 0 30px rgba(244,63,94,0.2) !important;
+}

@@ -23,142 +23,291 @@
 
     <main class="container">
         <!-- Banner Edukasi Backup - Redesigned -->
-        <article id="backup-warning" style="border: none; background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0.05) 100%); border-left: 4px solid var(--primary); padding: 1.5rem; margin-bottom: 2.5rem; position: relative;">
-            <div style="display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-                <div style="font-size: 2.5rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">⚠️</div>
+        <article id="backup-warning" class="banner-backup">
+            <div style="display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap;">
+                <div style="font-size: 2rem; line-height: 1; padding-top: 0.25rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: #4f46e5;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4" /><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" /><path d="M12 16h.01" /></svg>
+                </div>
                 <div style="flex: 1; min-width: 280px;">
-                    <h4 style="margin-bottom: 0.5rem; color: var(--primary);">Penting: Data Anda Tersimpan Lokal / Browser</h4>
-                    <p class="secondary" style="margin-bottom: 1rem; line-height: 1.6;">
-                        TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun. 
-                        <p><strong>Kehilangan perangkat = Kehilangan data.</strong></p>
-                        <p>Selalu simpan file backup Anda di tempat aman.</p>
-                    </p>
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <button onclick="window.TMPT_Backup.exportVault()" style="width: auto; padding: 0.5rem 1.5rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <h4>Penting: Data Anda Tersimpan Lokal / Browser</h4>
+                    <p>TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun.</p>
+                    <div class="alert-strip">
+                        <span style="font-size: 1.25rem; color: #dc2626;">⚠️</span>
+                        <span>Kehilangan perangkat = Kehilangan data. Selalu simpan file backup Anda di tempat aman.</span>
+                    </div>
+                    <div class="btn-group">
+                        <button onclick="window.TMPT_Backup.exportVault()" class="btn-navy">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Unduh Backup (.tmpt)
                         </button>
-                        <button onclick="document.getElementById('import-file').click()" class="secondary outline" style="width: auto; padding: 0.5rem 1.5rem;">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
+                        <button onclick="document.getElementById('import-file-backup').click()" class="btn-navy">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
                             Pulihkan Data
                         </button>
-                        <input type="file" id="import-file" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
+                        <input type="file" id="import-file-backup" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
                     </div>
                 </div>
-                <button onclick="this.closest('article').remove()" class="secondary outline" style="position: absolute; top: 1rem; right: 1rem; border: none; padding: 0; background: none; width: auto;">✕</button>
+                <button onclick="this.closest('article').remove()" style="position: absolute; top: 1.25rem; right: 1.25rem; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem 0.5rem; font-size: 1.25rem; cursor: pointer;">✕</button>
             </div>
         </article>
 
-        <header class="grid" style="align-items: center; margin-bottom: 2rem;">
-            <div>
-                <h1 style="margin-bottom: 0;">BRANKAS</h1>
-                <p class="secondary">Penyimpanan aman di sisi klien.</p>
+        <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2.5rem; flex-wrap: wrap; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+                <div class="app-icon-vault" style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #0d9488 0%, #7c3aed 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.4); position: relative; overflow: hidden;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%); pointer-events: none;"></div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16.5" r="1.5" fill="#ffffff"/></svg>
+                </div>
+                <div>
+                    <h1 style="margin-bottom: 0; font-weight: 800; font-size: 2.25rem; letter-spacing: -0.03em; line-height: 1.1;">Brangkas</h1>
+                    <p class="secondary" style="margin-bottom: 0; font-size: 0.95rem;">Penyimpanan aman di sisi klien.</p>
+                </div>
             </div>
-            <div style="text-align: right;">
-                <button onclick="openAddModal()" class="primary">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 0.5rem;"><path d="M12 5v14M5 12h14"/></svg>
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button onclick="openImportModal()" class="outline secondary" title="Impor Data (CSV / JSON)" style="margin: 0; font-size: 0.95rem; padding: 0.75rem 1.25rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem; background: var(--pico-card-bg);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Impor CSV/JSON
+                </button>
+                <button onclick="openExportModal()" class="outline secondary" title="Ekspor Data (CSV / JSON)" style="margin: 0; font-size: 0.95rem; padding: 0.75rem 1.25rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem; background: var(--pico-card-bg);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Ekspor CSV/JSON
+                </button>
+                <button onclick="openAddModal()" class="btn-navy" style="margin: 0; font-size: 1rem; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; box-shadow: 0 8px 20px -6px rgba(15, 23, 42, 0.5); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                     Tambah Data
                 </button>
             </div>
         </header>
 
-        <div class="grid">
-            <div style="flex: 2;">
-                <input type="search" id="search-input" placeholder="Cari data..." oninput="resetPageAndRender()">
+        <div class="filter-bar" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; flex-grow: 1;">
+                <div class="search-input-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="search" id="search-input" placeholder="Cari data..." oninput="resetPageAndRender()">
+                </div>
+                <div>
+                    <select id="category-filter" onchange="resetPageAndRender()">
+                        <option value="all">🌐 Semua Kategori</option>
+                        <option value="Login">🔐 Login / Akun</option>
+                        <option value="Rekening Bank">🏦 Rekening Bank</option>
+                        <option value="E-KTP">🪪 Identitas E-KTP</option>
+                        <option value="Kartu Kredit">💳 Kartu Kredit</option>
+                        <option value="API Key">🔑 API Key / Token</option>
+                        <option value="Catatan">📝 Catatan Rahasia</option>
+                        <option value="Passport">✈️ Dokumen Passport</option>
+                        <option value="BPJS">🏥 Asuransi / BPJS</option>
+                        <option value="NPWP">🏢 NPWP / Pajak</option>
+                        <option value="SIM">🚗 SIM Mengemudi</option>
+                        <option value="Lainnya">📦 Lain-lain / Custom</option>
+                    </select>
+                </div>
+                <div>
+                    <select id="sort-order" onchange="resetPageAndRender()">
+                        <option value="newest">Terbaru (Default)</option>
+                        <option value="oldest">Terlama</option>
+                        <option value="az">Nama (A-Z)</option>
+                        <option value="za">Nama (Z-A)</option>
+                    </select>
+                </div>
             </div>
-            <div style="flex: 1;">
-                <select id="category-filter" onchange="resetPageAndRender()">
-                    <option value="all">Semua Kategori</option>
-                    <option value="Login">Login</option>
-                    <option value="Catatan">Catatan</option>
-                    <option value="Kartu">Kartu</option>
-                </select>
-            </div>
-            <div style="flex: 1;">
-                <select id="sort-order" onchange="resetPageAndRender()">
-                    <option value="newest">Terbaru (Default)</option>
-                    <option value="oldest">Terlama</option>
-                    <option value="az">Nama (A-Z)</option>
-                    <option value="za">Nama (Z-A)</option>
-                </select>
+
+            <!-- Toggle Mode Tampilan (Grid / List) -->
+            <div class="view-mode-toggle" style="display: flex; gap: 0.25rem; background: var(--pico-card-bg); padding: 0.3rem; border-radius: 12px; border: 1px solid var(--pico-border-color); align-items: center;">
+                <button id="btn-mode-grid" onclick="setViewMode('grid')" title="Tampilan Thumbnail / Grid (Kotak)" class="active">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+                    Grid
+                </button>
+                <button id="btn-mode-list" onclick="setViewMode('list')" title="Tampilan Daftar / List (Baris)">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    List
+                </button>
             </div>
         </div>
 
         <div id="vault-items-container">
-            <article aria-busy="true">Memuat data Brankas...</article>
+            <article aria-busy="true" style="border-radius: 16px; padding: 3rem; text-align: center;">Memuat data Brankas...</article>
         </div>
 
         <!-- Pagination -->
-        <nav id="pagination-container" style="display: none; justify-content: center; margin-top: 2rem;">
-            <ul style="display: flex; gap: 0.5rem; list-style: none;">
-                <li><button class="outline secondary" id="prev-page" onclick="changePage(-1)">←</button></li>
-                <li><span id="page-info" style="line-height: 2.5rem; padding: 0 1rem;">Halaman 1 dari 1</span></li>
-                <li><button class="outline secondary" id="next-page" onclick="changePage(1)">→</button></li>
+        <nav id="pagination-container" style="display: none; justify-content: center; margin-top: 2.5rem;">
+            <ul style="display: flex; gap: 0.5rem; list-style: none; padding: 0; margin: 0; align-items: center;">
+                <li><button class="outline secondary" id="prev-page" onclick="changePage(-1)" style="border-radius: 10px; padding: 0.5rem 1rem;">← Sebelumnya</button></li>
+                <li><span id="page-info" style="font-weight: 500; padding: 0 1rem;">Halaman 1 dari 1</span></li>
+                <li><button class="outline secondary" id="next-page" onclick="changePage(1)" style="border-radius: 10px; padding: 0.5rem 1rem;">Selanjutnya →</button></li>
             </ul>
         </nav>
     </main>
 
     <!-- Modal: Tambah/Edit Data -->
     <dialog id="item-modal">
-        <article style="width: 100%; max-width: 600px;">
-            <header>
-                <a href="#close" aria-label="Close" class="close" onclick="closeModal()"></a>
-                <h3 id="modal-title">Tambah Data</h3>
-            </header>
+        <article class="modal-premium">
+            <div class="modal-header">
+                <h3 id="modal-title">Tambah Data Baru</h3>
+                <button type="button" class="btn-close" onclick="closeModal()" title="Tutup">✕</button>
+            </div>
             <form id="item-form" onsubmit="saveItem(event)">
                 <input type="hidden" id="item-id">
-                <div class="grid">
-                    <label for="title">Judul <input type="text" id="title" required></label>
-                    <label for="category">Kategori 
-                        <select id="category">
-                            <option value="Login">Login</option>
-                            <option value="Catatan">Catatan</option>
-                            <option value="Kartu">Kartu</option>
-                        </select>
-                    </label>
-                </div>
-                <label for="username">Username / Email <input type="text" id="username"></label>
                 
-                <label for="password">Password</label>
-                <div class="pwd-input-row mb-half">
-                    <input type="password" id="password">
-                    <button type="button" class="outline secondary" onclick="togglePasswordVisibility()" title="Tampilkan/Sembunyikan">👁️</button>
-                    <button type="button" class="outline" onclick="autoGeneratePassword()" title="Generate Password Kuat">🎲 Generate</button>
-                </div>
-                <div style="margin-bottom: 1rem; text-align: right;">
-                    <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer">Buka Tools Generator Lengkap ↗</a></small>
+                <div class="grid" style="gap: 1.25rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <label for="category" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Kategori <span style="color: #ef4444;" title="Wajib diisi">*</span></label>
+                        <select id="category" onchange="renderDynamicFields(this.value)" style="margin-bottom: 0; border-radius: 10px;">
+                            <option value="Login">🔐 Login / Akun</option>
+                            <option value="Rekening Bank">🏦 Rekening Bank</option>
+                            <option value="E-KTP">🪪 Identitas E-KTP</option>
+                            <option value="Kartu Kredit">💳 Kartu Kredit</option>
+                            <option value="API Key">🔑 API Key / Token</option>
+                            <option value="Catatan">📝 Catatan Rahasia</option>
+                            <option value="Passport">✈️ Dokumen Passport</option>
+                            <option value="BPJS">🏥 Asuransi / BPJS</option>
+                            <option value="NPWP">🏢 NPWP / Pajak</option>
+                            <option value="SIM">🚗 SIM Mengemudi</option>
+                            <option value="Lainnya">📦 Lain-lain / Custom</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="title" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Judul <span style="color: #ef4444;" title="Wajib diisi">*</span></label>
+                        <input type="text" id="title" placeholder="Misal: Google" required style="margin-bottom: 0; border-radius: 10px;">
+                    </div>
                 </div>
 
-                <label for="url">URL <input type="url" id="url"></label>
-                <label for="notes">Catatan <textarea id="notes" rows="3"></textarea></label>
+                <!-- Kontainer Kolom Dinamis -->
+                <div id="dynamic-fields-container"></div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="notes" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Catatan</label>
+                    <textarea id="notes" rows="3" placeholder="Tambahkan catatan khusus di sini..." style="margin-bottom: 0; border-radius: 10px;"></textarea>
+                </div>
                 
-                <footer>
-                    <div style="display: flex; justify-content: space-between; gap: 1rem;">
-                        <button type="button" id="delete-btn" class="outline" style="color: var(--del-color); border-color: var(--del-color); display: none;" onclick="deleteItem()">Hapus</button>
-                        <div style="display: flex; gap: 1rem; flex: 1; justify-content: flex-end;">
-                            <button type="button" class="secondary outline" onclick="closeModal()">Batal</button>
-                            <button type="submit" id="save-btn">Simpan</button>
-                        </div>
+                <div class="modal-footer">
+                    <button type="button" id="delete-btn" class="outline" style="color: var(--del-color); border-color: var(--del-color); border-radius: 10px; display: none; padding: 0.6rem 1.5rem; font-weight: 600; margin: 0;" onclick="deleteItem()">Hapus Data</button>
+                    <div style="display: flex; gap: 1rem; flex: 1; justify-content: flex-end; align-items: center;">
+                        <button type="button" class="btn-gray" onclick="closeModal()">Batal</button>
+                        <button type="submit" id="save-btn" class="btn-navy" style="margin: 0; padding: 0.6rem 2rem !important;">Simpan</button>
                     </div>
-                </footer>
+                </div>
             </form>
         </article>
     </dialog>
 
     <!-- Modal: Konfirmasi (Generic) -->
     <dialog id="confirm-modal">
-        <article>
-            <h3 id="confirm-title">Konfirmasi</h3>
-            <p id="confirm-message">Apakah Anda yakin?</p>
-            <div id="confirm-input-container" style="display: none; margin-top: 1rem;">
-                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
+        <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+            <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+            <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+            <div id="confirm-input-container" style="display: none; margin-bottom: 1.5rem;">
+                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off" style="border-radius: 10px;">
             </div>
-            <footer>
-                <div class="grid">
-                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
-                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+            <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+                <button class="btn-gray" onclick="closeConfirm(false)" style="flex: 1;">Batal</button>
+                <button class="btn-navy" id="confirm-ok-btn" onclick="closeConfirm(true)" style="flex: 1;">Lanjutkan</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal: Ekspor Pilihan -->
+    <dialog id="export-modal">
+        <article class="modal-premium" style="max-width: 520px;">
+            <div class="modal-header">
+                <h3>Ekspor Kredensial Brangkas</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('export-modal').close()">✕</button>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <p class="secondary" style="font-size: 0.95rem; margin-bottom: 1.25rem;">Pilih format berkas ekspor yang Anda inginkan. Seluruh pemrosesan dilakukan di dalam perangkat Anda tanpa dikirim ke server.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="padding: 1rem; border: 1px solid #dc2626; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(220, 38, 38, 0.05);">
+                        <div>
+                            <div style="font-weight: 700; color: #dc2626; display: flex; align-items: center; gap: 0.5rem;">
+                                📄 Berkas CSV (Interoperabilitas Terbuka)
+                            </div>
+                            <small class="secondary" style="color: #ef4444;">Teks mentah tanpa enkripsi. Bisa dibuka di Excel / Bitwarden.</small>
+                        </div>
+                        <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: #dc2626; border-color: #dc2626;" onclick="confirmExportPlaintext('csv')">Unduh CSV</button>
+                    </div>
+
+                    <div style="padding: 1rem; border: 1px solid #d97706; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(217, 119, 6, 0.05);">
+                        <div>
+                            <div style="font-weight: 700; color: #d97706; display: flex; align-items: center; gap: 0.5rem;">
+                                📦 Berkas JSON Mentah (Untuk Developer)
+                            </div>
+                            <small class="secondary" style="color: #f59e0b;">Teks mentah struktur JSON. Mudah diolah oleh skrip / aplikasi lain.</small>
+                        </div>
+                        <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: #d97706; border-color: #d97706;" onclick="confirmExportPlaintext('json')">Unduh JSON</button>
+                    </div>
                 </div>
-            </footer>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button class="btn-gray" onclick="document.getElementById('export-modal').close()">Tutup</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal: Impor & Pratinjau Cerdas -->
+    <dialog id="import-modal">
+        <article class="modal-premium" style="max-width: 850px; width: 95%;">
+            <div class="modal-header">
+                <h3>Impor Data Kredensial & Pratinjau</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('import-modal').close()">✕</button>
+            </div>
+            <div id="import-step-1">
+                <p class="secondary" style="font-size: 0.95rem; margin-bottom: 1.25rem;">Unggah berkas migrasi/kredensial Anda (format <b>.csv</b> atau <b>.json</b>). Kami akan memindai dan memetakan datanya secara otomatis di dalam memori peramban Anda.</p>
+                
+                <div style="padding: 2.5rem 1.25rem; background: rgba(13, 148, 136, 0.08); border: 2px dashed #0d9488; border-radius: 16px; margin-bottom: 1.5rem; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 0.75rem;">📥</div>
+                    <label for="import-file" class="btn-navy" style="display: inline-block; cursor: pointer; padding: 0.75rem 2rem !important; font-size: 1rem; border-radius: 12px !important; margin-bottom: 0.75rem;">Pilih Berkas CSV / JSON</label>
+                    <input type="file" id="import-file" accept=".csv,.json" style="display: none;" onchange="handleFileSelect(event)">
+                    <div class="secondary" style="font-size: 0.9rem;">Atau klik untuk menelusuri berkas dari perangkat</div>
+                </div>
+
+                <div style="padding: 1.25rem; background: var(--pico-card-bg); border: 1px solid var(--pico-border-color); border-radius: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="font-size: 0.95rem;">
+                        <b style="color: #0d9488;">💡 Ingin membuat atau memformat data di Excel?</b><br>
+                        <span class="secondary" style="font-size: 0.9rem;">Unduh format baku CSV kami yang telah disesuaikan dengan skema kolom Brangkas.</span>
+                    </div>
+                    <button class="outline" style="margin: 0; padding: 0.6rem 1.25rem; border-radius: 10px; font-size: 0.9rem;" onclick="downloadCsvTemplate()">📥 Unduh Contoh CSV Valid</button>
+                </div>
+            </div>
+
+            <div id="import-step-2" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <span style="font-weight: 700; font-size: 1.1rem;">Pratinjau Impor: <span id="preview-count" style="color: #0d9488;">0</span> data terdeteksi</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span class="secondary" style="font-size: 0.9rem;">Jika data sudah ada:</span>
+                        <select id="conflict-action" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.9rem; border-radius: 10px; width: auto;" onchange="updatePreviewCheckboxes()">
+                            <option value="skip">Abaikan (Skip)</option>
+                            <option value="replace">Timpa (Replace)</option>
+                            <option value="duplicate">Buat Duplikat (Keep Both)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="max-height: 380px; overflow-y: auto; border: 1px solid var(--pico-border-color); border-radius: 16px; margin-bottom: 1.5rem;">
+                    <table style="margin: 0; width: 100%; font-size: 0.9rem; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: var(--pico-card-bg); z-index: 10; border-bottom: 2px solid var(--pico-border-color);">
+                            <tr>
+                                <th style="width: 40px; text-align: center; padding: 0.75rem;"><input type="checkbox" id="check-all-import" checked onchange="toggleAllImportCheckboxes(this)"></th>
+                                <th style="width: 130px; padding: 0.75rem;">Kategori</th>
+                                <th style="padding: 0.75rem;">Judul / Keterangan</th>
+                                <th style="width: 170px; padding: 0.75rem;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="preview-tbody">
+                            <!-- Baris pratinjau dirender oleh JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button class="btn-gray" onclick="resetImportStep()">← Kembali / Pilih Berkas Lain</button>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn-gray" onclick="document.getElementById('import-modal').close()">Batal</button>
+                        <button class="btn-navy" id="confirm-import-btn" onclick="executeImportStaging()">🚀 Konfirmasi Impor Data</button>
+                    </div>
+                </div>
+            </div>
         </article>
     </dialog>
 
@@ -166,7 +315,7 @@
     <!-- SATU BLOK SCRIPT: Semua logic ada di sini, tidak ada split   -->
     <!-- ============================================================ -->
     <script>
-        console.log("[BRANKAS v2] Script dimuat.");
+        console.log("[BRANKAS v3 Dynamic] Script dimuat.");
 
         let allItems = [];
         let allSettings = {
@@ -176,6 +325,158 @@
         let currentPage = 1;
         const itemsPerPage = 10;
 
+        // ── SKEMA FORM DINAMIS (CATEGORY SCHEMAS) ─────────────────
+        const CATEGORY_ICONS = {
+            'Login': '🔐',
+            'Rekening Bank': '🏦',
+            'E-KTP': '🪪',
+            'Kartu Kredit': '💳',
+            'API Key': '🔑',
+            'Catatan': '📝',
+            'Passport': '✈️',
+            'BPJS': '🏥',
+            'NPWP': '🏢',
+            'SIM': '🚗',
+            'Lainnya': '📦'
+        };
+
+        const CATEGORY_SCHEMAS = {
+            'Login': [
+                { name: 'username', label: 'Username / Email', type: 'text', placeholder: 'Misal: user@gmail.com', required: true },
+                { name: 'password', label: 'Password', type: 'password', placeholder: '••••••••••••••••', generator: true, required: true },
+                { name: 'url', label: 'URL Website', type: 'url', placeholder: 'https://www.google.com' }
+            ],
+            'Rekening Bank': [
+                { name: 'bank_name', label: 'Nama Bank / Dompet Digital', type: 'text', placeholder: 'BCA, Mandiri, BNI, GoPay, OVO, dsb.', required: true },
+                { name: 'account_number', label: 'Nomor Rekening', type: 'text', placeholder: '1234567890', required: true },
+                { name: 'account_holder', label: 'Nama Pemilik Rekening', type: 'text', placeholder: 'Budi Santoso', required: true }
+            ],
+            'E-KTP': [
+                { name: 'nik', label: 'Nomor Induk Kependudukan (NIK)', type: 'text', placeholder: '3201234567890001', required: true },
+                { name: 'full_name', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'birth_date', label: 'Tempat, Tanggal Lahir / Alamat', type: 'text', placeholder: 'Jakarta, 17 Agustus 1990' }
+            ],
+            'Kartu Kredit': [
+                { name: 'card_holder', label: 'Nama Pemilik Kartu', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'card_number', label: 'Nomor Kartu Kredit / Debit', type: 'text', placeholder: '4500 1234 5678 9012', required: true },
+                { name: 'expiry', label: 'Masa Berlaku (Bulan/Tahun)', type: 'text', placeholder: '12/28', required: true },
+                { name: 'cvv', label: 'CVV / CVC', type: 'password', placeholder: '123', required: true }
+            ],
+            'API Key': [
+                { name: 'provider_name', label: 'Nama Layanan / Provider', type: 'text', placeholder: 'OpenAI, Cloudflare, AWS, dsb.', required: true },
+                { name: 'api_key', label: 'API Key / Token', type: 'password', placeholder: 'sk-••••••••••••••••', required: true },
+                { name: 'api_secret', label: 'API Secret (Opsional)', type: 'password', placeholder: '••••••••••••••••' }
+            ],
+            'Catatan': [
+                // Tidak ada isian di tengah, langsung menggunakan textarea catatan di bawah
+            ],
+            'Passport': [
+                { name: 'passport_number', label: 'Nomor Passport', type: 'text', placeholder: 'A1234567', required: true },
+                { name: 'full_name', label: 'Nama Lengkap Pemegang Passport', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'country', label: 'Negara Penerbit', type: 'text', placeholder: 'Indonesia', required: true },
+                { name: 'expiry_date', label: 'Tanggal Kedaluwarsa', type: 'date', required: true }
+            ],
+            'BPJS': [
+                { name: 'bpjs_number', label: 'Nomor Kartu BPJS / JKN', type: 'text', placeholder: '000123456789', required: true },
+                { name: 'full_name', label: 'Nama Lengkap Peserta', type: 'text', placeholder: 'Budi Santoso', required: true }
+            ],
+            'NPWP': [
+                { name: 'npwp_number', label: 'Nomor Pokok Wajib Pajak (NPWP)', type: 'text', placeholder: '01.234.567.8-901.000', required: true },
+                { name: 'full_name', label: 'Nama Wajib Pajak', type: 'text', placeholder: 'Budi Santoso', required: true }
+            ],
+            'SIM': [
+                { name: 'sim_type', label: 'Jenis SIM', type: 'text', placeholder: 'SIM A / SIM C', required: true },
+                { name: 'sim_number', label: 'Nomor SIM', type: 'text', placeholder: '1234-5678-9012', required: true },
+                { name: 'full_name', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true }
+            ],
+            'Lainnya': [
+                { name: 'custom_info', label: 'Informasi / Keterangan Singkat', type: 'text', placeholder: 'Keterangan atau nomor unik dokumen' }
+            ]
+        };
+
+        function renderDynamicFields(cat, existingValues = {}) {
+            const container = document.getElementById('dynamic-fields-container');
+            if (!container) return;
+            const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
+            
+            if (schema.length === 0) {
+                container.innerHTML = '<div style="margin-bottom: 1.25rem; font-style: italic; color: var(--pico-muted-color);">Kategori ini tidak membutuhkan isian khusus. Silakan manfaatkan kolom Catatan di bawah.</div>';
+                return;
+            }
+
+            container.innerHTML = schema.map(field => {
+                const val = existingValues[field.name] || existingValues[field.name + '_or_email'] || '';
+                const reqStar = field.required ? ' <span style="color: #ef4444;" title="Wajib diisi">*</span>' : '';
+                const reqAttr = field.required ? ' required' : '';
+                
+                if (field.generator) {
+                    return `
+                        <div style="margin-bottom: 1.25rem;">
+                            <label for="dyn_${field.name}" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">${field.label}${reqStar}</label>
+                            <div class="pwd-generator-row">
+                                <div class="pwd-input-group">
+                                    <input type="${field.type}" id="dyn_${field.name}" placeholder="${field.placeholder || ''}" value="${val}"${reqAttr}>
+                                    <button type="button" class="btn-toggle-eye" onclick="toggleDynPassword(this, 'dyn_${field.name}')" title="Tampilkan/Sembunyikan">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                                    </button>
+                                </div>
+                                <button type="button" class="btn-gen" onclick="autoGenerateDynPassword('dyn_${field.name}')" title="Generate Password Kuat">Generate 🎲</button>
+                            </div>
+                            <div style="margin-top: 0.5rem; text-align: left;">
+                                <small><a href="/tools/password-gen/index.html" target="_blank" rel="noopener noreferrer" style="color: var(--pico-primary); font-weight: 500; display: inline-flex; align-items: center; gap: 0.25rem;">Buka Tools Generator Lengkap ↗</a></small>
+                            </div>
+                        </div>
+                    `;
+                } else if (field.type === 'password') {
+                    return `
+                        <div style="margin-bottom: 1.25rem;">
+                            <label for="dyn_${field.name}" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">${field.label}${reqStar}</label>
+                            <div class="pwd-input-group">
+                                <input type="password" id="dyn_${field.name}" placeholder="${field.placeholder || ''}" value="${val}"${reqAttr}>
+                                <button type="button" class="btn-toggle-eye" onclick="toggleDynPassword(this, 'dyn_${field.name}')" title="Tampilkan/Sembunyikan">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div style="margin-bottom: 1.25rem;">
+                            <label for="dyn_${field.name}" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">${field.label}${reqStar}</label>
+                            <input type="${field.type}" id="dyn_${field.name}" placeholder="${field.placeholder || ''}" value="${val}"${reqAttr} style="margin-bottom: 0; border-radius: 10px;">
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function toggleDynPassword(btn, inputId) {
+            const passInput = document.getElementById(inputId);
+            if (!passInput) return;
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                if (btn) btn.style.opacity = '0.5';
+            } else {
+                passInput.type = 'password';
+                if (btn) btn.style.opacity = '1';
+            }
+        }
+
+        function autoGenerateDynPassword(inputId) {
+            const newPassword = window.TMPT_Generator.generateRandom(16);
+            const passwordInput = document.getElementById(inputId);
+            if (!passwordInput) return;
+            passwordInput.value = newPassword;
+            
+            if (passwordInput.type === 'password') {
+                toggleDynPassword(null, inputId);
+                setTimeout(() => {
+                    if (passwordInput.type === 'text') toggleDynPassword(null, inputId);
+                }, 3000);
+            }
+            window.TMPT_UI.toast("Password acak dibuat!", "success");
+        }
+
         // ── INISIALISASI ──────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', async () => {
             console.log("[BRANKAS] DOMContentLoaded → mulai init auth...");
@@ -184,7 +485,6 @@
                 const authOk = await window.TMPT_Auth.init();
                 console.log("[BRANKAS] Auth init selesai. Key restored:", authOk);
 
-                // Cek apakah user sudah unlock
                 if (!window.TMPT_Auth.isUnlocked()) {
                     console.warn("[BRANKAS] Vault terkunci, redirect ke login...");
                     window.location.href = '/login';
@@ -229,7 +529,6 @@
                             allSettings = { ...allSettings, ...(parsed.settings || {}) };
                         }
                         
-                        // Terapkan setting tema yang dimuat
                         if (allSettings.theme) {
                             window.TMPT_UI.applyTheme(allSettings.theme);
                         }
@@ -241,10 +540,64 @@
 
             } catch (e) {
                 console.error("[BRANKAS] Gagal memuat data:", e);
-                // Jika error dekripsi, tampilkan empty state, jangan toast terus-menerus
                 allItems = [];
                 renderItems();
             }
+        }
+
+        // ── MODE TAMPILAN (GRID / LIST) ───────────────────────────
+        let currentViewMode = localStorage.getItem('tmpt_vault_view_mode') || 'grid';
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('tmpt_vault_view_mode', mode);
+            
+            document.getElementById('btn-mode-grid').classList.toggle('active', mode === 'grid');
+            document.getElementById('btn-mode-list').classList.toggle('active', mode === 'list');
+            
+            renderItems();
+        }
+
+        // Fungsi Deteksi Logo / Ikon Merek Cerdas
+        function getBrandLogoHtml(item) {
+            const title = (item.title || '').toLowerCase();
+            const cat = item.category || '';
+            const url = (item.url || '').toLowerCase();
+
+            if (title.includes('google') || title.includes('gmail') || url.includes('google') || url.includes('gmail')) {
+                return `<svg viewBox="0 0 24 24" width="28" height="28"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>`;
+            }
+            if (title.includes('github') || url.includes('github')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>`;
+            }
+            if (title.includes('mysql') || title.includes('database') || title.includes('postgres') || title.includes('db')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`;
+            }
+            if (title.includes('cpanel') || title.includes('hosting') || title.includes('vps') || title.includes('server')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="M2 15h10"/><path d="M6 12v6"/></svg>`;
+            }
+            if (title.includes('wifi') || title.includes('wi-fi') || title.includes('router') || title.includes('indihome') || title.includes('biznet')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>`;
+            }
+            if (title.includes('facebook') || title.includes('fb') || url.includes('facebook')) {
+                return `<svg viewBox="0 0 24 24" width="28" height="28" fill="#1877F2"><path d="M24 12.07C24 5.41 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.04V9.41c0-3.02 1.8-4.7 4.54-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.5c-1.5 0-1.96.93-1.96 1.89v2.26h3.32l-.53 3.5h-2.8V24C19.62 23.1 24 18.1 24 12.07z"/></svg>`;
+            }
+            if (title.includes('instagram') || title.includes('ig') || url.includes('instagram')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ec4899" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`;
+            }
+            if (title.includes('twitter') || title.includes(' x ') || title === 'x' || url.includes('twitter') || url.includes('x.com')) {
+                return `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
+            }
+            if (cat === 'Rekening Bank') return '🏦';
+            if (cat === 'E-KTP') return '🪪';
+            if (cat === 'Kartu Kredit') return '💳';
+            if (cat === 'API Key') return '🔑';
+            if (cat === 'Passport') return '✈️';
+            if (cat === 'BPJS') return '🏥';
+            if (cat === 'NPWP') return '🏢';
+            if (cat === 'SIM') return '🚗';
+            
+            return title ? title.charAt(0).toUpperCase() : '🔐';
         }
 
         // ── RENDER ────────────────────────────────────────────────
@@ -292,7 +645,6 @@
             if (filtered.length === 0) {
                 pagination.style.display = 'none';
                 
-                // Tentukan teks dinamis berdasarkan filter
                 let emptyTitle = "Belum Ada Data";
                 let emptyDesc = "Brankas Anda masih kosong atau tidak ada hasil yang cocok.";
                 let btnText = "Buat Data Pertama";
@@ -304,12 +656,12 @@
                 }
 
                 container.innerHTML = `
-                    <article class="text-center" style="padding: 3rem 1rem;">
-                        <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
+                    <div class="empty-state-card">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #eab308;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2" /><path d="M5 8h14" /></svg>
                         <h3>${emptyTitle}</h3>
-                        <p class="secondary">${emptyDesc}</p>
-                        <button onclick="openAddModalWithCategory('${categoryFilter}')" class="outline">${btnText}</button>
-                    </article>
+                        <p class="secondary" style="margin-bottom: 2rem;">${emptyDesc}</p>
+                        <button onclick="openAddModalWithCategory('${categoryFilter}')" class="btn-navy-outline" style="border-radius: 10px;">${btnText}</button>
+                    </div>
                 `;
                 return;
             }
@@ -322,23 +674,79 @@
             const start = (currentPage - 1) * itemsPerPage;
             const paginated = filtered.slice(start, start + itemsPerPage);
 
-            container.innerHTML = paginated.map(item => `
-                <article class="vault-item-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <span class="badge">${item.category}</span>
-                                <h4 style="margin: 0;">${item.title}</h4>
+            if (currentViewMode === 'grid') {
+                container.innerHTML = `<div class="vault-grid-container">` + paginated.map(item => {
+                    const logoHtml = getBrandLogoHtml(item);
+                    let subtitle = item.username || '(Tanpa Keterangan)';
+                    let copyTooltip = "Salin Data Rahasia / Password";
+
+                    if (item.category === 'Rekening Bank') { copyTooltip = "Salin No. Rekening"; }
+                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; subtitle = `NIK: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'Kartu Kredit') { copyTooltip = "Salin No. Kartu"; }
+                    else if (item.category === 'API Key') { copyTooltip = "Salin API Key"; }
+                    else if (item.category === 'Passport') { copyTooltip = "Salin No. Passport"; }
+                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; subtitle = `No BPJS: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; subtitle = `NPWP: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; subtitle = `${item.username || ''} — No SIM: ${item.password || ''}`; }
+                    else if (item.category === 'Lainnya') { copyTooltip = "Salin Keterangan"; subtitle = item.username || item.notes || '(Lain-lain)'; }
+
+                    return `
+                    <article class="vault-grid-card" onclick="if(!event.target.closest('button')) editItem('${item.id}')">
+                        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                            <div class="brand-icon-box">
+                                ${logoHtml}
                             </div>
-                            <small class="secondary">${item.username || '(Tanpa Username)'}</small>
+                            <div style="overflow: hidden; width: 100%;">
+                                <h4 style="margin: 0; font-weight: 700; font-size: 1.15rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.title}</h4>
+                                <small class="secondary" style="font-size: 0.85rem; display: block; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; margin-top: 0.25rem;">${subtitle}</small>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button class="outline secondary" onclick="copyPassword('${item.id}')" title="Salin Password">📋</button>
-                            <button class="outline" onclick="editItem('${item.id}')">Edit</button>
+
+                        <div class="pill-input-box">
+                            <span style="font-family: monospace; letter-spacing: 2px; color: var(--pico-color); font-size: 1.25rem; line-height: 1;">••••••••</span>
+                            <button type="button" class="btn-copy-pill" title="${copyTooltip}" onclick="event.stopPropagation(); copyPassword('${item.id}')">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </button>
                         </div>
-                    </div>
-                </article>
-            `).join('');
+                    </article>
+                    `;
+                }).join('') + `</div>`;
+            } else {
+                container.innerHTML = paginated.map(item => {
+                    const icon = CATEGORY_ICONS[item.category] || '🔐';
+                    let subtitle = item.username || '(Tanpa Keterangan)';
+                    let copyTooltip = "Salin Data Rahasia / Password";
+                    let copyBtnText = "📋 Salin";
+
+                    if (item.category === 'Rekening Bank') { copyTooltip = "Salin No. Rekening"; copyBtnText = "📋 Salin Rek"; }
+                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; copyBtnText = "📋 Salin NIK"; subtitle = `NIK: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'Kartu Kredit') { copyTooltip = "Salin No. Kartu"; copyBtnText = "📋 Salin No"; }
+                    else if (item.category === 'API Key') { copyTooltip = "Salin API Key"; copyBtnText = "📋 Salin Key"; }
+                    else if (item.category === 'Passport') { copyTooltip = "Salin No. Passport"; copyBtnText = "📋 Salin Passport"; }
+                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; copyBtnText = "📋 Salin BPJS"; subtitle = `No BPJS: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; copyBtnText = "📋 Salin NPWP"; subtitle = `NPWP: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; copyBtnText = "📋 Salin SIM"; subtitle = `${item.username || ''} — No SIM: ${item.password || ''}`; }
+                    else if (item.category === 'Lainnya') { copyTooltip = "Salin Keterangan"; copyBtnText = "📋 Salin"; subtitle = item.username || item.notes || '(Lain-lain)'; }
+
+                    return `
+                    <article class="vault-item-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                            <div>
+                                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem;">
+                                    <span class="badge" style="background: var(--pico-primary-focus); color: var(--pico-primary); font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 6px;">${icon} ${item.category}</span>
+                                    <h4 style="margin: 0; font-weight: 700;">${item.title}</h4>
+                                </div>
+                                <small class="secondary" style="font-size: 0.9rem;">${subtitle}</small>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                <button class="outline secondary" onclick="copyPassword('${item.id}')" title="${copyTooltip}" style="margin: 0; padding: 0.5rem 0.75rem; border-radius: 8px;">${copyBtnText}</button>
+                                <button class="btn-navy" onclick="editItem('${item.id}')" style="margin: 0; padding: 0.5rem 1rem !important; border-radius: 8px !important; font-size: 0.9rem !important;">Edit / Detail</button>
+                            </div>
+                        </div>
+                    </article>
+                    `;
+                }).join('');
+            }
 
             if (totalPages > 1 || filtered.length > itemsPerPage) {
                 pagination.style.display = 'flex';
@@ -357,39 +765,64 @@
             }
         }
 
-        // ── SAVE ──────────────────────────────────────────────────
-        function autoGeneratePassword() {
-            // Generate a strong random password (16 chars, all options)
-            const newPassword = window.TMPT_Generator.generateRandom(16);
-            const passwordInput = document.getElementById('password');
-            passwordInput.value = newPassword;
-            
-            // Show password briefly so user can see what was generated
-            if (passwordInput.type === 'password') {
-                togglePasswordVisibility(); // show it
-                setTimeout(() => {
-                    if (passwordInput.type === 'text') {
-                        togglePasswordVisibility(); // hide it after 3 seconds
-                    }
-                }, 3000);
-            }
-            
-            window.TMPT_UI.toast("Password acak dibuat!", "success");
-        }
-
+        // ── SAVE & EDIT DYNAMIC ITEMS ─────────────────────────────
         async function saveItem(event) {
             event.preventDefault();
             window.TMPT_UI.setLoading('#save-btn', true);
 
             const id = document.getElementById('item-id').value || crypto.randomUUID();
+            const cat = document.getElementById('category').value;
+            const title = document.getElementById('title').value;
+            const notes = document.getElementById('notes').value;
+
+            const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
+            const dynFields = {};
+            schema.forEach(field => {
+                const el = document.getElementById('dyn_' + field.name);
+                if (el) dynFields[field.name] = el.value;
+            });
+
+            let mainUsername = dynFields.username || dynFields.email || '';
+            let mainPassword = dynFields.password || '';
+
+            if (cat === 'Rekening Bank') {
+                mainUsername = `${dynFields.bank_name || 'Bank'} — ${dynFields.account_holder || ''}`;
+                mainPassword = dynFields.account_number || '';
+            } else if (cat === 'E-KTP') {
+                mainUsername = dynFields.full_name || '';
+                mainPassword = dynFields.nik || '';
+            } else if (cat === 'Kartu Kredit') {
+                mainUsername = `${dynFields.card_holder || ''} — Exp: ${dynFields.expiry || ''}`;
+                mainPassword = dynFields.card_number || '';
+            } else if (cat === 'API Key') {
+                mainUsername = dynFields.provider_name || 'API Key';
+                mainPassword = dynFields.api_key || '';
+            } else if (cat === 'Passport') {
+                mainUsername = dynFields.full_name || '';
+                mainPassword = dynFields.passport_number || '';
+            } else if (cat === 'BPJS') {
+                mainUsername = dynFields.full_name || '';
+                mainPassword = dynFields.bpjs_number || '';
+            } else if (cat === 'NPWP') {
+                mainUsername = dynFields.full_name || '';
+                mainPassword = dynFields.npwp_number || '';
+            } else if (cat === 'SIM') {
+                mainUsername = `${dynFields.sim_type || 'SIM'} — ${dynFields.full_name || ''}`;
+                mainPassword = dynFields.sim_number || '';
+            } else if (cat === 'Lainnya') {
+                mainUsername = dynFields.custom_info || notes || '(Lain-lain)';
+                mainPassword = dynFields.custom_info || '';
+            }
+
             const newItem = {
                 id,
-                title: document.getElementById('title').value,
-                category: document.getElementById('category').value,
-                username: document.getElementById('username').value,
-                password: document.getElementById('password').value,
-                url: document.getElementById('url').value,
-                notes: document.getElementById('notes').value,
+                title,
+                category: cat,
+                username: mainUsername,
+                password: mainPassword,
+                url: dynFields.url || '',
+                notes,
+                fields: dynFields,
                 updated_at: new Date().toISOString()
             };
 
@@ -411,37 +844,46 @@
             pendingDeleteId = document.getElementById('item-id').value;
             if (!pendingDeleteId) return;
             
-            // Tutup modal edit dulu, buka modal konfirmasi
             closeModal();
-            document.getElementById('confirm-modal').showModal();
+            
+            document.getElementById('confirm-title').textContent = "Konfirmasi Hapus Data";
+            document.getElementById('confirm-message').innerHTML = "Apakah Anda yakin ingin menghapus kredensial ini secara permanen?";
+            document.getElementById('confirm-input-container').style.display = "none";
+            
+            const btnOk = document.getElementById('confirm-ok-btn');
+            btnOk.textContent = "Hapus Permanen";
+            btnOk.className = "btn-danger";
+            btnOk.style.background = "";
+            
+            const modal = document.getElementById('confirm-modal');
+            modal.showModal();
+            
+            modal._resolve = async (confirmed) => {
+                btnOk.textContent = "Lanjutkan";
+                btnOk.className = "btn-navy";
+                if (confirmed && pendingDeleteId) {
+                    allItems = allItems.filter(i => i.id !== pendingDeleteId);
+                    await syncToVault();
+                    window.TMPT_UI.toast("Data berhasil dihapus.", "info");
+                    renderItems();
+                }
+                pendingDeleteId = null;
+            };
         }
 
         async function closeConfirm(confirmed) {
-            document.getElementById('confirm-modal').close();
-            
-            if (confirmed && pendingDeleteId) {
-                // Filter untuk membuang ID yang dipilih
-                allItems = allItems.filter(i => i.id !== pendingDeleteId);
-                await syncToVault();
-                window.TMPT_UI.toast("Data berhasil dihapus.", "info");
-                renderItems();
-            }
-
-            // PENTING: Resolve promise untuk pemanggil (seperti Module Backup)
             const modal = document.getElementById('confirm-modal');
+            modal.close();
             if (modal._resolve) {
                 modal._resolve(confirmed);
                 modal._resolve = null;
             }
-            
-            pendingDeleteId = null;
         }
 
         // ── SYNC TO VAULT ─────────────────────────────────────────
         async function syncToVault() {
             console.log(`[BRANKAS] Menyinkronkan ${allItems.length} item ke vault...`);
             try {
-                // Bungkus dalam satu objek besar
                 const vaultData = {
                     items: allItems,
                     settings: allSettings,
@@ -456,7 +898,6 @@
                 
                 if (success) {
                     console.log("[BRANKAS] Sinkronisasi berhasil!");
-                    // Verifikasi: baca kembali dari localStorage
                     const verify = window.TMPT_Vault.getPayload();
                     console.log("[BRANKAS] Verifikasi payload tersimpan:", verify ? "OK" : "GAGAL");
                 } else {
@@ -473,7 +914,7 @@
             const item = allItems.find(i => i.id === id);
             if (item && item.password) {
                 navigator.clipboard.writeText(item.password);
-                window.TMPT_UI.toast("Password disalin!", "success");
+                window.TMPT_UI.toast("Berhasil disalin!", "success");
             }
         }
 
@@ -482,6 +923,8 @@
             document.getElementById('item-id').value = "";
             document.getElementById('modal-title').textContent = "Tambah Data Baru";
             document.getElementById('delete-btn').style.display = "none";
+            document.getElementById('category').value = 'Login';
+            renderDynamicFields('Login');
             document.getElementById('item-modal').showModal();
         }
 
@@ -489,6 +932,7 @@
             openAddModal();
             if (cat !== 'all') {
                 document.getElementById('category').value = cat;
+                renderDynamicFields(cat);
             }
         }
 
@@ -499,11 +943,16 @@
             document.getElementById('modal-title').textContent = "Edit Data";
             document.getElementById('item-id').value = item.id;
             document.getElementById('title').value = item.title;
-            document.getElementById('category').value = item.category;
-            document.getElementById('username').value = item.username;
-            document.getElementById('password').value = item.password;
-            document.getElementById('url').value = item.url;
-            document.getElementById('notes').value = item.notes;
+            document.getElementById('category').value = item.category || 'Login';
+            document.getElementById('notes').value = item.notes || '';
+
+            // Render dan isikan nilai ke kolom dinamis
+            const values = item.fields || {
+                username: item.username,
+                password: item.password,
+                url: item.url
+            };
+            renderDynamicFields(item.category || 'Login', values);
 
             document.getElementById('delete-btn').style.display = "block";
             document.getElementById('item-modal').showModal();
@@ -513,29 +962,408 @@
             document.getElementById('item-modal').close();
         }
 
-        function togglePasswordVisibility() {
-            const passInput = document.getElementById('password');
-            passInput.type = passInput.type === 'password' ? 'text' : 'password';
+        // ── EKSPOR & IMPOR (CSV / JSON / TMPT) ───────────────────
+        let stagingImportItems = [];
+
+        function openExportModal() {
+            document.getElementById('export-modal').showModal();
+        }
+
+        function confirmExportPlaintext(format) {
+            document.getElementById('export-modal').close();
+            
+            document.getElementById('confirm-title').textContent = "⚠️ Peringatan Ekspor Berkas Terbuka";
+            document.getElementById('confirm-message').innerHTML = `Berkas <b>.${format.toUpperCase()}</b> yang akan Anda unduh <b>TIDAK TERENKRIPSI</b> (Teks Mentah). Siapa pun yang memiliki berkas tersebut dapat membaca kata sandi, NIK, dan PIN Anda!<br><br>Pastikan Anda menyimpannya di tempat yang sangat aman atau segera menghapusnya setelah pemindahan selesai.`;
+            document.getElementById('confirm-input-container').style.display = "none";
+            
+            const btnOk = document.getElementById('confirm-ok-btn');
+            btnOk.textContent = `Saya Mengerti, Unduh .${format.toUpperCase()}`;
+            btnOk.className = "btn-navy";
+            btnOk.style.background = "#dc2626";
+            
+            const modal = document.getElementById('confirm-modal');
+            modal.showModal();
+            
+            modal._resolve = (confirmed) => {
+                btnOk.textContent = "Lanjutkan";
+                btnOk.style.background = "";
+                btnOk.className = "btn-navy";
+                if (confirmed) {
+                    exportData(format);
+                }
+            };
+        }
+
+        async function exportData(format) {
+            if (format === 'tmpt') {
+                const data = window.TMPT_Vault.getPayload();
+                if (!data) return window.TMPT_UI.toast("Brangkas masih kosong!", "warning");
+                const blob = new Blob([data], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_backup_${new Date().toISOString().slice(0,10)}.tmpt`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Berkas .tmpt berhasil diunduh!", "success");
+            } else if (format === 'json') {
+                const jsonStr = JSON.stringify(allItems, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_export_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Ekspor JSON berhasil!", "success");
+            } else if (format === 'csv') {
+                const headers = ["id", "category", "title", "username", "password", "url", "notes", "bank_name", "account_number", "account_holder", "nik", "full_name", "birth_date", "card_holder", "card_number", "expiry", "cvv", "provider_name", "api_key", "custom_info", "updated_at"];
+                
+                let csvRows = [headers.map(h => `"${h}"`).join(",")];
+                
+                allItems.forEach(item => {
+                    const f = item.fields || {};
+                    const row = headers.map(h => {
+                        let val = "";
+                        if (h === "id") val = item.id || "";
+                        else if (h === "category") val = item.category || "Login";
+                        else if (h === "title") val = item.title || "";
+                        else if (h === "username") val = item.username || "";
+                        else if (h === "password") val = item.password || "";
+                        else if (h === "url") val = item.url || "";
+                        else if (h === "notes") val = item.notes || "";
+                        else if (h === "updated_at") val = item.updated_at || "";
+                        else val = f[h] || "";
+                        
+                        return `"${val.replace(/"/g, '""')}"`;
+                    });
+                    csvRows.push(row.join(","));
+                });
+                
+                const csvStr = csvRows.join("\n");
+                const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_export_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Ekspor CSV berhasil!", "success");
+            }
+        }
+
+        function downloadCsvTemplate() {
+            const templateStr = `"category","title","username","password","url","notes","bank_name","account_number","account_holder","nik","full_name","birth_date","card_holder","card_number","expiry","cvv","provider_name","api_key","custom_info"
+"Login","Akun Google Utama","budi.santoso@gmail.com","SandiRahasia123!","https://google.com","Akun untuk email kerja","","","","","","","","","","","","",""
+"Rekening Bank","Tabungan Bank BCA","","","","Rekening untuk penerimaan gaji","Bank BCA","1234567890","Budi Santoso","","","","","","","","","",""
+"E-KTP","KTP Pribadi","","","","Disimpan di dalam dompet","","","","3201234567890001","Budi Santoso","Jakarta, 17 Agustus 1990","","","","","","",""
+"Kartu Kredit","Kartu Kredit Visa","","","","Limit 25 Juta","","","","","","","Budi Santoso","4500123456789012","12/28","123","","",""`;
+
+            const blob = new Blob([templateStr], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `template_impor_brangkas.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            window.TMPT_UI.toast("Format contoh CSV berhasil diunduh!", "success");
+        }
+
+        function openImportModal() {
+            resetImportStep();
+            document.getElementById('import-modal').showModal();
+        }
+
+        function resetImportStep() {
+            document.getElementById('import-step-1').style.display = "block";
+            document.getElementById('import-step-2').style.display = "none";
+            document.getElementById('import-file').value = "";
+            stagingImportItems = [];
+        }
+
+        async function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const name = file.name.toLowerCase();
+            const text = await file.text();
+
+            if (name.endsWith('.tmpt')) {
+                window.TMPT_UI.toast("Pemulihan berkas .tmpt dilakukan melalui menu 'Pulihkan Data' di Banner Backup / Pengaturan.", "warning");
+            } else if (name.endsWith('.json')) {
+                try {
+                    const data = JSON.parse(text);
+                    if (Array.isArray(data)) {
+                        processImportedArray(data);
+                    } else if (data.items && Array.isArray(data.items)) {
+                        processImportedArray(data.items);
+                    } else {
+                        throw new Error("Struktur JSON tidak dikenali");
+                    }
+                } catch (e) {
+                    window.TMPT_UI.toast("Format berkas JSON tidak valid!", "error");
+                }
+            } else if (name.endsWith('.csv')) {
+                processImportedArray(parseSimpleCSV(text));
+            } else {
+                window.TMPT_UI.toast("Format berkas tidak didukung!", "error");
+            }
+        }
+
+        function parseSimpleCSV(str) {
+            const lines = str.split(/\r\n|\n/).filter(l => l.trim().length > 0);
+            if (lines.length < 2) return [];
+
+            const parseLine = (line) => {
+                const vals = [];
+                let curr = "";
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const c = line[i];
+                    if (c === '"') {
+                        if (inQuotes && line[i+1] === '"') { curr += '"'; i++; }
+                        else { inQuotes = !inQuotes; }
+                    } else if (c === ',' && !inQuotes) {
+                        vals.push(curr); curr = "";
+                    } else { curr += c; }
+                }
+                vals.push(curr);
+                return vals;
+            };
+
+            const headers = parseLine(lines[0]).map(h => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+            const items = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const rowVals = parseLine(lines[i]);
+                const rowObj = {};
+                headers.forEach((h, idx) => { rowObj[h] = rowVals[idx] || ""; });
+
+                // Deteksi Kategori
+                let cat = rowObj.category || "Login";
+                if (!CATEGORY_SCHEMAS[cat]) {
+                    if (rowObj.nik) cat = "E-KTP";
+                    else if (rowObj.account_number || rowObj.bank_name) cat = "Rekening Bank";
+                    else if (rowObj.card_number) cat = "Kartu Kredit";
+                    else if (rowObj.api_key) cat = "API Key";
+                    else cat = "Lainnya";
+                }
+
+                // Bangun struktur fields
+                const fields = {};
+                const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
+                schema.forEach(s => {
+                    if (rowObj[s.name] !== undefined) fields[s.name] = rowObj[s.name];
+                });
+
+                // Set default jika kosong dari rowObj
+                if (cat === 'Login') {
+                    fields.username = fields.username || rowObj.username || "";
+                    fields.password = fields.password || rowObj.password || "";
+                    fields.url = fields.url || rowObj.url || "";
+                }
+
+                let mainUsername = rowObj.username || "";
+                let mainPassword = rowObj.password || "";
+
+                if (cat === 'Rekening Bank') {
+                    mainUsername = `${fields.bank_name || rowObj.bank_name || 'Bank'} — ${fields.account_holder || rowObj.account_holder || ''}`;
+                    mainPassword = fields.account_number || rowObj.account_number || "";
+                } else if (cat === 'E-KTP') {
+                    mainUsername = fields.full_name || rowObj.full_name || "";
+                    mainPassword = fields.nik || rowObj.nik || "";
+                } else if (cat === 'Kartu Kredit') {
+                    mainUsername = `${fields.card_holder || rowObj.card_holder || ''} — Exp: ${fields.expiry || rowObj.expiry || ''}`;
+                    mainPassword = fields.card_number || rowObj.card_number || "";
+                } else if (cat === 'API Key') {
+                    mainUsername = fields.provider_name || rowObj.provider_name || "API Key";
+                    mainPassword = fields.api_key || rowObj.api_key || "";
+                } else if (cat === 'Lainnya') {
+                    mainUsername = fields.custom_info || rowObj.custom_info || rowObj.notes || "";
+                    mainPassword = fields.custom_info || rowObj.custom_info || "";
+                }
+
+                items.push({
+                    id: rowObj.id || crypto.randomUUID(),
+                    title: rowObj.title || `Data ${cat} Impor`,
+                    category: cat,
+                    username: mainUsername,
+                    password: mainPassword,
+                    url: rowObj.url || fields.url || "",
+                    notes: rowObj.notes || "",
+                    fields,
+                    updated_at: rowObj.updated_at || new Date().toISOString()
+                });
+            }
+
+            return items;
+        }
+
+        function processImportedArray(items) {
+            stagingImportItems = items.map(item => {
+                // Periksa apakah item sudah ada di vault (berdasarkan ID atau kombinasi Judul & Kategori)
+                const exists = allItems.find(existing => 
+                    existing.id === item.id || 
+                    (existing.title.toLowerCase() === item.title.toLowerCase() && existing.category === item.category) ||
+                    (item.password && existing.password === item.password)
+                );
+
+                // Periksa mandatory fields
+                let isInvalid = false;
+                const schema = CATEGORY_SCHEMAS[item.category] || CATEGORY_SCHEMAS['Login'];
+                schema.forEach(s => {
+                    if (s.required && (!item.fields || !item.fields[s.name] || item.fields[s.name].trim() === "")) {
+                        isInvalid = true;
+                    }
+                });
+
+                let status = "🟢 [DATA BARU]";
+                let statusColor = "#10b981";
+                let isConflict = false;
+
+                if (isInvalid) {
+                    status = "🔴 [TIDAK LENGKAP]";
+                    statusColor = "#ef4444";
+                } else if (exists) {
+                    status = "🟡 [SUDAH ADA / KONFLIK]";
+                    statusColor = "#f59e0b";
+                    isConflict = true;
+                }
+
+                return {
+                    ...item,
+                    _status: status,
+                    _statusColor: statusColor,
+                    _isConflict: isConflict,
+                    _isInvalid: isInvalid,
+                    _selected: !isInvalid // Default dicentang jika valid
+                };
+            });
+
+            document.getElementById('import-step-1').style.display = "none";
+            document.getElementById('import-step-2').style.display = "block";
+            document.getElementById('preview-count').textContent = stagingImportItems.length;
+
+            renderPreviewTable();
+            updatePreviewCheckboxes();
+        }
+
+        function renderPreviewTable() {
+            const tbody = document.getElementById('preview-tbody');
+            if (!tbody) return;
+
+            tbody.innerHTML = stagingImportItems.map((item, idx) => `
+                <tr style="border-bottom: 1px solid var(--pico-border-color); background: ${item._isConflict ? 'rgba(245, 158, 11, 0.05)' : (item._isInvalid ? 'rgba(239, 68, 68, 0.05)' : 'transparent')};">
+                    <td style="text-align: center; padding: 0.75rem;"><input type="checkbox" class="import-checkbox" data-idx="${idx}" ${item._selected ? 'checked' : ''} ${item._isInvalid ? 'disabled' : ''} onchange="toggleSingleImportCheckbox(${idx}, this.checked)"></td>
+                    <td style="padding: 0.75rem; font-weight: 600;">${CATEGORY_ICONS[item.category] || '🔐'} ${item.category}</td>
+                    <td style="padding: 0.75rem;">
+                        <div style="font-weight: 700;">${item.title}</div>
+                        <small class="secondary" style="font-size: 0.85rem;">${item.username || '(Tanpa Detail)'}</small>
+                    </td>
+                    <td style="padding: 0.75rem; font-weight: 700; color: ${item._statusColor};">${item._status}</td>
+                </tr>
+            `).join('');
+        }
+
+        function toggleAllImportCheckboxes(el) {
+            const checked = el.checked;
+            stagingImportItems.forEach(i => { if (!i._isInvalid) i._selected = checked; });
+            document.querySelectorAll('.import-checkbox:not([disabled])').forEach(cb => { cb.checked = checked; });
+            updateConfirmBtnCount();
+        }
+
+        function toggleSingleImportCheckbox(idx, checked) {
+            if (stagingImportItems[idx]) stagingImportItems[idx]._selected = checked;
+            updateConfirmBtnCount();
+        }
+
+        function updatePreviewCheckboxes() {
+            const action = document.getElementById('conflict-action').value;
+            stagingImportItems.forEach(i => {
+                if (i._isInvalid) { i._selected = false; return; }
+                if (i._isConflict && action === 'skip') i._selected = false;
+                else i._selected = true;
+            });
+            renderPreviewTable();
+            updateConfirmBtnCount();
+        }
+
+        function updateConfirmBtnCount() {
+            const count = stagingImportItems.filter(i => i._selected).length;
+            const btn = document.getElementById('confirm-import-btn');
+            if (btn) {
+                btn.textContent = `🚀 Konfirmasi Impor (${count} Data)`;
+                btn.disabled = count === 0;
+            }
+        }
+
+        async function executeImportStaging() {
+            const selected = stagingImportItems.filter(i => i._selected);
+            if (selected.length === 0) return;
+
+            const action = document.getElementById('conflict-action').value;
+            let importedCount = 0;
+
+            selected.forEach(sItem => {
+                const cleanItem = { ...sItem };
+                delete cleanItem._status; delete cleanItem._statusColor; delete cleanItem._isConflict; delete cleanItem._isInvalid; delete cleanItem._selected;
+                
+                const existingIdx = allItems.findIndex(e => e.id === cleanItem.id || (e.title.toLowerCase() === cleanItem.title.toLowerCase() && e.category === cleanItem.category));
+                
+                if (existingIdx > -1) {
+                    if (action === 'replace') {
+                        allItems[existingIdx] = cleanItem;
+                        importedCount++;
+                    } else if (action === 'duplicate') {
+                        cleanItem.id = crypto.randomUUID();
+                        cleanItem.title = `${cleanItem.title} (Salinan)`;
+                        allItems.push(cleanItem);
+                        importedCount++;
+                    }
+                } else {
+                    allItems.push(cleanItem);
+                    importedCount++;
+                }
+            });
+
+            await syncToVault();
+            document.getElementById('import-modal').close();
+            window.TMPT_UI.toast(`Berhasil mengimpor ${importedCount} data ke Brangkas!`, "success");
+            resetPageAndRender();
         }
 
         // --- DEV ONLY: Generate Dummy Data ---
         async function generateDummyData(count = 100) {
             console.log(`[DEV] Generating ${count} dummy records...`);
-            const categories = ['Login', 'Catatan', 'Kartu'];
-            const apps = ['Google', 'Facebook', 'Twitter', 'GitHub', 'Netflix', 'Spotify', 'Amazon', 'Bank', 'Email', 'Work'];
+            const categories = ['Login', 'Rekening Bank', 'E-KTP', 'Kartu Kredit'];
+            const apps = ['Google', 'Bank BCA', 'KTP Pribadi', 'Kartu Visa'];
             
             for (let i = 1; i <= count; i++) {
-                const app = apps[Math.floor(Math.random() * apps.length)];
                 const cat = categories[Math.floor(Math.random() * categories.length)];
+                const app = `${cat} Test ${i}`;
+                const dynFields = {
+                    username: `user${i}@gmail.com`,
+                    password: `secret${i}`,
+                    bank_name: 'Bank BCA',
+                    account_number: `5800${i}`,
+                    account_holder: 'Budi Santoso',
+                    nik: `320101170890${i}`,
+                    full_name: 'Budi Santoso',
+                    card_number: `450012345678${i}`,
+                    expiry: '12/28',
+                    cvv: '123',
+                    url: 'https://google.com'
+                };
                 
                 allItems.push({
                     id: crypto.randomUUID(),
-                    title: `${app} Test ${i}`,
+                    title: app,
                     category: cat,
-                    username: `user${i}@tmpt.id`,
-                    password: Math.random().toString(36).slice(-10),
-                    url: `https://${app.toLowerCase()}.com`,
-                    notes: `Ini adalah data dummy ke-${i} untuk testing pagination.`,
+                    username: cat === 'Login' ? dynFields.username : (cat === 'E-KTP' ? dynFields.full_name : dynFields.account_holder),
+                    password: cat === 'Login' ? dynFields.password : (cat === 'E-KTP' ? dynFields.nik : dynFields.account_number),
+                    url: 'https://google.com',
+                    notes: `Data dummy ke-${i} untuk testing.`,
+                    fields: dynFields,
                     updated_at: new Date().toISOString()
                 });
             }

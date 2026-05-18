@@ -42,29 +42,44 @@ window.TMPT_Generator = (function() {
      * @param {number} length Panjang password
      * @param {Object} options { uppercase: bool, numbers: bool, symbols: bool }
      */
-    function generateRandom(length = 16, options = { uppercase: true, numbers: true, symbols: true }) {
-        let charset = CHARS.lowercase;
-        if (options.uppercase) charset += CHARS.uppercase;
-        if (options.numbers) charset += CHARS.numbers;
-        if (options.symbols) charset += CHARS.symbols;
+    function generateRandom(length = 16, options = { uppercase: true, numbers: true, symbols: true, lowercase: true }) {
+        let charset = '';
+        let requiredChars = [];
 
-        let password = '';
-        const charsetLength = charset.length;
-        
-        // Pastikan setidaknya ada satu dari setiap karakter yang dipilih jika panjang memungkinkan
-        if (length >= 4) {
-            password += CHARS.lowercase[getSecureRandomInt(CHARS.lowercase.length)];
-            if (options.uppercase) password += CHARS.uppercase[getSecureRandomInt(CHARS.uppercase.length)];
-            if (options.numbers) password += CHARS.numbers[getSecureRandomInt(CHARS.numbers.length)];
-            if (options.symbols) password += CHARS.symbols[getSecureRandomInt(CHARS.symbols.length)];
+        if (options.lowercase !== false) {
+            charset += CHARS.lowercase;
+            requiredChars.push(CHARS.lowercase[getSecureRandomInt(CHARS.lowercase.length)]);
+        }
+        if (options.uppercase) {
+            charset += CHARS.uppercase;
+            requiredChars.push(CHARS.uppercase[getSecureRandomInt(CHARS.uppercase.length)]);
+        }
+        if (options.numbers) {
+            charset += CHARS.numbers;
+            requiredChars.push(CHARS.numbers[getSecureRandomInt(CHARS.numbers.length)]);
+        }
+        if (options.symbols) {
+            charset += CHARS.symbols;
+            requiredChars.push(CHARS.symbols[getSecureRandomInt(CHARS.symbols.length)]);
         }
 
-        // Isi sisanya
+        // Pastikan minimal ada charset jika user uncheck semua
+        if (charset.length === 0) {
+            charset = CHARS.lowercase;
+            requiredChars.push(CHARS.lowercase[getSecureRandomInt(CHARS.lowercase.length)]);
+        }
+
+        let password = requiredChars.join('');
+        const charsetLength = charset.length;
+
         while (password.length < length) {
             password += charset[getSecureRandomInt(charsetLength)];
         }
 
-        // Acak ulang (shuffle) agar karakter wajib tidak selalu di awal
+        if (password.length > length) {
+            password = password.slice(0, length);
+        }
+
         return password.split('').sort(() => 0.5 - Math.random()).join('');
     }
 

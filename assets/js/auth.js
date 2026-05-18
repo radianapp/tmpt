@@ -59,6 +59,9 @@ const AuthModule = {
         }
 
         const meta = window.TMPT_Vault.getMetadata();
+        if (!meta || typeof meta !== 'object' || !meta.salt_enc) {
+            throw new Error("Data Brankas rusak atau format tidak valid. Silakan gunakan fitur Pulihkan Data (Import) dari file backup.");
+        }
         const saltEnc = window.TMPT_Crypto.base64ToBuffer(meta.salt_enc);
         
         // 1. Derive key from password

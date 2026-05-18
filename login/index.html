@@ -20,43 +20,59 @@
     <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <article class="auth-card">
-            <header>
-                <h2 class="text-center">Buka Brankas</h2>
-                <p class="text-center secondary">Masukkan master password Anda untuk mengakses data.</p>
+        <article class="setup-card">
+            <header class="text-center" style="border-bottom: none; margin-bottom: 0.5rem; padding-bottom: 0;">
+                <div class="setup-icon-box">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <circle cx="12" cy="12" r="3" />
+                        <path d="M12 15v2" />
+                        <path d="M15 12h2" />
+                        <path d="M7 12h2" />
+                        <path d="M12 7v2" />
+                    </svg>
+                </div>
+                <h1 style="margin-bottom: 0.25rem;">Buka Brankas</h1>
+                <p class="secondary" style="margin-bottom: 1.5rem;">Masukkan master password Anda untuk mengakses data.</p>
             </header>
 
-            <div id="no-vault-message" style="display: none;">
-                <p class="text-center">Brankas tidak ditemukan di browser ini.</p>
-                <div class="grid">
-                    <a href="/setup" role="button" class="contrast">Buat Baru</a>
-                    <button class="outline" onclick="document.getElementById('import-file-login').click()">📥 Import (.tmpt)</button>
+            <div id="no-vault-message" style="display: none; margin-bottom: 2rem; text-align: center;">
+                <p style="color: var(--pico-secondary); font-size: 1rem; margin-bottom: 1.5rem;">Brankas tidak ditemukan di browser ini</p>
+                <div class="grid" style="gap: 1rem;">
+                    <a href="/setup" role="button" class="btn-generate" style="margin-bottom: 0;">Buat Baru</a>
+                    <button class="outline" onclick="document.getElementById('import-file-login').click()" style="margin-bottom: 0; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-color: var(--pico-muted-border-color); color: var(--pico-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg>
+                        Import (.tmpt)
+                    </button>
                 </div>
             </div>
 
             <input type="file" id="import-file-login" accept=".tmpt" style="display: none;" onchange="handleLoginImport(event)">
 
             <form id="login-form">
-                <label for="password">Master Password</label>
-                <div class="pwd-input-row">
-                    <input type="password" id="password" name="password" required>
-                    <button type="button" class="outline secondary" onclick="toggleLoginVisibility('password', this)" title="Tampilkan/Sembunyikan">👁️</button>
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="password" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Master Password</label>
+                    <div class="pwd-input-group">
+                        <input type="password" id="password" name="password" required placeholder="Masukkan sandi master">
+                        <button type="button" class="btn-toggle-eye" onclick="toggleLoginVisibility('password', this)" title="Tampilkan/Sembunyikan">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div id="hint-container" style="display: none; margin-bottom: 1rem;">
+                <div id="hint-container" style="display: none; margin-bottom: 1.5rem; text-align: left;">
                     <details>
-                        <summary>Lupa password? Lihat hint</summary>
-                        <p id="password-hint" class="secondary" style="font-style: italic;"></p>
+                        <summary style="font-weight: 500; color: var(--pico-secondary); cursor: pointer;">💡 Lupa password? Lihat hint</summary>
+                        <div style="padding: 0.75rem 1rem; background: var(--pico-background-color); border-radius: 8px; border: 1px solid var(--pico-muted-border-color); margin-top: 0.5rem;">
+                            <p id="password-hint" style="font-style: italic; margin: 0; color: var(--pico-h1-color);"></p>
+                        </div>
                     </details>
                 </div>
 
-                <button type="submit" id="submit-btn">Buka Sekarang</button>
+                <button type="submit" id="submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1.5rem;">Buka Brankas Sekarang</button>
             </form>
 
-            <footer class="text-center">
-                <p id="footer-no-vault" style="display: none;">Punya file backup (.tmpt)? <a href="#" onclick="document.getElementById('import-file-login').click(); return false;">Import Brankas</a></p>
-                <p id="footer-has-vault" style="display: none;">Ingin restore data lama? <a href="#" onclick="document.getElementById('import-file-login').click(); return false;">Import File (.tmpt)</a></p>
-            </footer>
         </article>
     </main>
 
@@ -71,9 +87,9 @@
                 <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off">
             </div>
             <footer>
-                <div class="grid">
-                    <button class="secondary outline" onclick="closeConfirm(false)">Batal</button>
-                    <button class="contrast" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
+                <div class="grid" style="gap: 1rem;">
+                    <button class="btn-gray" onclick="closeConfirm(false)">Batal</button>
+                    <button class="btn-navy" id="confirm-ok-btn" onclick="closeConfirm(true)">Lanjutkan</button>
                 </div>
             </footer>
         </article>
@@ -108,13 +124,17 @@
             if (!vaultExists) {
                 document.getElementById('login-form').style.display = 'none';
                 document.getElementById('no-vault-message').style.display = 'block';
-                document.getElementById('footer-no-vault').style.display = 'block';
             } else {
-                document.getElementById('footer-has-vault').style.display = 'block';
                 const meta = window.TMPT_Vault.getMetadata();
-                if (meta && meta.hint) {
+                if (meta) {
                     document.getElementById('hint-container').style.display = 'block';
-                    document.getElementById('password-hint').textContent = meta.hint;
+                    const hintEl = document.getElementById('password-hint');
+                    if (meta.hint) {
+                        hintEl.textContent = meta.hint;
+                    } else {
+                        hintEl.textContent = "Tidak ada petunjuk sandi yang diatur saat pembuatan brankas ini.";
+                        hintEl.style.color = "var(--pico-secondary)";
+                    }
                 }
             }
         });

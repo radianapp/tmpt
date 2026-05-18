@@ -30,4 +30,11 @@
 - [x] Backup/Restore (Local file `.tmpt`)
 - [x] Standalone Tools (Password generator)
 - [ ] Dokumentasi & Sinkronisasi Git Versioning (Skrip & Panduan manual)
-- [ ] Halaman standar (About, FAQ, Help, dll)
+- [x] Halaman standar (About, FAQ, Help, Harga, Privacy, Contact, Sponsor)
+
+## Fase 5: Ekosistem Aplikasi Produktivitas Klien Lokal
+- [x] Pembangunan Modul Catatan & Daftar Tugas Gabungan "CATAT" (`/catat`)
+    - [x] Editor catatan lokal dengan warna & label
+    - [x] Manajemen Daftar Tugas (To-Do Lists) terintegrasi dengan progress bar
+    - [x] Zero-knowledge state isolation & ekspor-impor JSON terpadu
+- [ ] Antarmuka Pengalih Brankas (Multi-Vault Switcher)
