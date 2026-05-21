@@ -40,11 +40,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             Unduh Backup (.tmpt)
                         </button>
-                        <button onclick="document.getElementById('import-file-backup').click()" class="btn-navy">
+
+                        <!-- <button onclick="document.getElementById('import-file-backup').click()" class="btn-navy">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
                             Pulihkan Data
                         </button>
                         <input type="file" id="import-file-backup" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
+                         -->
                     </div>
                 </div>
                 <button onclick="this.closest('article').remove()" style="position: absolute; top: 1.25rem; right: 1.25rem; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem 0.5rem; font-size: 1.25rem; cursor: pointer;">✕</button>
@@ -80,9 +82,10 @@
 
         <div class="filter-bar" style="display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap;">
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; flex-grow: 1;">
-                <div class="search-input-wrapper">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="search" id="search-input" placeholder="Cari data..." oninput="resetPageAndRender()">
+                <div class="search-input-wrapper" style="position: relative; display: flex; align-items: center;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="search-input" placeholder="Cari data..." oninput="resetPageAndRender(); document.getElementById('clear-search-btn').style.display = this.value ? 'block' : 'none';" style="padding-left: 2.5rem; padding-right: 2.5rem; margin-bottom: 0; width: 100%;">
+                    <button type="button" id="clear-search-btn" onclick="document.getElementById('search-input').value=''; resetPageAndRender(); this.style.display='none';" style="position: absolute; right: 8px; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem; display: none; cursor: pointer; font-size: 1.25rem; line-height: 1;">✕</button>
                 </div>
                 <div>
                     <select id="category-filter" onchange="resetPageAndRender()">
@@ -135,6 +138,10 @@
                 <li><button class="outline secondary" id="next-page" onclick="changePage(1)" style="border-radius: 10px; padding: 0.5rem 1rem;">Selanjutnya →</button></li>
             </ul>
         </nav>
+
+        <div style="text-align: center; margin-top: 3rem; margin-bottom: 1rem;">
+            <span class="secondary tmpt-version" style="font-size: 0.85rem; opacity: 0.7;">v1.0.0-rc1</span>
+        </div>
     </main>
 
     <!-- Modal: Tambah/Edit Data -->
@@ -234,6 +241,51 @@
                             <small class="secondary" style="color: #f59e0b;">Teks mentah struktur JSON. Mudah diolah oleh skrip / aplikasi lain.</small>
                         </div>
                         <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: #d97706; border-color: #d97706;" onclick="confirmExportPlaintext('json')">Unduh JSON</button>
+                    </div>
+                </div>
+
+                <div id="pro-export-section" style="margin-top: 1.5rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1.5rem; position: relative;">
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        🚀 Fitur Pro — Ekspor Kustom
+                    </h4>
+                    
+                    <div id="pro-export-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="padding: 1rem; border: 1px solid var(--pico-primary-focus); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(var(--pico-primary-rgb), 0.03);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--pico-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                    🔑 CSV khusus Login & Password
+                                </div>
+                                <small class="secondary" style="font-size: 0.85rem; color: var(--pico-secondary);">Format: <code>site, username, password, url, notes</code></small>
+                            </div>
+                            <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: var(--pico-primary); border-color: var(--pico-primary);" onclick="confirmExportCustom('csv_login')">Ekspor</button>
+                        </div>
+                        
+                        <div style="padding: 1rem; border: 1px solid var(--pico-primary-focus); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(var(--pico-primary-rgb), 0.03);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--pico-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                    🏦 CSV khusus Bank & Keuangan
+                                </div>
+                                <small class="secondary" style="font-size: 0.85rem; color: var(--pico-secondary);">Format: <code>bank, nomor_rekening, pemilik, catatan</code></small>
+                            </div>
+                            <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: var(--pico-primary); border-color: var(--pico-primary);" onclick="confirmExportCustom('csv_bank')">Ekspor</button>
+                        </div>
+                        
+                        <div style="padding: 1rem; border: 1px solid var(--pico-primary-focus); border-radius: 12px; display: flex; justify-content: space-between; align-items: center; background: rgba(var(--pico-primary-rgb), 0.03);">
+                            <div>
+                                <div style="font-weight: 700; color: var(--pico-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                    🤖 JSON format Bitwarden
+                                </div>
+                                <small class="secondary" style="font-size: 0.85rem; color: var(--pico-secondary);">Format ekspor yang siap langsung diimpor ke Bitwarden.</small>
+                            </div>
+                            <button class="outline" style="margin: 0; padding: 0.5rem 1rem !important; font-size: 0.9rem !important; border-radius: 8px !important; color: var(--pico-primary); border-color: var(--pico-primary);" onclick="confirmExportCustom('json_bitwarden')">Ekspor</button>
+                        </div>
+                    </div>
+
+                    <div id="pro-export-lock" style="display: none; position: absolute; top: 0; left: -10px; right: -10px; bottom: 0; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); border-radius: 16px; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 2rem; z-index: 10;">
+                        <span style="font-size: 2rem; margin-bottom: 0.5rem;">🔒</span>
+                        <h4 style="font-weight: 700; margin-bottom: 0.5rem; color: var(--pico-primary);">Template Ekspor Kustom (Pro)</h4>
+                        <p style="font-size: 0.9rem; margin-bottom: 1.25rem; max-width: 320px;" class="secondary">Gunakan TMPT Pro untuk mengekspor kredensial Anda ke template kustom dan format Bitwarden.</p>
+                        <a href="/pro/" class="btn-navy" style="margin: 0; font-size: 0.95rem; padding: 0.6rem 1.5rem !important; border-radius: 10px !important;">Aktifkan Pro Edition 🚀</a>
                     </div>
                 </div>
             </div>
@@ -343,54 +395,54 @@
         const CATEGORY_SCHEMAS = {
             'Login': [
                 { name: 'username', label: 'Username / Email', type: 'text', placeholder: 'Misal: user@gmail.com', required: true },
-                { name: 'password', label: 'Password', type: 'password', placeholder: '••••••••••••••••', generator: true, required: true },
+                { name: 'credential', label: 'Password', type: 'password', placeholder: '••••••••••••••••', generator: true, required: true },
                 { name: 'url', label: 'URL Website', type: 'url', placeholder: 'https://www.google.com' }
             ],
             'Rekening Bank': [
-                { name: 'bank_name', label: 'Nama Bank / Dompet Digital', type: 'text', placeholder: 'BCA, Mandiri, BNI, GoPay, OVO, dsb.', required: true },
-                { name: 'account_number', label: 'Nomor Rekening', type: 'text', placeholder: '1234567890', required: true },
-                { name: 'account_holder', label: 'Nama Pemilik Rekening', type: 'text', placeholder: 'Budi Santoso', required: true }
+                { name: 'provider', label: 'Nama Bank / Dompet Digital', type: 'text', placeholder: 'BCA, Mandiri, BNI, GoPay, OVO, dsb.', required: true },
+                { name: 'id', label: 'Nomor Rekening', type: 'text', placeholder: '1234567890', required: true },
+                { name: 'username', label: 'Nama Pemilik Rekening', type: 'text', placeholder: 'Budi Santoso', required: true }
             ],
             'E-KTP': [
-                { name: 'nik', label: 'Nomor Induk Kependudukan (NIK)', type: 'text', placeholder: '3201234567890001', required: true },
-                { name: 'full_name', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true },
-                { name: 'birth_date', label: 'Tempat, Tanggal Lahir / Alamat', type: 'text', placeholder: 'Jakarta, 17 Agustus 1990' }
+                { name: 'id', label: 'Nomor Induk Kependudukan (NIK)', type: 'text', placeholder: '3201234567890001', required: true },
+                { name: 'username', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'provider', label: 'Tempat, Tanggal Lahir / Alamat', type: 'text', placeholder: 'Jakarta, 17 Agustus 1990' }
             ],
             'Kartu Kredit': [
-                { name: 'card_holder', label: 'Nama Pemilik Kartu', type: 'text', placeholder: 'Budi Santoso', required: true },
-                { name: 'card_number', label: 'Nomor Kartu Kredit / Debit', type: 'text', placeholder: '4500 1234 5678 9012', required: true },
-                { name: 'expiry', label: 'Masa Berlaku (Bulan/Tahun)', type: 'text', placeholder: '12/28', required: true },
-                { name: 'cvv', label: 'CVV / CVC', type: 'password', placeholder: '123', required: true }
+                { name: 'username', label: 'Nama Pemilik Kartu', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'id', label: 'Nomor Kartu Kredit / Debit', type: 'text', placeholder: '4500 1234 5678 9012', required: true },
+                { name: 'provider', label: 'Masa Berlaku (Bulan/Tahun)', type: 'text', placeholder: '12/28', required: true },
+                { name: 'credential', label: 'CVV / CVC', type: 'password', placeholder: '123', required: false }
             ],
             'API Key': [
-                { name: 'provider_name', label: 'Nama Layanan / Provider', type: 'text', placeholder: 'OpenAI, Cloudflare, AWS, dsb.', required: true },
-                { name: 'api_key', label: 'API Key / Token', type: 'password', placeholder: 'sk-••••••••••••••••', required: true },
-                { name: 'api_secret', label: 'API Secret (Opsional)', type: 'password', placeholder: '••••••••••••••••' }
+                { name: 'provider', label: 'Nama Layanan / Provider', type: 'text', placeholder: 'OpenAI, Cloudflare, AWS, dsb.', required: true },
+                { name: 'credential', label: 'API Key / Token', type: 'password', placeholder: 'sk-••••••••••••••••', required: true },
+                { name: 'id', label: 'API Secret (Opsional)', type: 'password', placeholder: '••••••••••••••••' }
             ],
             'Catatan': [
                 // Tidak ada isian di tengah, langsung menggunakan textarea catatan di bawah
             ],
             'Passport': [
-                { name: 'passport_number', label: 'Nomor Passport', type: 'text', placeholder: 'A1234567', required: true },
-                { name: 'full_name', label: 'Nama Lengkap Pemegang Passport', type: 'text', placeholder: 'Budi Santoso', required: true },
-                { name: 'country', label: 'Negara Penerbit', type: 'text', placeholder: 'Indonesia', required: true },
-                { name: 'expiry_date', label: 'Tanggal Kedaluwarsa', type: 'date', required: true }
+                { name: 'id', label: 'Nomor Passport', type: 'text', placeholder: 'A1234567', required: true },
+                { name: 'username', label: 'Nama Lengkap Pemegang Passport', type: 'text', placeholder: 'Budi Santoso', required: true },
+                { name: 'provider', label: 'Negara Penerbit', type: 'text', placeholder: 'Indonesia', required: true },
+                { name: 'credential', label: 'Tanggal Kedaluwarsa', type: 'date', required: true }
             ],
             'BPJS': [
-                { name: 'bpjs_number', label: 'Nomor Kartu BPJS / JKN', type: 'text', placeholder: '000123456789', required: true },
-                { name: 'full_name', label: 'Nama Lengkap Peserta', type: 'text', placeholder: 'Budi Santoso', required: true }
+                { name: 'id', label: 'Nomor Kartu BPJS / JKN', type: 'text', placeholder: '000123456789', required: true },
+                { name: 'username', label: 'Nama Lengkap Peserta', type: 'text', placeholder: 'Budi Santoso', required: true }
             ],
             'NPWP': [
-                { name: 'npwp_number', label: 'Nomor Pokok Wajib Pajak (NPWP)', type: 'text', placeholder: '01.234.567.8-901.000', required: true },
-                { name: 'full_name', label: 'Nama Wajib Pajak', type: 'text', placeholder: 'Budi Santoso', required: true }
+                { name: 'id', label: 'Nomor Pokok Wajib Pajak (NPWP)', type: 'text', placeholder: '01.234.567.8-901.000', required: true },
+                { name: 'username', label: 'Nama Wajib Pajak', type: 'text', placeholder: 'Budi Santoso', required: true }
             ],
             'SIM': [
-                { name: 'sim_type', label: 'Jenis SIM', type: 'text', placeholder: 'SIM A / SIM C', required: true },
-                { name: 'sim_number', label: 'Nomor SIM', type: 'text', placeholder: '1234-5678-9012', required: true },
-                { name: 'full_name', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true }
+                { name: 'provider', label: 'Jenis SIM', type: 'text', placeholder: 'SIM A / SIM C', required: true },
+                { name: 'id', label: 'Nomor SIM', type: 'text', placeholder: '1234-5678-9012', required: true },
+                { name: 'username', label: 'Nama Lengkap', type: 'text', placeholder: 'Budi Santoso', required: true }
             ],
             'Lainnya': [
-                { name: 'custom_info', label: 'Informasi / Keterangan Singkat', type: 'text', placeholder: 'Keterangan atau nomor unik dokumen' }
+                { name: 'id', label: 'Informasi / Keterangan Singkat', type: 'text', placeholder: 'Keterangan atau nomor unik dokumen' }
             ]
         };
 
@@ -398,6 +450,21 @@
             const container = document.getElementById('dynamic-fields-container');
             if (!container) return;
             const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
+            
+            // Toggle title required status and label dynamically
+            const titleInput = document.getElementById('title');
+            const titleLabel = document.querySelector('label[for="title"]');
+            if (cat === 'Rekening Bank') {
+                titleInput.removeAttribute('required');
+                if (titleLabel) {
+                    titleLabel.innerHTML = 'Judul';
+                }
+            } else {
+                titleInput.setAttribute('required', '');
+                if (titleLabel) {
+                    titleLabel.innerHTML = 'Judul <span style="color: #ef4444;" title="Wajib diisi">*</span>';
+                }
+            }
             
             if (schema.length === 0) {
                 container.innerHTML = '<div style="margin-bottom: 1.25rem; font-style: italic; color: var(--pico-muted-color);">Kategori ini tidak membutuhkan isian khusus. Silakan manfaatkan kolom Catatan di bawah.</div>';
@@ -681,13 +748,13 @@
                     let copyTooltip = "Salin Data Rahasia / Password";
 
                     if (item.category === 'Rekening Bank') { copyTooltip = "Salin No. Rekening"; }
-                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; subtitle = `NIK: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; subtitle = `NIK: ${item.credential || item.password || ''} — ${item.username || ''}`; }
                     else if (item.category === 'Kartu Kredit') { copyTooltip = "Salin No. Kartu"; }
                     else if (item.category === 'API Key') { copyTooltip = "Salin API Key"; }
                     else if (item.category === 'Passport') { copyTooltip = "Salin No. Passport"; }
-                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; subtitle = `No BPJS: ${item.password || ''} — ${item.username || ''}`; }
-                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; subtitle = `NPWP: ${item.password || ''} — ${item.username || ''}`; }
-                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; subtitle = `${item.username || ''} — No SIM: ${item.password || ''}`; }
+                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; subtitle = `No BPJS: ${item.credential || item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; subtitle = `NPWP: ${item.credential || item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; subtitle = `${item.username || ''} — No SIM: ${item.credential || item.password || ''}`; }
                     else if (item.category === 'Lainnya') { copyTooltip = "Salin Keterangan"; subtitle = item.username || item.notes || '(Lain-lain)'; }
 
                     return `
@@ -704,7 +771,7 @@
 
                         <div class="pill-input-box">
                             <span style="font-family: monospace; letter-spacing: 2px; color: var(--pico-color); font-size: 1.25rem; line-height: 1;">••••••••</span>
-                            <button type="button" class="btn-copy-pill" title="${copyTooltip}" onclick="event.stopPropagation(); copyPassword('${item.id}')">
+                            <button type="button" class="btn-copy-pill" title="${copyTooltip}" onclick="event.stopPropagation(); copyCredential('${item.id}')">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                             </button>
                         </div>
@@ -719,13 +786,13 @@
                     let copyBtnText = "📋 Salin";
 
                     if (item.category === 'Rekening Bank') { copyTooltip = "Salin No. Rekening"; copyBtnText = "📋 Salin Rek"; }
-                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; copyBtnText = "📋 Salin NIK"; subtitle = `NIK: ${item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'E-KTP') { copyTooltip = "Salin NIK"; copyBtnText = "📋 Salin NIK"; subtitle = `NIK: ${item.credential || item.password || ''} — ${item.username || ''}`; }
                     else if (item.category === 'Kartu Kredit') { copyTooltip = "Salin No. Kartu"; copyBtnText = "📋 Salin No"; }
                     else if (item.category === 'API Key') { copyTooltip = "Salin API Key"; copyBtnText = "📋 Salin Key"; }
                     else if (item.category === 'Passport') { copyTooltip = "Salin No. Passport"; copyBtnText = "📋 Salin Passport"; }
-                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; copyBtnText = "📋 Salin BPJS"; subtitle = `No BPJS: ${item.password || ''} — ${item.username || ''}`; }
-                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; copyBtnText = "📋 Salin NPWP"; subtitle = `NPWP: ${item.password || ''} — ${item.username || ''}`; }
-                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; copyBtnText = "📋 Salin SIM"; subtitle = `${item.username || ''} — No SIM: ${item.password || ''}`; }
+                    else if (item.category === 'BPJS') { copyTooltip = "Salin No. BPJS"; copyBtnText = "📋 Salin BPJS"; subtitle = `No BPJS: ${item.credential || item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'NPWP') { copyTooltip = "Salin NPWP"; copyBtnText = "📋 Salin NPWP"; subtitle = `NPWP: ${item.credential || item.password || ''} — ${item.username || ''}`; }
+                    else if (item.category === 'SIM') { copyTooltip = "Salin No. SIM"; copyBtnText = "📋 Salin SIM"; subtitle = `${item.username || ''} — No SIM: ${item.credential || item.password || ''}`; }
                     else if (item.category === 'Lainnya') { copyTooltip = "Salin Keterangan"; copyBtnText = "📋 Salin"; subtitle = item.username || item.notes || '(Lain-lain)'; }
 
                     return `
@@ -739,7 +806,7 @@
                                 <small class="secondary" style="font-size: 0.9rem;">${subtitle}</small>
                             </div>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                                <button class="outline secondary" onclick="copyPassword('${item.id}')" title="${copyTooltip}" style="margin: 0; padding: 0.5rem 0.75rem; border-radius: 8px;">${copyBtnText}</button>
+                                <button class="outline secondary" onclick="copyCredential('${item.id}')" title="${copyTooltip}" style="margin: 0; padding: 0.5rem 0.75rem; border-radius: 8px;">${copyBtnText}</button>
                                 <button class="btn-navy" onclick="editItem('${item.id}')" style="margin: 0; padding: 0.5rem 1rem !important; border-radius: 8px !important; font-size: 0.9rem !important;">Edit / Detail</button>
                             </div>
                         </div>
@@ -772,7 +839,7 @@
 
             const id = document.getElementById('item-id').value || crypto.randomUUID();
             const cat = document.getElementById('category').value;
-            const title = document.getElementById('title').value;
+            let title = document.getElementById('title').value.trim();
             const notes = document.getElementById('notes').value;
 
             const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
@@ -782,36 +849,40 @@
                 if (el) dynFields[field.name] = el.value;
             });
 
-            let mainUsername = dynFields.username || dynFields.email || '';
-            let mainPassword = dynFields.password || '';
+            if (!title && cat === 'Rekening Bank') {
+                title = dynFields.provider || 'Rekening Bank';
+            }
+
+            let mainUsername = dynFields.username || '';
+            let mainCredential = dynFields.credential || '';
 
             if (cat === 'Rekening Bank') {
-                mainUsername = `${dynFields.bank_name || 'Bank'} — ${dynFields.account_holder || ''}`;
-                mainPassword = dynFields.account_number || '';
+                mainUsername = `${dynFields.provider || 'Bank'} — ${dynFields.username || ''}`;
+                mainCredential = dynFields.id || '';
             } else if (cat === 'E-KTP') {
-                mainUsername = dynFields.full_name || '';
-                mainPassword = dynFields.nik || '';
+                mainUsername = dynFields.username || '';
+                mainCredential = dynFields.id || '';
             } else if (cat === 'Kartu Kredit') {
-                mainUsername = `${dynFields.card_holder || ''} — Exp: ${dynFields.expiry || ''}`;
-                mainPassword = dynFields.card_number || '';
+                mainUsername = `${dynFields.username || ''} — Exp: ${dynFields.provider || ''}`;
+                mainCredential = dynFields.id || '';
             } else if (cat === 'API Key') {
-                mainUsername = dynFields.provider_name || 'API Key';
-                mainPassword = dynFields.api_key || '';
+                mainUsername = dynFields.provider || 'API Key';
+                mainCredential = dynFields.credential || '';
             } else if (cat === 'Passport') {
-                mainUsername = dynFields.full_name || '';
-                mainPassword = dynFields.passport_number || '';
+                mainUsername = dynFields.username || '';
+                mainCredential = dynFields.id || '';
             } else if (cat === 'BPJS') {
-                mainUsername = dynFields.full_name || '';
-                mainPassword = dynFields.bpjs_number || '';
+                mainUsername = dynFields.username || '';
+                mainCredential = dynFields.id || '';
             } else if (cat === 'NPWP') {
-                mainUsername = dynFields.full_name || '';
-                mainPassword = dynFields.npwp_number || '';
+                mainUsername = dynFields.username || '';
+                mainCredential = dynFields.id || '';
             } else if (cat === 'SIM') {
-                mainUsername = `${dynFields.sim_type || 'SIM'} — ${dynFields.full_name || ''}`;
-                mainPassword = dynFields.sim_number || '';
+                mainUsername = `${dynFields.provider || 'SIM'} — ${dynFields.username || ''}`;
+                mainCredential = dynFields.id || '';
             } else if (cat === 'Lainnya') {
-                mainUsername = dynFields.custom_info || notes || '(Lain-lain)';
-                mainPassword = dynFields.custom_info || '';
+                mainUsername = dynFields.id || notes || '(Lain-lain)';
+                mainCredential = dynFields.id || '';
             }
 
             const newItem = {
@@ -819,7 +890,7 @@
                 title,
                 category: cat,
                 username: mainUsername,
-                password: mainPassword,
+                credential: mainCredential,
                 url: dynFields.url || '',
                 notes,
                 fields: dynFields,
@@ -910,11 +981,14 @@
         }
 
         // ── UTILITIES ─────────────────────────────────────────────
-        function copyPassword(id) {
+        function copyCredential(id) {
             const item = allItems.find(i => i.id === id);
-            if (item && item.password) {
-                navigator.clipboard.writeText(item.password);
-                window.TMPT_UI.toast("Berhasil disalin!", "success");
+            if (item) {
+                const valueToCopy = item.credential || item.password;
+                if (valueToCopy) {
+                    navigator.clipboard.writeText(valueToCopy);
+                    window.TMPT_UI.toast("Berhasil disalin!", "success");
+                }
             }
         }
 
@@ -946,12 +1020,60 @@
             document.getElementById('category').value = item.category || 'Login';
             document.getElementById('notes').value = item.notes || '';
 
-            // Render dan isikan nilai ke kolom dinamis
-            const values = item.fields || {
-                username: item.username,
-                password: item.password,
-                url: item.url
-            };
+            // Render dan isikan nilai ke kolom dinamis dengan pemetaan mundur (fallback)
+            let values = {};
+            if (item.fields) {
+                // Salin fields yang ada
+                values = { ...item.fields };
+                
+                // Pemetaan fallback dari properti lama ke properti baru
+                const cat = item.category || 'Login';
+                if (cat === 'Login') {
+                    if (values.password !== undefined && values.credential === undefined) {
+                        values.credential = values.password;
+                    }
+                } else if (cat === 'Rekening Bank') {
+                    if (values.bank_name !== undefined && values.provider === undefined) values.provider = values.bank_name;
+                    if (values.account_number !== undefined && values.id === undefined) values.id = values.account_number;
+                    if (values.account_holder !== undefined && values.username === undefined) values.username = values.account_holder;
+                } else if (cat === 'E-KTP') {
+                    if (values.nik !== undefined && values.id === undefined) values.id = values.nik;
+                    if (values.full_name !== undefined && values.username === undefined) values.username = values.full_name;
+                    if (values.birth_date !== undefined && values.provider === undefined) values.provider = values.birth_date;
+                } else if (cat === 'Kartu Kredit') {
+                    if (values.card_holder !== undefined && values.username === undefined) values.username = values.card_holder;
+                    if (values.card_number !== undefined && values.id === undefined) values.id = values.card_number;
+                    if (values.expiry !== undefined && values.provider === undefined) values.provider = values.expiry;
+                    if (values.cvv !== undefined && values.credential === undefined) values.credential = values.cvv;
+                } else if (cat === 'API Key') {
+                    if (values.provider_name !== undefined && values.provider === undefined) values.provider = values.provider_name;
+                    if (values.api_key !== undefined && values.credential === undefined) values.credential = values.api_key;
+                    if (values.api_secret !== undefined && values.id === undefined) values.id = values.api_secret;
+                } else if (cat === 'Passport') {
+                    if (values.passport_number !== undefined && values.id === undefined) values.id = values.passport_number;
+                    if (values.full_name !== undefined && values.username === undefined) values.username = values.full_name;
+                    if (values.country !== undefined && values.provider === undefined) values.provider = values.country;
+                    if (values.expiry_date !== undefined && values.credential === undefined) values.credential = values.expiry_date;
+                } else if (cat === 'BPJS') {
+                    if (values.bpjs_number !== undefined && values.id === undefined) values.id = values.bpjs_number;
+                    if (values.full_name !== undefined && values.username === undefined) values.username = values.full_name;
+                } else if (cat === 'NPWP') {
+                    if (values.npwp_number !== undefined && values.id === undefined) values.id = values.npwp_number;
+                    if (values.full_name !== undefined && values.username === undefined) values.username = values.full_name;
+                } else if (cat === 'SIM') {
+                    if (values.sim_type !== undefined && values.provider === undefined) values.provider = values.sim_type;
+                    if (values.sim_number !== undefined && values.id === undefined) values.id = values.sim_number;
+                    if (values.full_name !== undefined && values.username === undefined) values.username = values.full_name;
+                } else if (cat === 'Lainnya') {
+                    if (values.custom_info !== undefined && values.id === undefined) values.id = values.custom_info;
+                }
+            } else {
+                values = {
+                    username: item.username,
+                    credential: item.credential || item.password,
+                    url: item.url
+                };
+            }
             renderDynamicFields(item.category || 'Login', values);
 
             document.getElementById('delete-btn').style.display = "block";
@@ -966,7 +1088,164 @@
         let stagingImportItems = [];
 
         function openExportModal() {
+            const isPro = window.TMPT_License && window.TMPT_License.isPro();
+            const lockOverlay = document.getElementById('pro-export-lock');
+            if (lockOverlay) {
+                lockOverlay.style.display = isPro ? 'none' : 'flex';
+            }
             document.getElementById('export-modal').showModal();
+        }
+
+        function confirmExportCustom(format) {
+            document.getElementById('export-modal').close();
+            
+            let formatLabel = "";
+            let formatDesc = "";
+            if (format === 'csv_login') {
+                formatLabel = "CSV Login & Password";
+                formatDesc = "Berisi data Login Anda (situs, username, password, url, catatan) dalam bentuk teks mentah.";
+            } else if (format === 'csv_bank') {
+                formatLabel = "CSV Bank & Keuangan";
+                formatDesc = "Berisi data Bank Anda (nama bank, nomor rekening, pemilik, catatan) dalam bentuk teks mentah.";
+            } else if (format === 'json_bitwarden') {
+                formatLabel = "JSON Bitwarden";
+                formatDesc = "Berisi data Login dan Kartu Kredit Anda yang diformat khusus agar kompatibel dengan importir Bitwarden. (Catatan: CVV kartu kredit akan di-strip demi keamanan).";
+            }
+
+            document.getElementById('confirm-title').textContent = `⚠️ Peringatan Ekspor ${formatLabel}`;
+            document.getElementById('confirm-message').innerHTML = `${formatDesc}<br><br>Berkas ini <b>TIDAK TERENKRIPSI</b> (Teks Mentah). Siapa pun yang memiliki berkas tersebut dapat membacanya!<br><br>Pastikan Anda menyimpannya di tempat yang sangat aman atau segera menghapusnya setelah pemindahan selesai.`;
+            document.getElementById('confirm-input-container').style.display = "none";
+            
+            const btnOk = document.getElementById('confirm-ok-btn');
+            btnOk.textContent = `Saya Mengerti, Unduh`;
+            btnOk.className = "btn-navy";
+            btnOk.style.background = "#dc2626";
+            
+            const modal = document.getElementById('confirm-modal');
+            modal.showModal();
+            
+            modal._resolve = (confirmed) => {
+                btnOk.textContent = "Lanjutkan";
+                btnOk.style.background = "";
+                btnOk.className = "btn-navy";
+                if (confirmed) {
+                    exportCustomData(format);
+                }
+            };
+        }
+
+        function exportCustomData(format) {
+            if (format === 'csv_login') {
+                const headers = ["site", "username", "password", "url", "notes"];
+                let csvRows = [headers.map(h => `"${h}"`).join(",")];
+                
+                allItems.forEach(item => {
+                    if (item.category !== 'Login') return;
+                    const f = item.fields || {};
+                    const row = [
+                        item.title || "",
+                        item.username || f.username || "",
+                        item.credential || f.credential || f.password || "",
+                        item.url || f.url || "",
+                        item.notes || ""
+                    ];
+                    csvRows.push(row.map(val => `"${val.replace(/"/g, '""')}"`).join(","));
+                });
+                
+                const csvStr = csvRows.join("\n");
+                const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_login_export_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Ekspor CSV Login berhasil!", "success");
+                
+            } else if (format === 'csv_bank') {
+                const headers = ["bank", "nomor_rekening", "pemilik", "catatan"];
+                let csvRows = [headers.map(h => `"${h}"`).join(",")];
+                
+                allItems.forEach(item => {
+                    if (item.category !== 'Rekening Bank') return;
+                    const f = item.fields || {};
+                    
+                    const bankName = f.provider || item.provider || "";
+                    const accNum = item.credential || f.id || f.account_number || "";
+                    const holder = item.username || f.username || f.account_holder || "";
+                    
+                    const row = [
+                        bankName,
+                        accNum,
+                        holder,
+                        item.notes || ""
+                    ];
+                    csvRows.push(row.map(val => `"${val.replace(/"/g, '""')}"`).join(","));
+                });
+                
+                const csvStr = csvRows.join("\n");
+                const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_bank_export_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Ekspor CSV Bank berhasil!", "success");
+                
+            } else if (format === 'json_bitwarden') {
+                const bitwardenData = {
+                    encrypted: false,
+                    folders: [],
+                    items: allItems.map(item => {
+                        const type = item.category === 'Login' ? 1 : 2;
+                        const bwItem = {
+                            id: item.id,
+                            name: item.title,
+                            notes: item.notes || "",
+                            favorite: false,
+                            type: type,
+                            collectionIds: []
+                        };
+                        
+                        if (item.category === 'Login') {
+                            const f = item.fields || {};
+                            bwItem.login = {
+                                uris: item.url ? [{ match: null, uri: item.url }] : [],
+                                username: item.username || f.username || "",
+                                password: item.credential || f.credential || f.password || ""
+                            };
+                        } else if (item.category === 'Kartu Kredit') {
+                            bwItem.type = 3;
+                            const f = item.fields || {};
+                            const holder = item.username || f.username || f.card_holder || "";
+                            const number = item.credential || f.id || f.card_number || "";
+                            const exp = f.provider || item.provider || "";
+                            
+                            bwItem.card = {
+                                cardholderName: holder,
+                                brand: null,
+                                number: number,
+                                expMonth: exp ? exp.split('/')[0] || "" : "",
+                                expYear: exp ? exp.split('/')[1] || "" : "",
+                                code: ""
+                            };
+                        }
+                        
+                        return bwItem;
+                    })
+                };
+                
+                const jsonStr = JSON.stringify(bitwardenData, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `brangkas_bitwarden_export_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                window.TMPT_UI.toast("Ekspor format Bitwarden JSON berhasil!", "success");
+            }
         }
 
         function confirmExportPlaintext(format) {
@@ -1007,7 +1286,14 @@
                 URL.revokeObjectURL(url);
                 window.TMPT_UI.toast("Berkas .tmpt berhasil diunduh!", "success");
             } else if (format === 'json') {
-                const jsonStr = JSON.stringify(allItems, null, 2);
+                const cleanedItems = allItems.map(item => {
+                    const cloned = JSON.parse(JSON.stringify(item));
+                    if (cloned.category === 'Kartu Kredit' && cloned.fields) {
+                        delete cloned.fields.credential;
+                    }
+                    return cloned;
+                });
+                const jsonStr = JSON.stringify(cleanedItems, null, 2);
                 const blob = new Blob([jsonStr], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -1017,7 +1303,7 @@
                 URL.revokeObjectURL(url);
                 window.TMPT_UI.toast("Ekspor JSON berhasil!", "success");
             } else if (format === 'csv') {
-                const headers = ["id", "category", "title", "username", "password", "url", "notes", "bank_name", "account_number", "account_holder", "nik", "full_name", "birth_date", "card_holder", "card_number", "expiry", "cvv", "provider_name", "api_key", "custom_info", "updated_at"];
+                const headers = ["id", "category", "title", "provider", "username", "credential", "url", "notes", "updated_at"];
                 
                 let csvRows = [headers.map(h => `"${h}"`).join(",")];
                 
@@ -1028,12 +1314,14 @@
                         if (h === "id") val = item.id || "";
                         else if (h === "category") val = item.category || "Login";
                         else if (h === "title") val = item.title || "";
-                        else if (h === "username") val = item.username || "";
-                        else if (h === "password") val = item.password || "";
+                        else if (h === "provider") val = f.provider || item.provider || "";
+                        else if (h === "username") val = item.username || f.username || "";
+                        else if (h === "credential") {
+                            val = item.category === 'Kartu Kredit' ? "" : (item.credential || f.credential || "");
+                        }
                         else if (h === "url") val = item.url || "";
                         else if (h === "notes") val = item.notes || "";
                         else if (h === "updated_at") val = item.updated_at || "";
-                        else val = f[h] || "";
                         
                         return `"${val.replace(/"/g, '""')}"`;
                     });
@@ -1053,11 +1341,11 @@
         }
 
         function downloadCsvTemplate() {
-            const templateStr = `"category","title","username","password","url","notes","bank_name","account_number","account_holder","nik","full_name","birth_date","card_holder","card_number","expiry","cvv","provider_name","api_key","custom_info"
-"Login","Akun Google Utama","budi.santoso@gmail.com","SandiRahasia123!","https://google.com","Akun untuk email kerja","","","","","","","","","","","","",""
-"Rekening Bank","Tabungan Bank BCA","","","","Rekening untuk penerimaan gaji","Bank BCA","1234567890","Budi Santoso","","","","","","","","","",""
-"E-KTP","KTP Pribadi","","","","Disimpan di dalam dompet","","","","3201234567890001","Budi Santoso","Jakarta, 17 Agustus 1990","","","","","","",""
-"Kartu Kredit","Kartu Kredit Visa","","","","Limit 25 Juta","","","","","","","Budi Santoso","4500123456789012","12/28","123","","",""`;
+            const templateStr = `"category","title","provider","username","credential","url","notes"
+"Login","Akun Google Utama","","budi.santoso@gmail.com","SandiRahasia123!","https://google.com","Akun untuk email kerja"
+"Rekening Bank","Tabungan Bank BCA","Bank BCA","Budi Santoso","1234567890","","Rekening untuk penerimaan gaji"
+"E-KTP","KTP Pribadi","Jakarta, 17 Agustus 1990","Budi Santoso","3201234567890001","","Disimpan di dalam dompet"
+"Kartu Kredit","Kartu Kredit Visa","12/28","Budi Santoso","","","Limit 25 Juta"`;
 
             const blob = new Blob([templateStr], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -1149,38 +1437,57 @@
                     else cat = "Lainnya";
                 }
 
-                // Bangun struktur fields
+                // Bangun struktur fields dengan pemetaan mundur
                 const fields = {};
                 const schema = CATEGORY_SCHEMAS[cat] || CATEGORY_SCHEMAS['Login'];
                 schema.forEach(s => {
-                    if (rowObj[s.name] !== undefined) fields[s.name] = rowObj[s.name];
+                    let val = rowObj[s.name];
+                    if (val === undefined) {
+                        // Fallback mapping nama field lama ke nama field baru
+                        if (s.name === 'provider') val = rowObj.bank_name || rowObj.provider_name || rowObj.country || rowObj.sim_type || rowObj.birth_date;
+                        else if (s.name === 'id') val = rowObj.account_number || rowObj.nik || rowObj.card_number || rowObj.passport_number || rowObj.bpjs_number || rowObj.npwp_number || rowObj.sim_number || rowObj.custom_info || rowObj.api_secret;
+                        else if (s.name === 'username') val = rowObj.account_holder || rowObj.full_name || rowObj.card_holder;
+                        else if (s.name === 'credential') val = rowObj.password || rowObj.api_key || rowObj.cvv || rowObj.expiry_date;
+                    }
+
+                    if (s.name === 'credential' && cat === 'Kartu Kredit') {
+                        // Jangan impor CVV
+                        return;
+                    }
+
+                    if (val !== undefined) fields[s.name] = val;
                 });
 
-                // Set default jika kosong dari rowObj
-                if (cat === 'Login') {
-                    fields.username = fields.username || rowObj.username || "";
-                    fields.password = fields.password || rowObj.password || "";
-                    fields.url = fields.url || rowObj.url || "";
-                }
-
-                let mainUsername = rowObj.username || "";
-                let mainPassword = rowObj.password || "";
+                let mainUsername = rowObj.username || fields.username || "";
+                let mainCredential = rowObj.credential || rowObj.password || fields.credential || "";
 
                 if (cat === 'Rekening Bank') {
-                    mainUsername = `${fields.bank_name || rowObj.bank_name || 'Bank'} — ${fields.account_holder || rowObj.account_holder || ''}`;
-                    mainPassword = fields.account_number || rowObj.account_number || "";
+                    mainUsername = `${fields.provider || rowObj.bank_name || 'Bank'} — ${fields.username || rowObj.account_holder || ''}`;
+                    mainCredential = fields.id || rowObj.account_number || "";
                 } else if (cat === 'E-KTP') {
-                    mainUsername = fields.full_name || rowObj.full_name || "";
-                    mainPassword = fields.nik || rowObj.nik || "";
+                    mainUsername = fields.username || rowObj.full_name || "";
+                    mainCredential = fields.id || rowObj.nik || "";
                 } else if (cat === 'Kartu Kredit') {
-                    mainUsername = `${fields.card_holder || rowObj.card_holder || ''} — Exp: ${fields.expiry || rowObj.expiry || ''}`;
-                    mainPassword = fields.card_number || rowObj.card_number || "";
+                    mainUsername = `${fields.username || rowObj.card_holder || ''} — Exp: ${fields.provider || rowObj.expiry || ''}`;
+                    mainCredential = fields.id || rowObj.card_number || "";
                 } else if (cat === 'API Key') {
-                    mainUsername = fields.provider_name || rowObj.provider_name || "API Key";
-                    mainPassword = fields.api_key || rowObj.api_key || "";
+                    mainUsername = fields.provider || rowObj.provider_name || "API Key";
+                    mainCredential = fields.credential || rowObj.api_key || "";
+                } else if (cat === 'Passport') {
+                    mainUsername = fields.username || rowObj.full_name || "";
+                    mainCredential = fields.id || rowObj.passport_number || "";
+                } else if (cat === 'BPJS') {
+                    mainUsername = fields.username || rowObj.full_name || "";
+                    mainCredential = fields.id || rowObj.bpjs_number || "";
+                } else if (cat === 'NPWP') {
+                    mainUsername = fields.username || rowObj.full_name || "";
+                    mainCredential = fields.id || rowObj.npwp_number || "";
+                } else if (cat === 'SIM') {
+                    mainUsername = `${fields.provider || rowObj.sim_type || 'SIM'} — ${fields.username || rowObj.full_name || ''}`;
+                    mainCredential = fields.id || rowObj.sim_number || "";
                 } else if (cat === 'Lainnya') {
-                    mainUsername = fields.custom_info || rowObj.custom_info || rowObj.notes || "";
-                    mainPassword = fields.custom_info || rowObj.custom_info || "";
+                    mainUsername = fields.id || rowObj.custom_info || rowObj.notes || "";
+                    mainCredential = fields.id || rowObj.custom_info || "";
                 }
 
                 items.push({
@@ -1188,7 +1495,7 @@
                     title: rowObj.title || `Data ${cat} Impor`,
                     category: cat,
                     username: mainUsername,
-                    password: mainPassword,
+                    credential: mainCredential,
                     url: rowObj.url || fields.url || "",
                     notes: rowObj.notes || "",
                     fields,
@@ -1201,11 +1508,22 @@
 
         function processImportedArray(items) {
             stagingImportItems = items.map(item => {
+                // Konversi format item impor (json/csv) agar sesuai dengan struktur baru
+                if (!item.credential && item.password) {
+                    item.credential = item.password;
+                }
+
+                // Strip CVV jika ada
+                if (item.category === 'Kartu Kredit' && item.fields) {
+                    if (item.fields.cvv !== undefined) delete item.fields.cvv;
+                    if (item.fields.credential !== undefined) delete item.fields.credential;
+                }
+
                 // Periksa apakah item sudah ada di vault (berdasarkan ID atau kombinasi Judul & Kategori)
                 const exists = allItems.find(existing => 
                     existing.id === item.id || 
                     (existing.title.toLowerCase() === item.title.toLowerCase() && existing.category === item.category) ||
-                    (item.password && existing.password === item.password)
+                    (item.credential && (existing.credential === item.credential || existing.password === item.credential))
                 );
 
                 // Periksa mandatory fields
@@ -1336,32 +1654,47 @@
         async function generateDummyData(count = 100) {
             console.log(`[DEV] Generating ${count} dummy records...`);
             const categories = ['Login', 'Rekening Bank', 'E-KTP', 'Kartu Kredit'];
-            const apps = ['Google', 'Bank BCA', 'KTP Pribadi', 'Kartu Visa'];
             
             for (let i = 1; i <= count; i++) {
                 const cat = categories[Math.floor(Math.random() * categories.length)];
                 const app = `${cat} Test ${i}`;
-                const dynFields = {
-                    username: `user${i}@gmail.com`,
-                    password: `secret${i}`,
-                    bank_name: 'Bank BCA',
-                    account_number: `5800${i}`,
-                    account_holder: 'Budi Santoso',
-                    nik: `320101170890${i}`,
-                    full_name: 'Budi Santoso',
-                    card_number: `450012345678${i}`,
-                    expiry: '12/28',
-                    cvv: '123',
-                    url: 'https://google.com'
-                };
+                const dynFields = {};
+                
+                let mainUsername = `user${i}@gmail.com`;
+                let mainCredential = `secret${i}`;
+                
+                if (cat === 'Login') {
+                    dynFields.username = `user${i}@gmail.com`;
+                    dynFields.credential = `secret${i}`;
+                    dynFields.url = 'https://google.com';
+                } else if (cat === 'Rekening Bank') {
+                    dynFields.provider = 'Bank BCA';
+                    dynFields.id = `5800${i}`;
+                    dynFields.username = 'Budi Santoso';
+                    mainUsername = 'Bank BCA — Budi Santoso';
+                    mainCredential = `5800${i}`;
+                } else if (cat === 'E-KTP') {
+                    dynFields.provider = 'Jakarta, 17 Agustus 1990';
+                    dynFields.id = `320101170890${i}`;
+                    dynFields.username = 'Budi Santoso';
+                    mainUsername = 'Budi Santoso';
+                    mainCredential = `320101170890${i}`;
+                } else if (cat === 'Kartu Kredit') {
+                    dynFields.provider = '12/28';
+                    dynFields.id = `450012345678${i}`;
+                    dynFields.username = 'Budi Santoso';
+                    dynFields.credential = '123';
+                    mainUsername = 'Budi Santoso — Exp: 12/28';
+                    mainCredential = `450012345678${i}`;
+                }
                 
                 allItems.push({
                     id: crypto.randomUUID(),
                     title: app,
                     category: cat,
-                    username: cat === 'Login' ? dynFields.username : (cat === 'E-KTP' ? dynFields.full_name : dynFields.account_holder),
-                    password: cat === 'Login' ? dynFields.password : (cat === 'E-KTP' ? dynFields.nik : dynFields.account_number),
-                    url: 'https://google.com',
+                    username: mainUsername,
+                    credential: mainCredential,
+                    url: cat === 'Login' ? 'https://google.com' : '',
                     notes: `Data dummy ke-${i} untuk testing.`,
                     fields: dynFields,
                     updated_at: new Date().toISOString()

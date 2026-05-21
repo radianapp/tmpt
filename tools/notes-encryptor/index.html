@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Encryptor - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <link rel="stylesheet" href="/assets/css/app.css?v=2">
+    <script src="https://unpkg.com/htmx.org@2.0.0"></script>
+    <script src="/assets/js/pwa.js"></script>
+    <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/crypto.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <article class="setup-card" style="max-width: 700px; margin: 2rem auto;">
+            <header class="text-center" style="border-bottom: none; margin-bottom: 0.5rem;">
+                <div class="setup-icon-box" style="margin: 0 auto 1rem auto; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: rgba(168, 85, 247, 0.1); border-radius: 50%; color: #a855f7;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <line x1="8" y1="9" x2="16" y2="9" />
+                        <line x1="8" y1="13" x2="16" y2="13" />
+                        <line x1="8" y1="17" x2="12" y2="17" />
+                        <path d="M15 15v3a2 2 0 0 0 2 2v0a2 2 0 0 0 2 -2v-3z" fill="#a855f7"/>
+                    </svg>
+                </div>
+                <h1 style="margin-bottom: 0.25rem;">Notes Encryptor</h1>
+                <p class="secondary" style="font-size: 0.95rem;">Enkripsi pesan sensitif Anda secara lokal. Hanya pemilik sandi yang bisa membacanya.</p>
+            </header>
+
+            <nav style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color);">
+                <ul style="padding: 0; margin: 0; list-style: none; display: flex; gap: 1rem;">
+                    <li><a href="#" id="tab-enc" class="primary" style="font-weight: bold; border-bottom: 2px solid var(--pico-primary); padding-bottom: 0.5rem; display: block;" onclick="switchTab('encrypt'); return false;">Kunci (Enkripsi)</a></li>
+                    <li><a href="#" id="tab-dec" class="secondary" style="font-weight: bold; padding-bottom: 0.5rem; display: block; border-bottom: 2px solid transparent;" onclick="switchTab('decrypt'); return false;">Buka (Dekripsi)</a></li>
+                </ul>
+            </nav>
+
+            <!-- ENCRYPT SECTION -->
+            <div id="section-encrypt">
+                <label>
+                    Teks Pesan / Catatan
+                    <textarea id="enc-text" rows="4" placeholder="Tulis pesan rahasia di sini..."></textarea>
+                </label>
+                <label>
+                    Kata Sandi Kunci
+                    <div class="pwd-input-group">
+                        <input type="password" id="enc-pwd" placeholder="Sandi untuk mengunci pesan...">
+                        <button type="button" class="btn-toggle-eye" onclick="toggleVisibility('enc-pwd', this)" title="Tampilkan/Sembunyikan">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                        </button>
+                    </div>
+                </label>
+                <button class="primary" onclick="doEncrypt()" style="width: 100%; border-radius: 8px;">Enkripsi Pesan &rarr;</button>
+
+                <div id="enc-result-container" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--pico-muted-border-color);">
+                    <label>
+                        Hasil Enkripsi (Ciphertext)
+                        <textarea id="enc-result" rows="4" readonly style="font-family: monospace; font-size: 0.85rem; background: var(--pico-background-color);"></textarea>
+                    </label>
+                    <button class="outline secondary" onclick="copyText('enc-result')" style="width: 100%; border-radius: 8px; margin-bottom: 0;">Salin Teks Acak</button>
+                </div>
+            </div>
+
+            <!-- DECRYPT SECTION -->
+            <div id="section-decrypt" style="display: none;">
+                <label>
+                    Teks Acak (Ciphertext)
+                    <textarea id="dec-text" rows="4" placeholder="Tempelkan hasil enkripsi di sini... (dimulai dengan teks acak panjang)"></textarea>
+                </label>
+                <label>
+                    Kata Sandi Pembuka
+                    <div class="pwd-input-group">
+                        <input type="password" id="dec-pwd" placeholder="Sandi untuk membuka pesan...">
+                        <button type="button" class="btn-toggle-eye" onclick="toggleVisibility('dec-pwd', this)" title="Tampilkan/Sembunyikan">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                        </button>
+                    </div>
+                </label>
+                <button class="primary" onclick="doDecrypt()" style="width: 100%; border-radius: 8px;">&larr; Buka Pesan</button>
+
+                <div id="dec-result-container" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--pico-muted-border-color);">
+                    <label>
+                        Isi Pesan Asli
+                        <textarea id="dec-result" rows="4" readonly style="background: var(--pico-background-color);"></textarea>
+                    </label>
+                </div>
+            </div>
+
+            <footer style="text-align: center; margin-top: 2rem; padding: 0; background: transparent; border: none; box-shadow: none;">
+                <a href="/tools" class="secondary" style="font-size: 0.9rem;">&larr; Kembali ke Tools</a>
+            </footer>
+        </article>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        function switchTab(tab) {
+            const tabEnc = document.getElementById('tab-enc');
+            const tabDec = document.getElementById('tab-dec');
+            const secEnc = document.getElementById('section-encrypt');
+            const secDec = document.getElementById('section-decrypt');
+
+            if (tab === 'encrypt') {
+                tabEnc.className = 'primary';
+                tabEnc.style.borderBottomColor = 'var(--pico-primary)';
+                tabDec.className = 'secondary';
+                tabDec.style.borderBottomColor = 'transparent';
+                secEnc.style.display = 'block';
+                secDec.style.display = 'none';
+            } else {
+                tabDec.className = 'primary';
+                tabDec.style.borderBottomColor = 'var(--pico-primary)';
+                tabEnc.className = 'secondary';
+                tabEnc.style.borderBottomColor = 'transparent';
+                secDec.style.display = 'block';
+                secEnc.style.display = 'none';
+            }
+        }
+
+        function toggleVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.style.opacity = "0.5";
+            } else {
+                input.type = "password";
+                btn.style.opacity = "1";
+            }
+        }
+
+        async function copyText(elementId) {
+            const el = document.getElementById(elementId);
+            try {
+                await navigator.clipboard.writeText(el.value);
+                window.TMPT_UI.toast('Teks berhasil disalin!', 'success');
+            } catch (err) {
+                window.TMPT_UI.toast('Gagal menyalin teks.', 'error');
+            }
+        }
+
+        /**
+         * Enkripsi: password → deriveKey → encrypt → bundle salt+iv+ciphertext → Base64
+         */
+        async function doEncrypt() {
+            const text = document.getElementById('enc-text').value;
+            const pwd = document.getElementById('enc-pwd').value;
+
+            if (!text) { window.TMPT_UI.toast('Pesan tidak boleh kosong.', 'error'); return; }
+            if (!pwd) { window.TMPT_UI.toast('Sandi kunci tidak boleh kosong.', 'error'); return; }
+
+            try {
+                const C = window.TMPT_Crypto;
+
+                // 1. Generate salt acak
+                const salt = C.generateSalt(); // Uint8Array(16)
+
+                // 2. Derive CryptoKey dari password + salt
+                const key = await C.deriveKey(pwd, salt);
+
+                // 3. Enkripsi teks pesan
+                const plaintext = JSON.stringify({ message: text, _v: 1 });
+                const encrypted = await C.encrypt(plaintext, key); // { ciphertext: base64, iv: base64 }
+
+                // 4. Bundle menjadi satu string JSON → Base64 agar mudah dibagikan
+                const bundle = JSON.stringify({
+                    s: C.bufferToBase64(salt),
+                    iv: encrypted.iv,
+                    ct: encrypted.ciphertext
+                });
+                const bundleB64 = btoa(unescape(encodeURIComponent(bundle)));
+
+                document.getElementById('enc-result').value = bundleB64;
+                document.getElementById('enc-result-container').style.display = 'block';
+                window.TMPT_UI.toast('Pesan berhasil dienkripsi!', 'success');
+            } catch (e) {
+                console.error(e);
+                window.TMPT_UI.toast('Gagal mengenkripsi pesan.', 'error');
+            }
+        }
+
+        /**
+         * Dekripsi: Base64 → unbundle → deriveKey → decrypt → tampilkan pesan
+         */
+        async function doDecrypt() {
+            const cipherText = document.getElementById('dec-text').value.trim();
+            const pwd = document.getElementById('dec-pwd').value;
+
+            if (!cipherText) { window.TMPT_UI.toast('Teks acak tidak boleh kosong.', 'error'); return; }
+            if (!pwd) { window.TMPT_UI.toast('Sandi pembuka tidak boleh kosong.', 'error'); return; }
+
+            try {
+                const C = window.TMPT_Crypto;
+
+                // 1. Decode Base64 bundle
+                const bundleJson = decodeURIComponent(escape(atob(cipherText)));
+                const bundle = JSON.parse(bundleJson);
+
+                if (!bundle.s || !bundle.iv || !bundle.ct) {
+                    throw new Error('Format ciphertext tidak valid.');
+                }
+
+                // 2. Derive key dari password + salt yang sama
+                const salt = C.base64ToBuffer(bundle.s);
+                const key = await C.deriveKey(pwd, salt);
+
+                // 3. Dekripsi
+                const payload = { iv: bundle.iv, ciphertext: bundle.ct };
+                const decryptedStr = await C.decrypt(payload, key);
+
+                // 4. Parse JSON dan tampilkan pesan
+                const data = JSON.parse(decryptedStr);
+                if (data && data.message) {
+                    document.getElementById('dec-result').value = data.message;
+                    document.getElementById('dec-result-container').style.display = 'block';
+                    window.TMPT_UI.toast('Pesan berhasil dibuka!', 'success');
+                } else {
+                    throw new Error('Format data tidak valid.');
+                }
+            } catch (e) {
+                console.error(e);
+                window.TMPT_UI.toast('Gagal membuka pesan. Pastikan kata sandi benar dan format ciphertext valid.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

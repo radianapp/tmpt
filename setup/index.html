@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+    <title>TMPT.my.ID - Setup</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="manifest" href="/manifest.json">
@@ -33,7 +34,7 @@
                         <path d="M12 7v2" />
                     </svg>
                 </div>
-                <h1 style="margin-bottom: 0.25rem;">Buat Brankas Baru</h1>
+                <h1 style="margin-bottom: 0.25rem;">Buat Tmpt Baru</h1>
             </header>
 
             <div class="setup-alert">
@@ -42,30 +43,13 @@
                     <strong>Tips Keamanan:</strong> Jika menggunakan mode <strong>Incognito/Private</strong>, data akan <strong>hilang otomatis</strong> saat browser ditutup. Gunakan fitur <strong>Backup</strong> untuk mengamankan data Anda.
                 </p>
             </div>
-            
-
-            <dialog id="vault-exists-modal">
-                <article>
-                    <header>
-                        <h3 style="color: var(--del-color); margin: 0;">⚠️ Brankas Terdeteksi</h3>
-                    </header>
-                    <p>Browser ini sudah memiliki Brankas. Jika Anda membuat yang baru, <strong>semua data lama akan terhapus selamanya dan tidak bisa dikembalikan.</strong></p>
-                    
-                    <div class="slide-confirm-container mt-1">
-                        <span class="slide-confirm-text" id="slide-text">Geser untuk konfirmasi</span>
-                        <input type="range" min="0" max="100" value="0" class="slide-confirm-input" id="confirm-slider" oninput="handleSlider(this.value)">
-                    </div>
-
-                    <footer>
-                        <div class="grid" style="align-items: stretch; gap: 1rem;">
-                            <a href="/login" role="button" class="btn-gray" style="margin-bottom: 0; text-align: center; display: inline-flex; align-items: center; justify-content: center;">Batal & Kembali</a>
-                            <button id="modal-confirm-btn" class="btn-danger" disabled style="margin-bottom: 0;" onclick="closeModal()">Lanjut (Timpa Data)</button>
-                        </div>
-                    </footer>
-                </article>
-            </dialog>
+            <!-- Vault exists warning removed for multi-vault support -->
 
             <form id="setup-form">
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="vault_name" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Nama Tmpt</label>
+                    <input type="text" id="vault_name" name="vault_name" placeholder="Misal: Personal, Kerja, Rahasia" required>
+                </div>
                 <div style="margin-bottom: 1.25rem;">
                     <label for="password" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Master Password</label>
                     <div class="pwd-input-group">
@@ -107,11 +91,11 @@
                     <span>Saya mengerti bahwa <strong>lupa master password = data tidak bisa dipulihkan</strong>.</span>
                 </label>
 
-                <button type="submit" id="submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1.5rem;">Buat Brankas Sekarang</button>
+                <button type="submit" id="submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1.5rem;">Buat Tmpt Sekarang</button>
             </form>
 
             <footer class="text-center" style="margin: 0; padding: 0; border: none; background: transparent; box-shadow: none;">
-                <p style="font-size: 0.95rem; margin: 0; color: var(--pico-secondary);">Sudah punya Brankas? <a href="/login" style="font-weight: 600; color: var(--pico-primary); text-decoration: underline;">Buka Brankas</a></p>
+                <p style="font-size: 0.95rem; margin: 0; color: var(--pico-secondary);">Sudah punya Tmpt? <a href="/login" style="font-weight: 600; color: var(--pico-primary); text-decoration: underline;">Buka Tmpt</a></p>
             </footer>
         </article>
     </main>
@@ -119,24 +103,8 @@
     <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <script>
-        // Gunakan pageshow untuk pengecekan Brankas lama
-        window.addEventListener('pageshow', async (event) => {
-            await window.TMPT_Auth.init();
-            
-            // Beri sedikit nafas agar DOM benar-benar siap
-            setTimeout(() => {
-                if (window.TMPT_Vault.exists()) {
-                    const modal = document.getElementById('vault-exists-modal');
-                    if (modal && !modal.hasAttribute('open')) {
-                        modal.setAttribute('open', true);
-                        document.getElementById('submit-btn').disabled = true;
-                        document.getElementById('submit-btn').textContent = 'Konfirmasi Dibutuhkan';
-                    }
-                }
-            }, 200);
-        });
-
-        let isConfirmed = false;
+        // No need to show warning, setup always creates a new vault
+        let isConfirmed = true;
 
         function toggleSetupVisibility(inputId, btn) {
             const input = document.getElementById(inputId);
@@ -192,7 +160,7 @@
                 isConfirmed = true;
                 modalBtn.disabled = false;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Timpa Brankas & Mulai Baru';
+                submitBtn.textContent = 'Timpa Tmpt & Mulai Baru';
                 submitBtn.style.backgroundColor = 'var(--del-color)';
                 submitBtn.style.borderColor = 'var(--del-color)';
                 slideText.textContent = "KONFIRMASI BERHASIL";
@@ -209,11 +177,7 @@
         document.getElementById('setup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (window.TMPT_Vault.exists() && !isConfirmed) {
-                document.getElementById('vault-exists-modal').setAttribute('open', true);
-                return;
-            }
-            
+            const name = document.getElementById('vault_name').value || 'Tmpt Baru';
             const password = document.getElementById('password').value;
             const confirm = document.getElementById('confirm_password').value;
             const hint = document.getElementById('hint').value;
@@ -246,10 +210,10 @@
                     created_at: new Date().toISOString()
                 };
 
-                // 5. Save to Brankas
-                await window.TMPT_Vault.save(vaultData);
+                // 5. Save to Tmpt
+                await window.TMPT_Vault.createNewVault(name, vaultData);
 
-                window.TMPT_UI.toast("Brankas berhasil dibuat!", "success");
+                window.TMPT_UI.toast("Tmpt berhasil dibuat!", "success");
                 
                 // Automatically unlock and redirect
                 window.TMPT_Auth._activeKey = key;

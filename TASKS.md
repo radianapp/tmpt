@@ -29,7 +29,7 @@
 ## Fase 4: Backup & Tools
 - [x] Backup/Restore (Local file `.tmpt`)
 - [x] Standalone Tools (Password generator)
-- [ ] Dokumentasi & Sinkronisasi Git Versioning (Skrip & Panduan manual)
+- [x] Dokumentasi & Sinkronisasi Git Versioning (Skrip & Panduan manual)
 - [x] Halaman standar (About, FAQ, Help, Harga, Privacy, Contact, Sponsor)
 
 ## Fase 5: Ekosistem Aplikasi Produktivitas Klien Lokal
@@ -37,4 +37,11 @@
     - [x] Editor catatan lokal dengan warna & label
     - [x] Manajemen Daftar Tugas (To-Do Lists) terintegrasi dengan progress bar
     - [x] Zero-knowledge state isolation & ekspor-impor JSON terpadu
-- [ ] Antarmuka Pengalih Brankas (Multi-Vault Switcher)
+- [x] Antarmuka Pengalih Brankas (Multi-Vault Switcher)
+
+## Fase 6: Ekosistem Aplikasi Mobile (Android & iOS)
+- [x] Inisialisasi dependensi & konfigurasi Capacitor
+- [x] Integrasi skrip pembangun aset (`build.js`)
+- [x] Pembuatan project native Android (`android/`)
+- [x] Pembuatan project native iOS (`ios/`)
+- [x] Pembuatan dokumentasi panduan mobile (`docs/mobile-apps.md`)

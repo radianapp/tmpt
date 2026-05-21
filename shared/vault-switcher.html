@@ -1,0 +1,105 @@
+<dialog id="vault-switcher-modal">
+    <article style="border-radius: 20px; padding: 1.5rem 2rem; max-width: 500px; width: 100%;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 1rem;">
+            <strong style="font-size: 1.25rem;">Ganti Tmpt (Vault)</strong>
+            <button class="close" aria-label="Tutup" onclick="document.getElementById('vault-switcher-modal').close()" style="margin-bottom: 0; background: transparent; border: none; font-size: 1.5rem; color: var(--pico-secondary); padding: 0; width: auto; height: auto;">✕</button>
+        </header>
+        
+        <div id="vault-list-container" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem;">
+            <!-- Vault items will be injected here via JS -->
+        </div>
+
+        <footer>
+            <button class="outline" onclick="window.location.href='/setup'" style="width: 100%; border-radius: 10px;">+ Buat Tmpt Baru</button>
+        </footer>
+    </article>
+</dialog>
+
+<dialog id="vault-confirm-modal">
+    <article style="border-radius: 20px; padding: 1.5rem 2rem; max-width: 500px; width: 100%;">
+        <header style="margin-bottom: 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 1rem;">
+            <strong style="font-size: 1.25rem; color: var(--pico-h1-color);">Konfirmasi Beralih Tmpt</strong>
+        </header>
+        
+        <p id="vault-confirm-message" style="margin-bottom: 1.5rem; color: var(--pico-color);"></p>
+        
+        <div style="background-color: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; border-radius: 4px; margin-bottom: 2rem;">
+            <div style="display: flex; gap: 0.75rem; align-items: flex-start;">
+                <span style="font-size: 1.25rem; line-height: 1;">⚠️</span>
+                <p style="font-size: 0.9rem; margin: 0; color: var(--pico-color);">
+                    <strong>Pengingat Penting:</strong> Pastikan Anda rutin melakukan <strong>Ekspor/Backup</strong> secara berkala. Jika Anda lupa Master Password dari Tmpt mana pun, data di dalamnya tidak akan dapat dipulihkan!
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <div class="grid" style="gap: 1rem;">
+                <button class="outline secondary" onclick="document.getElementById('vault-confirm-modal').close()" style="margin-bottom: 0;">Batal</button>
+                <button id="vault-confirm-btn" style="margin-bottom: 0;">Beralih & Kunci</button>
+            </div>
+        </footer>
+    </article>
+</dialog>
+
+<script>
+    function renderVaultSwitcher() {
+        if (!window.TMPT_Vault) return;
+        
+        const vaults = window.TMPT_Vault.listVaults();
+        const container = document.getElementById('vault-list-container');
+        if (!container) return;
+        
+        container.innerHTML = '';
+        
+        if (vaults.length === 0) {
+            container.innerHTML = '<p class="secondary" style="text-align: center;">Tidak ada Tmpt ditemukan.</p>';
+            return;
+        }
+
+        vaults.forEach(vault => {
+            const btn = document.createElement('button');
+            btn.className = vault.isActive ? 'primary' : 'outline secondary';
+            btn.style.cssText = `
+                width: 100%; 
+                text-align: left; 
+                display: flex; 
+                justify-content: space-between; 
+                align-items: center; 
+                border-radius: 10px; 
+                padding: 1rem;
+                margin-bottom: 0;
+            `;
+            
+            btn.innerHTML = `
+                <span style="font-weight: 600;">${vault.name}</span>
+                ${vault.isActive ? '<span style="font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 5px;">Aktif</span>' : ''}
+            `;
+
+            if (!vault.isActive) {
+                btn.onclick = () => {
+                    document.getElementById('vault-switcher-modal').close();
+                    
+                    const confirmModal = document.getElementById('vault-confirm-modal');
+                    const confirmMsg = document.getElementById('vault-confirm-message');
+                    const confirmBtn = document.getElementById('vault-confirm-btn');
+                    
+                    confirmMsg.innerHTML = `Apakah Anda yakin ingin beralih ke Tmpt <strong>"${vault.name}"</strong>? Sesi Tmpt yang sedang terbuka saat ini akan otomatis dikunci.`;
+                    
+                    confirmBtn.onclick = () => {
+                        window.TMPT_Vault.switchVault(vault.id);
+                    };
+                    
+                    confirmModal.showModal();
+                };
+            }
+            
+            container.appendChild(btn);
+        });
+    }
+
+    // Export function so it can be called when modal opens
+    window.TMPT_OpenVaultSwitcher = function() {
+        renderVaultSwitcher();
+        document.getElementById('vault-switcher-modal').showModal();
+    };
+</script>

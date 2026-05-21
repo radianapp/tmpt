@@ -15,6 +15,7 @@
     <script src="/assets/js/vault.js"></script>
     <script src="/assets/js/auth.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <script src="/assets/js/license.js"></script>
 </head>
 <body>
 
@@ -62,9 +63,10 @@
 
         <!-- Filter & Search Bar -->
         <div class="filter-bar">
-            <div class="search-wrapper">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="search" id="search-input" placeholder="Cari judul, konten, atau label..." oninput="renderCurrentMode()">
+            <div class="search-wrapper" style="position: relative; display: flex; align-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="search-input" placeholder="Cari judul, konten, atau label..." oninput="renderCurrentMode(); document.getElementById('clear-search-btn').style.display = this.value ? 'block' : 'none';" style="padding-left: 2.5rem; padding-right: 2.5rem; margin-bottom: 0; width: 100%;">
+                <button type="button" id="clear-search-btn" onclick="document.getElementById('search-input').value=''; renderCurrentMode(); this.style.display='none';" style="position: absolute; right: 8px; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem; display: none; cursor: pointer; font-size: 1.25rem; line-height: 1;">✕</button>
             </div>
             <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                 <div id="filter-notes-container">
@@ -87,6 +89,22 @@
         <!-- Container Utama Konten -->
         <div id="app-content-container">
             <!-- Dirender secara dinamis oleh JavaScript -->
+        </div>
+
+        <!-- Shortcut: Notes Encryptor -->
+        <div style="margin-top: 2.5rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(168, 85, 247, 0.05);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem;">🔐</span>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Perlu berbagi catatan rahasia?</div>
+                    <small class="secondary">Enkripsi pesan dengan sandi dan bagikan ciphertext-nya dengan aman.</small>
+                </div>
+            </div>
+            <a href="/tools/notes-encryptor/" class="outline" role="button" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Buka Encryptor →</a>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 1rem;">
+            <span class="secondary tmpt-version" style="font-size: 0.85rem; opacity: 0.7;">v1.0.0-rc1</span>
         </div>
     </main>
 
@@ -267,6 +285,13 @@
             if (window.TMPT_Auth) {
                 await window.TMPT_Auth.init();
             }
+            
+            // Cek jika mode enkripsi aktif tapi user bukan Pro
+            if (isEncryptedMode && (!window.TMPT_License || !window.TMPT_License.isPro())) {
+                isEncryptedMode = false;
+                localStorage.setItem('catat_security_mode', 'standard');
+            }
+
             updateSecurityBadge();
             await loadStorageData();
             renderCurrentMode();
@@ -290,7 +315,34 @@
             }
         }
 
+        function showProUpgradeModal(featureName) {
+            let modal = document.getElementById('pro-upgrade-modal');
+            if (!modal) {
+                modal = document.createElement('dialog');
+                modal.id = 'pro-upgrade-modal';
+                modal.innerHTML = `
+                    <article style="border-radius: 15px; padding: 2rem; max-width: 400px; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem; line-height: 1;">✨</div>
+                        <h3 style="margin-bottom: 0.5rem;">Fitur Premium</h3>
+                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;">Fitur <strong>${featureName}</strong> eksklusif untuk pengguna Edisi Pro. Tingkatkan akun Anda untuk mengaktifkan enkripsi militer pada catatan Anda.</p>
+                        <div class="grid" style="gap: 1rem;">
+                            <button class="outline secondary" onclick="document.getElementById('pro-upgrade-modal').close()" style="margin-bottom: 0;">Nanti Saja</button>
+                            <a href="/pro/" role="button" class="btn-navy" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
+                        </div>
+                    </article>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.showModal();
+        }
+
         async function toggleSecurityMode() {
+            // Blokir jika user bukan Pro
+            if (!window.TMPT_License || !window.TMPT_License.isPro()) {
+                showProUpgradeModal('Enkripsi Catatan & Daftar Tugas');
+                return;
+            }
+
             if (!window.TMPT_Auth || !window.TMPT_Auth.isUnlocked()) {
                 const wantLogin = confirm("Fitur Enkripsi Pro memerlukan Brankas yang terbuka. Apakah Anda ingin membuka Brankas sekarang?");
                 if (wantLogin) {

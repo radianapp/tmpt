@@ -99,7 +99,7 @@ if (-not $SkipGit) {
         git add $versionFile $docsFile
     }
     
-    git commit -m "v$newFull: $releaseNotes"
+    git commit -m "v${newFull}: $releaseNotes"
     git tag "v$newFull"
     
     $push = Read-Host "Push ke origin? (y/n) [default: y]"

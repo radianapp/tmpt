@@ -16,54 +16,47 @@
     <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <div style="max-width: 680px; margin: 0 auto;">
-            <hgroup class="text-center" style="margin-bottom: 2rem;">
-                <h1>Hubungi Kami</h1>
-                <p>Punya pertanyaan, masukan, atau ingin berkolaborasi? Kami siap mendengar dari Anda.</p>
-            </hgroup>
+        <header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
+            <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Hubungi Kami</h1>
+            <p class="secondary" style="font-size: 1.15rem;">Punya pertanyaan, masukan, atau ingin berkolaborasi? Kami siap mendengar dari Anda.</p>
+        </header>
 
-            <!-- Direct Email Badge -->
-            <article class="text-center" style="padding: 1.25rem; margin-bottom: 2rem; background: var(--pico-card-sectioning-background-color); border: 1px solid var(--pico-muted-border-color);">
+        <div style="max-width: 680px; margin: 0 auto 3rem auto;">
+            <!-- Direct Email Card -->
+            <article class="settings-card text-center" style="padding: 1.5rem; margin-bottom: 2rem;">
                 <span style="font-size: 1.5rem; margin-right: 0.5rem; vertical-align: middle;">✉️</span>
                 <span class="secondary">Email Langsung:</span> 
-                <strong style="font-size: 1.1rem; color: var(--pico-primary);">tmptmyid@gmail.com</strong>
-                <div style="margin-top: 0.75rem;">
-                    <a href="mailto:tmptmyid@gmail.com" role="button" class="outline secondary" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;">Kirim Email</a>
-                    <button class="outline secondary" onclick="navigator.clipboard.writeText('tmptmyid@gmail.com'); window.TMPT_UI.showToast('Email berhasil disalin!');" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; margin-left: 0.5rem;">Salin Email</button>
+                <strong style="font-size: 1.1rem; color: var(--tmpt-border-active); margin-left: 0.25rem;">tmptmyid@gmail.com</strong>
+                <div style="margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem;">
+                    <a href="mailto:tmptmyid@gmail.com" role="button" class="outline secondary" style="padding: 0.4rem 1rem; font-size: 0.85rem; border-radius: 8px; margin-bottom: 0; text-decoration: none;">Kirim Email</a>
+                    <button class="outline secondary" onclick="navigator.clipboard.writeText('tmptmyid@gmail.com'); window.TMPT_UI.showToast('Email berhasil disalin!');" style="padding: 0.4rem 1rem; font-size: 0.85rem; border-radius: 8px; margin-bottom: 0;">Salin Email</button>
                 </div>
             </article>
 
-            <!-- Contact Form (Powered by Formspree) -->
-            <article style="padding: 2rem;">
-                <header>
-                    <h2 style="margin-bottom: 0;">Form Pesan Online</h2>
-                    <small class="secondary">Pesan akan langsung masuk ke email kami (tmptmyid@gmail.com)</small>
+            <!-- Contact Form Card -->
+            <article class="settings-card" style="padding: 2.5rem; margin-bottom: 2.5rem;">
+                <header style="background: transparent; padding: 0; border: none; margin-bottom: 1.5rem;">
+                    <h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 0.25rem;">Form Pesan Online</h3>
+                    <p class="secondary" style="font-size: 0.9rem; margin-bottom: 0;">Pesan akan langsung masuk ke email kami (tmptmyid@gmail.com)</p>
                 </header>
 
-                <!-- 
-                    Catatan Konfigurasi Formspree:
-                    1. Daftar gratis di https://formspree.io menggunakan email tmptmyid@gmail.com
-                    2. Buat form baru ("TMPT Contact")
-                    3. Ganti URL action di bawah ini dengan URL endpoint form Bosque (misal: https://formspree.io/f/xabcdefg)
-                -->
-                <form action="https://formspree.io/f/xeenybyl" method="POST" style="margin-top: 1.5rem;">
-                    <!-- Redirect setelah sukses -->
+                <form action="https://formspree.io/f/xeenybyl" method="POST" style="margin-top: 1rem;">
                     <input type="hidden" name="_next" value="https://tmpt.my.id/contact?success=true">
                     <input type="hidden" name="_subject" value="Pesan Baru dari Web TMPT">
 
-                    <div class="grid">
+                    <div class="grid" style="gap: 1rem;">
                         <div>
-                            <label for="name">Nama Lengkap / Panggilan <span style="color:red;">*</span></label>
-                            <input type="text" id="name" name="name" placeholder="Budi Santoso" required>
+                            <label for="name" style="font-weight: 600;">Nama Lengkap / Panggilan <span style="color:red;">*</span></label>
+                            <input type="text" id="name" name="name" placeholder="Budi Santoso" style="border-radius: 8px;" required>
                         </div>
                         <div>
-                            <label for="email">Alamat Email <span style="color:red;">*</span></label>
-                            <input type="email" id="email" name="email" placeholder="budi@example.com" required>
+                            <label for="email" style="font-weight: 600;">Alamat Email <span style="color:red;">*</span></label>
+                            <input type="email" id="email" name="email" placeholder="budi@example.com" style="border-radius: 8px;" required>
                         </div>
                     </div>
 
-                    <label for="category">Kategori Pesan</label>
-                    <select id="category" name="category">
+                    <label for="category" style="font-weight: 600;">Kategori Pesan</label>
+                    <select id="category" name="category" style="border-radius: 8px;">
                         <option value="Pertanyaan Umum">Pertanyaan Umum</option>
                         <option value="Sponsor / Donasi">Konfirmasi Sponsor / Donasi</option>
                         <option value="Masukan &amp; Ide Fitur">Masukan &amp; Ide Fitur</option>
@@ -71,29 +64,27 @@
                         <option value="Lainnya">Lainnya</option>
                     </select>
 
-                    <label for="message">Pesan Anda <span style="color:red;">*</span></label>
-                    <textarea id="message" name="message" placeholder="Tuliskan pesan, pertanyaan, atau masukan Anda di sini..." rows="5" required></textarea>
+                    <label for="message" style="font-weight: 600;">Pesan Anda <span style="color:red;">*</span></label>
+                    <textarea id="message" name="message" placeholder="Tuliskan pesan, pertanyaan, atau masukan Anda di sini..." rows="5" style="border-radius: 8px;" required></textarea>
 
-                    <button type="submit" style="width: 100%; margin-top: 1rem;">Kirim Pesan Sekarang 🚀</button>
-                    <footer style="margin-top: 1rem; text-align: center;">
-                        <small class="secondary">🔒 Data yang dikirim melalui form ini hanya digunakan untuk membalas pesan Anda dan tidak disimpan di server publik mana pun.</small>
-                    </footer>
+                    <button type="submit" class="btn-navy" style="width: 100%; margin-top: 1.5rem;">Kirim Pesan Sekarang 🚀</button>
+                    <p class="secondary text-center" style="margin-top: 1.25rem; font-size: 0.8rem; margin-bottom: 0;">🔒 Data yang dikirim melalui form ini hanya digunakan untuk membalas pesan Anda.</p>
                 </form>
             </article>
 
-            <!-- For Developers / GitHub Section -->
-            <section style="margin-top: 3rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 2rem;">
-                <h3 class="text-center">Untuk Pengembang (GitHub)</h3>
-                <p class="text-center secondary">Ingin berkontribusi kode atau melaporkan bug teknis di repositori?</p>
-                <div class="grid mt-1">
-                    <a href="https://github.com/radianapp/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="outline secondary text-center" style="width: 100%;">
+            <!-- For Developers Card -->
+            <article class="settings-card" style="padding: 2rem; margin-bottom: 0;">
+                <h3 style="font-weight: 700; color: var(--pico-h1-color); text-align: center; margin-bottom: 0.5rem;">Untuk Pengembang (GitHub)</h3>
+                <p class="text-center secondary" style="font-size: 0.95rem; margin-bottom: 1.5rem;">Ingin berkontribusi kode atau melaporkan bug teknis di repositori?</p>
+                <div class="grid" style="gap: 1rem; margin-top: 1rem;">
+                    <a href="https://github.com/radianapp/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="outline secondary text-center" style="width: 100%; border-radius: 8px; font-weight: 600; padding: 0.6rem 1rem; text-decoration: none;">
                         🐙 Repositori GitHub ↗
                     </a>
-                    <a href="https://github.com/radianapp/tmpt/issues" target="_blank" rel="noopener noreferrer" role="button" class="outline secondary text-center" style="width: 100%;">
+                    <a href="https://github.com/radianapp/tmpt/issues" target="_blank" rel="noopener noreferrer" role="button" class="outline secondary text-center" style="width: 100%; border-radius: 8px; font-weight: 600; padding: 0.6rem 1rem; text-decoration: none;">
                         🐛 GitHub Issues ↗
                     </a>
                 </div>
-            </section>
+            </article>
         </div>
     </main>
 

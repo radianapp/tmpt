@@ -16,24 +16,26 @@
     <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <main class="container">
-        <article>
-            <hgroup class="text-center" style="margin-bottom: 2rem;">
-                <h1>Tentang TMPT</h1>
-                <p>Filosofi keamanan data berbasis Zero-Knowledge dan Local-First</p>
-            </hgroup>
+        <header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
+            <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Tentang TMPT</h1>
+            <p class="secondary" style="font-size: 1.15rem;">Filosofi keamanan data berbasis Zero-Knowledge dan Local-First</p>
+        </header>
 
-            <section>
-                <h3>Misi Kami</h3>
-                <p>TMPT dibangun dengan satu tujuan utama: <strong>Mengembalikan kendali privasi data sepenuhnya ke tangan Anda</strong>. Di era di mana data pribadi sering disalahgunakan, dilacak, atau bocor dari server perusahaan besar, kami percaya bahwa cara teraman menyimpan data adalah dengan tidak memberikannya ke pihak lain sama sekali.</p>
+        <article class="settings-card" style="max-width: 800px; margin: 0 auto 3rem auto;">
+            <section style="margin-bottom: 2rem;">
+                <h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Misi Kami</h3>
+                <p style="font-size: 1.05rem; line-height: 1.6;">TMPT dibangun dengan satu tujuan utama: <strong>Mengembalikan kendali privasi data sepenuhnya ke tangan Anda</strong>. Di era di mana data pribadi sering disalahgunakan, dilacak, atau bocor dari server perusahaan besar, kami percaya bahwa cara teraman menyimpan data adalah dengan tidak memberikannya ke pihak lain sama sekali.</p>
             </section>
 
-            <section class="mt-2">
-                <h3>Apa itu Zero-Knowledge?</h3>
-                <p>Konsep <em>Zero-Knowledge</em> berarti kami (pembuat TMPT) memiliki <strong>nol pengetahuan</strong> tentang apa yang Anda simpan. Kami tidak memiliki server, database pusat, ataupun fitur pelacakan analitik. Data Anda hidup dan mati di perangkat Anda sendiri.</p>
-                <ul>
-                    <li>Tidak ada proses registrasi email.</li>
-                    <li>Tidak ada sinkronisasi cloud pihak ketiga secara diam-diam.</li>
-                    <li>Segala proses enkripsi (AES-256-GCM) terjadi secara lokal menggunakan chip dan browser perangkat Anda sendiri.</li>
+            <hr style="border-color: var(--tmpt-card-border); margin: 2rem 0; opacity: 0.5;" />
+
+            <section>
+                <h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Apa itu Zero-Knowledge?</h3>
+                <p style="font-size: 1.05rem; line-height: 1.6;">Konsep <em>Zero-Knowledge</em> berarti kami (pembuat TMPT) memiliki <strong>nol pengetahuan</strong> tentang apa yang Anda simpan. Kami tidak memiliki server, database pusat, ataupun fitur pelacakan analitik. Data Anda hidup dan mati di perangkat Anda sendiri.</p>
+                <ul style="padding-left: 1.25rem; font-size: 1rem; line-height: 1.6;">
+                    <li style="margin-bottom: 0.5rem;">Tidak ada proses registrasi email.</li>
+                    <li style="margin-bottom: 0.5rem;">Tidak ada sinkronisasi cloud pihak ketiga secara diam-diam.</li>
+                    <li style="margin-bottom: 0.5rem;">Segala proses enkripsi (AES-256-GCM) terjadi secara lokal menggunakan chip dan browser perangkat Anda sendiri.</li>
                 </ul>
             </section>
         </article>

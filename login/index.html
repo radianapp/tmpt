@@ -12,6 +12,7 @@
     <script src="/assets/js/crypto.js"></script>
     <script src="/assets/js/vault.js"></script>
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/recovery-code.js"></script>
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/backup.js"></script>
 </head>
@@ -33,7 +34,7 @@
                         <path d="M12 7v2" />
                     </svg>
                 </div>
-                <h1 style="margin-bottom: 0.25rem;">Buka Brankas</h1>
+                <h1 style="margin-bottom: 0.25rem;">Buka Tmpt</h1>
                 <p class="secondary" style="margin-bottom: 1.5rem;">Masukkan master password Anda untuk mengakses data.</p>
             </header>
 
@@ -70,7 +71,40 @@
                     </details>
                 </div>
 
-                <button type="submit" id="submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1.5rem;">Buka Brankas Sekarang</button>
+                <button type="submit" id="submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1.5rem;">Buka Tmpt Sekarang</button>
+            </form>
+
+            <div id="recovery-trigger-container" style="display: none; text-align: center; margin-top: 1rem; margin-bottom: 1.5rem;">
+                <a href="#" onclick="showRecoveryForm(event)" style="font-size: 0.9rem; font-weight: 500;">Buka dengan Recovery Code</a>
+            </div>
+
+            <!-- Recovery Form -->
+            <form id="recovery-form" style="display: none;" onsubmit="handleRecoverySubmit(event)">
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="recovery-code-input" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Masukkan Recovery Code</label>
+                    <input type="text" id="recovery-code-input" placeholder="XXXX-XXXX-XXXX" style="font-family: monospace; text-transform: uppercase; font-size: 1.1rem; text-align: center; border-radius: 10px;" required>
+                    <small class="secondary" style="display: block; text-align: left; margin-top: 0.4rem;">Masukkan salah satu dari 8 kode pemulihan darurat Anda.</small>
+                </div>
+
+                <div id="recovery-reset-pwd-box" style="display: none; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1.5rem; margin-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem; text-align: center;">Reset Master Password</h4>
+                    <p class="secondary" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1.25rem;">Recovery Code berhasil diverifikasi! Karena Recovery Code adalah sekali pakai, Anda wajib menyetel Master Password baru untuk membuka Brankas.</p>
+                    
+                    <div style="margin-bottom: 1.25rem;">
+                        <label for="recovery-new-password" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Master Password Baru</label>
+                        <input type="password" id="recovery-new-password" placeholder="Minimal 12 karakter" minlength="12">
+                    </div>
+                    
+                    <div style="margin-bottom: 1.25rem;">
+                        <label for="recovery-new-password-confirm" style="font-weight: 600; margin-bottom: 0.5rem; display: block; text-align: left;">Konfirmasi Password Baru</label>
+                        <input type="password" id="recovery-new-password-confirm" placeholder="Ulangi password baru">
+                    </div>
+                </div>
+
+                <button type="submit" id="recovery-submit-btn" class="btn-generate" style="width: 100%; margin-bottom: 1rem;">Verifikasi &amp; Lanjut</button>
+                <div style="text-align: center;">
+                    <a href="#" onclick="showNormalLoginForm(event)" class="secondary" style="font-size: 0.9rem;">Kembali ke Buka Brankas</a>
+                </div>
             </form>
 
         </article>
@@ -127,6 +161,10 @@
             } else {
                 const meta = window.TMPT_Vault.getMetadata();
                 if (meta) {
+                    const titleEl = document.querySelector('h1');
+                    if (titleEl && meta.name) {
+                        titleEl.textContent = `Buka ${meta.name}`;
+                    }
                     document.getElementById('hint-container').style.display = 'block';
                     const hintEl = document.getElementById('password-hint');
                     if (meta.hint) {
@@ -134,6 +172,10 @@
                     } else {
                         hintEl.textContent = "Tidak ada petunjuk sandi yang diatur saat pembuatan brankas ini.";
                         hintEl.style.color = "var(--pico-secondary)";
+                    }
+                    
+                    if (meta.recovery_hashes && meta.recovery_hashes.length > 0) {
+                        document.getElementById('recovery-trigger-container').style.display = 'block';
                     }
                 }
             }
@@ -161,7 +203,7 @@
                 if (success) {
                     window.TMPT_UI.toast("Brankas terbuka!", "success");
                     setTimeout(() => {
-                        window.location.href = '/brankas';
+                        window.location.href = '/dashboard';
                     }, 500);
                 }
             } catch (err) {
@@ -171,6 +213,121 @@
                 window.TMPT_UI.setLoading('#submit-btn', false);
             }
         });
+
+        // Recovery codes UI handlers
+        let recoveredKeyCache = null;
+        let matchedRecoveryHash = null;
+
+        function showRecoveryForm(e) {
+            if (e) e.preventDefault();
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('recovery-form').style.display = 'block';
+            
+            // Reset state
+            recoveredKeyCache = null;
+            matchedRecoveryHash = null;
+            document.getElementById('recovery-reset-pwd-box').style.display = 'none';
+            document.getElementById('recovery-submit-btn').textContent = "Verifikasi & Lanjut";
+            document.getElementById('recovery-code-input').disabled = false;
+        }
+
+        function showNormalLoginForm(e) {
+            if (e) e.preventDefault();
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('recovery-form').style.display = 'none';
+        }
+
+        async function handleRecoverySubmit(e) {
+            e.preventDefault();
+            
+            const meta = window.TMPT_Vault.getMetadata();
+            if (!meta || !meta.recovery_hashes) {
+                window.TMPT_UI.toast("Data pemulihan tidak ditemukan.", "error");
+                return;
+            }
+
+            // Phase 1: Verify Recovery Code
+            if (!recoveredKeyCache) {
+                const code = document.getElementById('recovery-code-input').value.trim();
+                window.TMPT_UI.setLoading('#recovery-submit-btn', true);
+
+                try {
+                    const result = await window.TMPT_Recovery.recoverMasterKey(code, meta.recovery_hashes);
+                    recoveredKeyCache = result.key;
+                    matchedRecoveryHash = result.matchedHash;
+
+                    // Show reset password box
+                    document.getElementById('recovery-code-input').disabled = true;
+                    document.getElementById('recovery-reset-pwd-box').style.display = 'block';
+                    document.getElementById('recovery-submit-btn').textContent = "Reset & Buka Brankas";
+                    
+                    window.TMPT_UI.toast("Recovery Code valid! Masukkan password baru.", "success");
+                } catch (err) {
+                    window.TMPT_UI.toast(err.message || "Kode pemulihan tidak valid.", "error");
+                } finally {
+                    window.TMPT_UI.setLoading('#recovery-submit-btn', false);
+                }
+                return;
+            }
+
+            // Phase 2: Reset Password and save new key
+            const newPass = document.getElementById('recovery-new-password').value;
+            const confirmPass = document.getElementById('recovery-new-password-confirm').value;
+
+            if (newPass !== confirmPass) {
+                window.TMPT_UI.toast("Password baru dan konfirmasi tidak cocok.", "error");
+                return;
+            }
+
+            if (newPass.length < 12) {
+                window.TMPT_UI.toast("Password baru minimal 12 karakter.", "error");
+                return;
+            }
+
+            window.TMPT_UI.setLoading('#recovery-submit-btn', true);
+
+            try {
+                // 1. Decrypt old payload with recovered key
+                const decryptedPayload = await window.TMPT_Crypto.decrypt(meta.payload, recoveredKeyCache);
+
+                // 2. Generate new salts and derive new key
+                const newSaltAuth = window.TMPT_Crypto.generateSalt();
+                const newSaltEnc = window.TMPT_Crypto.generateSalt();
+                const newKey = await window.TMPT_Crypto.deriveKey(newPass, newSaltEnc);
+
+                // 3. Encrypt payload with new key
+                const newEncryptedPayload = await window.TMPT_Crypto.encrypt(decryptedPayload, newKey);
+
+                // 4. Update metadata and remove used hash
+                meta.salt_auth = window.TMPT_Crypto.bufferToBase64(newSaltAuth);
+                meta.salt_enc = window.TMPT_Crypto.bufferToBase64(newSaltEnc);
+                meta.payload = newEncryptedPayload;
+                meta.recovery_hashes = meta.recovery_hashes.filter(h => h.hash !== matchedRecoveryHash);
+
+                // Delete old hint
+                delete meta.hint;
+
+                // Save back to local storage
+                window.TMPT_Vault.save(meta);
+
+                // 5. Unlock session with the new key
+                window.TMPT_Auth._activeKey = newKey;
+                const exportedKey = await crypto.subtle.exportKey("raw", newKey);
+                sessionStorage.setItem('tmpt_vault_key', window.TMPT_Crypto.bufferToBase64(exportedKey));
+                sessionStorage.setItem('tmpt_is_unlocked', 'true');
+
+                window.TMPT_UI.toast("Master Password berhasil direset! Membuka Brankas...", "success");
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1000);
+
+            } catch (err) {
+                console.error(err);
+                window.TMPT_UI.toast("Gagal melakukan reset password.", "error");
+            } finally {
+                window.TMPT_UI.setLoading('#recovery-submit-btn', false);
+            }
+        }
     </script>
 </body>
 </html>

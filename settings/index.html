@@ -13,6 +13,8 @@
     <script src="/assets/js/crypto.js"></script>
     <script src="/assets/js/vault.js"></script>
     <script src="/assets/js/auth.js"></script>
+    <script src="/assets/js/license.js"></script>
+    <script src="/assets/js/recovery-code.js"></script>
     <script src="/assets/js/ui.js"></script>
     <script src="/assets/js/backup.js"></script>
     <script src="/assets/js/version.js"></script>
@@ -34,6 +36,24 @@
             <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color);">Pengaturan</h1>
             <p class="secondary" style="font-size: 1.15rem;">Kelola preferensi dan keamanan Brankas Anda.</p>
         </header>
+
+        <div class="grid" style="gap: 2rem; margin-bottom: 2rem;">
+            <!-- Status Akun -->
+            <section style="grid-column: 1 / -1;">
+                <article class="settings-card" id="account-status-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--pico-muted-border-color); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.25rem;">Status Lisensi</h3>
+                            <div id="license-status-text" class="secondary" style="font-size: 0.95rem;">Memuat...</div>
+                        </div>
+                    </div>
+                    <div id="license-action-container">
+                        <!-- Akan diisi oleh JS -->
+                    </div>
+                </article>
+            </section>
+        </div>
 
         <div class="grid" style="gap: 2rem;">
             <!-- Tampilan & Preferensi -->
@@ -125,6 +145,11 @@
                     </details>
                 </article>
             </section>
+            
+            <!-- Recovery Codes (Pro Feature) -->
+            <section id="recovery-codes-section">
+                <div id="recovery-codes-content"></div>
+            </section>
         </div>
 
         <!-- Backup & Restore -->
@@ -178,6 +203,38 @@
         </section>
     </main>
 
+    <!-- Recovery Codes Modal -->
+    <dialog id="recovery-display-modal">
+        <article style="max-width: 600px; border-radius: 20px; padding: 2rem;">
+            <header style="border-bottom: none; margin-bottom: 1rem; padding-bottom: 0;">
+                <h3 style="font-weight: 800; color: var(--pico-h1-color); margin: 0; text-align: center;">💾 Simpan Kode Pemulihan Anda</h3>
+            </header>
+            <p class="secondary" style="font-size: 0.95rem; line-height: 1.5; text-align: center; margin-bottom: 1.5rem;">
+                Simpan kode-kode di bawah ini dengan sangat aman. Anda bisa mencetaknya atau menyalinnya. <strong>Kode-kode ini tidak akan bisa ditampilkan lagi setelah dialog ini ditutup.</strong>
+            </p>
+
+            <div id="recovery-codes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin: 2rem 0; font-family: monospace; font-size: 1.1rem; font-weight: 700; text-align: center; background: rgba(0,0,0,0.1); padding: 1.5rem; border-radius: 10px; letter-spacing: 0.05em;">
+                <!-- Codes go here -->
+            </div>
+
+            <div class="grid" style="gap: 1rem; margin-bottom: 2rem;">
+                <button class="outline secondary" onclick="copyRecoveryCodesToClipboard()" style="margin-bottom: 0;">Salin Semua</button>
+                <button class="outline secondary" onclick="printRecoveryCodes()" style="margin-bottom: 0;">Cetak / Simpan PDF</button>
+            </div>
+
+            <div style="border-top: 1px solid var(--pico-muted-border-color); padding-top: 1.5rem;">
+                <label style="display: flex; align-items: flex-start; gap: 0.65rem; text-align: left; font-size: 0.9rem; cursor: pointer;">
+                    <input type="checkbox" id="recovery-confirm-check" onchange="toggleRecoveryCloseButton(this.checked)" style="margin-top: 0.2rem;">
+                    <span>Saya mengerti dan <strong>telah menyimpan 8 kode pemulihan ini</strong> di tempat yang aman.</span>
+                </label>
+            </div>
+
+            <footer style="margin: 1.5rem 0 0 0; padding: 0; border: none; background: transparent;">
+                <button id="recovery-modal-close-btn" class="btn-navy" style="width: 100%; border-radius: 10px;" disabled onclick="closeRecoveryModal()">Selesai & Tutup</button>
+            </footer>
+        </article>
+    </dialog>
+
     <!-- Modal Konfirmasi (Wajib ada untuk TMPT_UI.confirm) -->
     <dialog id="confirm-modal">
         <article>
@@ -203,24 +260,224 @@
             modal.close();
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // Load current data/settings from vault
-            const encryptedPayload = window.TMPT_Vault.getPayload();
-            if (encryptedPayload) {
-                try {
-                    const key = window.TMPT_Auth.getKey();
-                    const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
-                    const data = JSON.parse(decrypted);
-                    
-                    if (data.settings) {
-                        if (data.settings.theme) document.getElementById('theme').value = data.settings.theme;
-                        if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
-                        if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
-                    }
-                } catch (e) {
-                    console.error("Failed to load settings from vault", e);
-                }
+        // Recovery codes logic
+        let generatedCodesCache = [];
+
+        function showRecoveryModal(codes) {
+            generatedCodesCache = codes;
+            const grid = document.getElementById('recovery-codes-grid');
+            grid.innerHTML = codes.map((c, i) => `<div style="background: var(--pico-background-color); padding: 0.5rem; border-radius: 6px; border: 1px solid var(--pico-muted-border-color);">${i + 1}. ${c}</div>`).join('');
+            
+            document.getElementById('recovery-confirm-check').checked = false;
+            document.getElementById('recovery-modal-close-btn').disabled = true;
+            
+            document.getElementById('recovery-display-modal').showModal();
+        }
+
+        function toggleRecoveryCloseButton(checked) {
+            document.getElementById('recovery-modal-close-btn').disabled = !checked;
+        }
+
+        function closeRecoveryModal() {
+            document.getElementById('recovery-display-modal').close();
+            generatedCodesCache = [];
+        }
+
+        async function copyRecoveryCodesToClipboard() {
+            const text = generatedCodesCache.map((c, i) => `Kode ${i + 1}: ${c}`).join('\n');
+            try {
+                await navigator.clipboard.writeText("TMPT EMERGENCY RECOVERY CODES\n=============================\n" + text + "\n=============================");
+                window.TMPT_UI.toast("Semua kode pemulihan disalin ke clipboard!", "success");
+            } catch (err) {
+                window.TMPT_UI.toast("Gagal menyalin kode.", "error");
             }
+        }
+
+        function printRecoveryCodes() {
+            const printWindow = window.open('', '_blank');
+            const text = generatedCodesCache.map((c, i) => `<li><strong>Kode ${i + 1}:</strong> ${c}</li>`).join('');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>TMPT Emergency Recovery Codes</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 3rem; line-height: 1.6; }
+                        h1 { color: #1e3a8a; margin-bottom: 0.5rem; }
+                        .warning { background: #fee2e2; border-left: 6px solid #ef4444; padding: 1rem; margin: 1.5rem 0; border-radius: 4px; }
+                        ul { font-family: monospace; font-size: 1.25rem; list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+                        li { background: #f3f4f6; padding: 0.75rem; border: 1px solid #e5e7eb; border-radius: 4px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>TMPT Emergency Recovery Codes</h1>
+                    <p>Simpan lembaran ini dengan aman. Gunakan salah satu kode di bawah ini jika Anda lupa Master Password Brankas Anda.</p>
+                    <div class="warning">
+                        <strong>PERINGATAN:</strong> Setiap kode hanya dapat digunakan <strong>sekali (one-time use)</strong>. Jangan perlihatkan kode ini kepada siapapun!
+                    </div>
+                    <ul>
+                        ${text}
+                    </ul>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+
+        function renderLicenseStatus() {
+            const status = window.TMPT_License ? window.TMPT_License.getProStatus() : { isPro: false };
+            const textEl = document.getElementById('license-status-text');
+            const actionEl = document.getElementById('license-action-container');
+            
+            if (!textEl || !actionEl) return;
+            
+            if (status.isPro) {
+                let planStr = 'Lifetime';
+                if (status.plan === 'monthly') planStr = 'Bulanan';
+                if (status.plan === 'yearly') planStr = 'Tahunan';
+                if (status.type === 'trial') planStr = 'Trial 14 Hari';
+
+                const endDate = new Date(status.expiresAt);
+                const formatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: '2-digit' });
+                const endDateStr = formatter.format(endDate);
+
+                let startDateStr = '';
+                if (status.plan === 'monthly') {
+                    const start = new Date(endDate); start.setMonth(start.getMonth() - 1);
+                    startDateStr = formatter.format(start) + ' s/d ';
+                } else if (status.plan === 'yearly') {
+                    const start = new Date(endDate); start.setFullYear(start.getFullYear() - 1);
+                    startDateStr = formatter.format(start) + ' s/d ';
+                } else if (status.type === 'trial') {
+                    const startStr = localStorage.getItem('tmpt_pro_trial_start');
+                    if (startStr) startDateStr = formatter.format(new Date(startStr)) + ' s/d ';
+                }
+
+                textEl.innerHTML = `<span style="color: #10b981; font-weight: 600;">Edisi Pro (${planStr})</span><br><small style="color: var(--pico-secondary); font-size: 0.8rem;">Masa aktif: ${startDateStr}${endDateStr}</small>`;
+                actionEl.innerHTML = '<span class="badge" style="background: linear-gradient(135deg, #1e40af, #0284c7); color: #fff; padding: 0.4rem 1rem; border-radius: 20px; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.05em;">PRO MEMBER</span>';
+            } else {
+                textEl.innerHTML = '<span style="color: var(--pico-secondary);">Edisi Standar (Gratis)</span><br><small style="color: var(--pico-secondary); font-size: 0.8rem;">Terbatas 1 Tmpt (Vault)</small>';
+                actionEl.innerHTML = '<a href="/pro/" role="button" class="btn-navy" style="margin: 0; padding: 0.5rem 1.25rem; border-radius: 10px; text-decoration: none; font-size: 0.95rem; font-weight: 600; white-space: nowrap;">✨ Upgrade ke Pro</a>';
+            }
+        }
+
+        function renderRecoverySection() {
+            const sec = document.getElementById('recovery-codes-section');
+            if (!sec) return;
+
+            const isPro = window.TMPT_License && window.TMPT_License.isPro();
+            const recoveryContent = document.getElementById('recovery-codes-content');
+
+            if (!recoveryContent) return;
+
+            if (!isPro) {
+                recoveryContent.innerHTML = `
+                    <article class="settings-card" style="position: relative; background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(2, 132, 199, 0.05)); border-color: var(--pico-muted-border-color); height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                        <div>
+                            <span class="badge" style="position: absolute; top: 15px; right: 20px; font-size: 0.7rem; padding: 3px 10px; background: linear-gradient(135deg, #1e40af, #0284c7); color: #fff; border-radius: 20px; font-weight: 600;">PRO FEATURE</span>
+                            <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: var(--pico-h1-color);">🔑 Recovery Codes</h3>
+                            <p class="secondary" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                                Hasilkan kode pemulihan darurat untuk memulihkan Brankas Anda dan mereset Master Password jika Anda lupa.
+                            </p>
+                        </div>
+                        <a href="/pro/" role="button" class="btn-navy" style="width: 100%; text-align: center; border-radius: 10px; text-decoration: none;">Upgrade ke Pro Edition</a>
+                    </article>
+                `;
+                return;
+            }
+
+            const meta = window.TMPT_Vault.getMetadata();
+            const hasRecovery = meta && meta.recovery_hashes && meta.recovery_hashes.length > 0;
+            const remainingCount = hasRecovery ? meta.recovery_hashes.length : 0;
+
+            recoveryContent.innerHTML = `
+                <article class="settings-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                    <div>
+                        <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🔑 Recovery Codes</h3>
+                        ${hasRecovery ? `
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: rgba(34, 197, 94, 0.08); border-left: 4px solid #22c55e; padding: 0.75rem 1rem; border-radius: 0 10px 10px 0;">
+                                <div>
+                                    <strong style="color: #22c55e; display: block; font-size: 0.95rem;">Status: Aktif</strong>
+                                    <span class="secondary" style="font-size: 0.85rem;">Anda memiliki <strong>${remainingCount} dari 8</strong> kode pemulihan tersisa.</span>
+                                </div>
+                            </div>
+                        ` : `
+                            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: rgba(234, 179, 8, 0.08); border-left: 4px solid #eab308; padding: 0.75rem 1rem; border-radius: 0 10px 10px 0;">
+                                <div>
+                                    <strong style="color: #eab308; display: block; font-size: 0.95rem;">Status: Belum Dibuat</strong>
+                                    <span class="secondary" style="font-size: 0.85rem;">Segera buat kode pemulihan untuk mengantisipasi jika Anda lupa Master Password.</span>
+                                </div>
+                            </div>
+                        `}
+                        <p class="secondary" style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                            Recovery Codes adalah 8 buah kode unik sekali pakai. Jika Anda kehilangan Master Password, Anda dapat masuk ke Brankas menggunakan salah satu kode ini dan mereset password Anda.
+                        </p>
+                    </div>
+                    <button class="btn-navy" onclick="handleGenerateRecovery()">${hasRecovery ? 'Buat Ulang Kode Pemulihan' : 'Hasilkan Kode Pemulihan'}</button>
+                </article>
+            `;
+        }
+
+        async function handleGenerateRecovery() {
+            const meta = window.TMPT_Vault.getMetadata();
+            const hasRecovery = meta && meta.recovery_hashes && meta.recovery_hashes.length > 0;
+            if (hasRecovery) {
+                const confirmed = await window.TMPT_UI.confirm(
+                    "Membuat kode pemulihan baru akan membatalkan seluruh kode pemulihan yang lama. Lanjutkan?",
+                    "KONFIRMASI RECOVERY CODES"
+                );
+                if (!confirmed) return;
+            }
+
+            try {
+                const key = window.TMPT_Auth.getKey();
+                if (!key) throw new Error("Brankas dalam kondisi terkunci.");
+
+                window.TMPT_UI.toast("Menghasilkan kode pemulihan...", "info");
+                const result = await window.TMPT_Recovery.generateRecoveryCodes(key);
+                
+                // Simpan hashes ke metadata
+                const activeMeta = window.TMPT_Vault.getMetadata();
+                activeMeta.recovery_hashes = result.recoveryHashes;
+                await window.TMPT_Vault.save(activeMeta);
+
+                // Tampilkan kode ke user
+                showRecoveryModal(result.codes);
+                
+                // Render ulang section
+                renderRecoverySection();
+                window.TMPT_UI.toast("Kode pemulihan berhasil dibuat!", "success");
+            } catch (err) {
+                window.TMPT_UI.toast("Gagal menghasilkan kode: " + err.message, "error");
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            renderRecoverySection();
+            renderLicenseStatus();
+
+                    // Load current data/settings from vault
+                    const encryptedPayload = window.TMPT_Vault.getPayload();
+                    if (encryptedPayload) {
+                        try {
+                            const key = window.TMPT_Auth.getKey();
+                            const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
+                            const data = JSON.parse(decrypted);
+                    
+                            if (data.settings) {
+                                if (data.settings.theme) document.getElementById('theme').value = data.settings.theme;
+                                if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
+                                if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
+                            }
+                        } catch (e) {
+                            console.error("Failed to load settings from vault", e);
+                        }
+                    }
         });
 
         async function updateSetting(key, value) {

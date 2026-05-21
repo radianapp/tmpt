@@ -5,6 +5,7 @@
                 <a href="/dashboard" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                     <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img">
                     <strong>TMPT</strong>
+                    <span id="app-header-pro-badge" style="display: none; background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 6px; letter-spacing: 0.05em; line-height: 1;">PRO</span>
                 </a>
             </li>
         </ul>
@@ -12,6 +13,15 @@
             <li class="hide-mobile"><a href="/dashboard" class="secondary">Dashboard</a></li>
             <li class="hide-mobile"><a href="/tools" class="secondary">Tools</a></li>
             <li class="hide-mobile"><a href="/settings" class="secondary">Pengaturan</a></li>
+            <li>
+                <button class="theme-toggle" onclick="handleSwitchVaultClick()" aria-label="Ganti Tmpt" title="Ganti Tmpt">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <rect x="7" y="3" width="14" height="14" rx="2"></rect>
+                        <path d="M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2"></path>
+                    </svg>
+                </button>
+            </li>
             <li>
                 <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema">
                     <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
@@ -21,7 +31,7 @@
                 </button>
             </li>
             <li class="hide-mobile">
-                <button onclick="window.TMPT_Auth.lock()" class="outline secondary" style="border-radius: 10px; padding: 0.4rem 1rem; margin-bottom: 0;">Kunci Vault</button>
+                <button onclick="window.TMPT_Auth.lock()" class="outline secondary" style="border-radius: 10px; padding: 0.4rem 1rem; margin-bottom: 0;">Kunci Tmpt</button>
             </li>
             <li class="show-mobile" style="display: none;">
                 <button class="outline secondary" aria-label="Menu Navigasi" onclick="document.getElementById('mobile-app-nav-modal').showModal()" style="padding: 0.35rem 0.75rem; margin-bottom: 0;">☰</button>
@@ -42,12 +52,68 @@
             <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Tools & Generator</a></li>
             <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/settings" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Pengaturan</a></li>
             <li style="margin-top: 2rem; list-style: none !important;">
-                <button role="button" class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_Auth.lock();">Kunci Vault</button>
+                <button role="button" class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_Auth.lock();">Kunci Tmpt</button>
             </li>
         </ul>
     </article>
 </dialog>
 
+<!-- Vault Switcher Include -->
+<div hx-get="/shared/vault-switcher.html?v=3" hx-trigger="load" hx-swap="outerHTML"></div>
+
 <script>
-    if (window.TMPT_UI) window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
+    function handleSwitchVaultClick() {
+        if (window.TMPT_License && window.TMPT_License.isPro()) {
+            if (window.TMPT_OpenVaultSwitcher) window.TMPT_OpenVaultSwitcher();
+        } else {
+            showProUpgradeModal('Ganti Tmpt (Multi-Vault)');
+        }
+    }
+
+    function showProUpgradeModal(featureName) {
+        let modal = document.getElementById('pro-upgrade-modal');
+        if (!modal) {
+            modal = document.createElement('dialog');
+            modal.id = 'pro-upgrade-modal';
+            modal.innerHTML = `
+                <article style="border-radius: 15px; padding: 2rem; max-width: 400px; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 0.5rem; line-height: 1;">✨</div>
+                    <h3 style="margin-bottom: 0.5rem;">Fitur Premium</h3>
+                    <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;">Fitur <strong>${featureName}</strong> eksklusif untuk pengguna Edisi Pro. Tingkatkan akun Anda untuk mengelola banyak brankas secara bersamaan.</p>
+                    <div class="grid" style="gap: 1rem;">
+                        <button class="outline secondary" onclick="document.getElementById('pro-upgrade-modal').close()" style="margin-bottom: 0;">Nanti Saja</button>
+                        <a href="/pro/" role="button" class="btn-navy" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
+                    </div>
+                </article>
+            `;
+            document.body.appendChild(modal);
+        }
+        modal.showModal();
+    }
+
+    async function loadLicenseModule() {
+        if (!window.TMPT_License) {
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = '/assets/js/license.js';
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
+        }
+    }
+
+    async function initTMPTAppHeader() {
+        await loadLicenseModule();
+        const proBadge = document.getElementById('app-header-pro-badge');
+        if (proBadge && window.TMPT_License && window.TMPT_License.isPro()) {
+            proBadge.style.display = 'inline-block';
+        }
+        if (window.TMPT_UI) window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initTMPTAppHeader);
+    } else {
+        initTMPTAppHeader();
+    }
 </script>

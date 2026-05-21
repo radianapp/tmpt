@@ -1,0 +1,9 @@
+{
+  "appId": "id.my.tmpt.app",
+  "appName": "TMPT",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "https"
+  }
+}

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>TMPT Pro Edition</title>
+	<link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+	<link rel="stylesheet" href="/assets/css/app.css?v=3">
+	<script src="https://unpkg.com/htmx.org@2.0.0"></script>
+	<script src="/assets/js/pwa.js"></script>
+	<script src="/assets/js/ui.js?v=4"></script>
+	<script src="/assets/js/license.js"></script>
+	<script src="/assets/js/version.js"></script>
+</head>
+<body>
+	<div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+	<main class="container">
+		<header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
+			<div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚡</div>
+			<h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">TMPT Pro Edition</h1>
+			<p class="secondary" style="font-size: 1.15rem; max-width: 600px; margin: 0 auto;">Dapatkan akses fitur sinkronisasi otomatis, manajemen multi-brankas, dan pemulihan darurat.</p>
+		</header>
+
+		<!-- Pro Status Section (Visible if Pro) -->
+		<section id="pro-active-section" class="settings-card" style="display: none; max-width: 700px; margin: 0 auto 3rem auto; border-color: var(--tmpt-border-active);">
+			<div style="text-align: center; margin-bottom: 1.5rem;">
+				<span class="badge" style="font-size: 0.85rem; padding: 6px 16px; background: linear-gradient(135deg, #1e40af, #0284c7); color: #fff; border-radius: 20px; font-weight: 700; letter-spacing: 0.05em;">PRO AKTIF</span>
+			</div>
+			<h3 style="font-weight: 700; color: var(--pico-h1-color); text-align: center;">Detail Langganan Anda</h3>
+			
+			<table style="margin: 2rem 0;">
+				<tbody>
+					<tr>
+						<td><strong>Status:</strong></td>
+						<td><span id="pro-status-badge" style="font-weight: 600;">Aktif</span></td>
+					</tr>
+					<tr id="pro-email-row">
+						<td><strong>Email Lisensi:</strong></td>
+						<td><span id="pro-email-val"></span></td>
+					</tr>
+					<tr>
+						<td><strong>Tipe Rencana:</strong></td>
+						<td><span id="pro-plan-val" style="text-transform: capitalize;"></span></td>
+					</tr>
+					<tr>
+						<td><strong>Berlaku Hingga:</strong></td>
+						<td><span id="pro-expiry-val"></span></td>
+					</tr>
+					<tr>
+						<td><strong>Sisa Hari:</strong></td>
+						<td><span id="pro-days-val" style="font-weight: 600;"></span> hari</td>
+					</tr>
+				</tbody>
+			</table>
+
+			<div style="text-align: center; margin-top: 1.5rem;">
+				<button onclick="handleDeactivate()" class="outline secondary" style="border-radius: 10px; padding: 0.6rem 1.5rem;">Nonaktifkan Lisensi di Perangkat Ini</button>
+			</div>
+		</section>
+
+		<!-- Upgrade Options Section (Visible if Free) -->
+		<div id="pro-inactive-grid" class="grid" style="max-width: 900px; margin: 0 auto; gap: 2rem;">
+			
+			<!-- Trial & Payment Info -->
+			<div style="display: flex; flex-direction: column; gap: 2rem;">
+				
+				<!-- Free Trial Card -->
+				<article class="settings-card" style="margin-bottom: 0;">
+					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Coba Gratis 14 Hari</h3>
+					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+						Aktifkan trial instan untuk mencoba seluruh fitur Pro. Tanpa kartu kredit, tanpa registrasi akun, 100% berjalan lokal di browser Anda.
+					</p>
+					<button id="btn-start-trial" onclick="handleStartTrial()" class="btn-navy" style="width: 100%; border-radius: 10px;">Mulai Trial Gratis</button>
+				</article>
+
+				<!-- How to Buy Card -->
+				<article class="settings-card" style="margin-bottom: 0;">
+					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Cara Berlangganan</h3>
+					
+					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">Pilih paket langganan Anda. Pembayaran dilakukan melalui wadah donasi resmi kami (Saweria). <strong>Pastikan Anda memasukkan nominal yang tepat dan mencantumkan alamat Email Anda pada kolom Pesan.</strong></p>
+
+					<div class="grid" style="gap: 1rem; margin-bottom: 1.5rem;">
+						<a href="https://saweria.co/tmpt?amount=9900&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="outline" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem;">
+							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">Paket Bulanan</span>
+							<span style="font-size: 1.5rem; font-weight: 800; color: var(--pico-h1-color);">Rp 9.900</span>
+							<small style="margin-top: 0.5rem; color: var(--pico-secondary);">Bayar via Saweria</small>
+						</a>
+						
+						<a href="https://saweria.co/tmpt?amount=79000&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem; border: none; background: linear-gradient(135deg, #1e40af, #0284c7);">
+							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: white;">Paket Tahunan</span>
+							<span style="font-size: 1.5rem; font-weight: 800; color: white;">Rp 79.000</span>
+							<small style="margin-top: 0.5rem; color: rgba(255,255,255,0.8);">Hemat 33% (Via Saweria)</small>
+						</a>
+					</div>
+
+					<div style="background-color: var(--pico-mark-background-color); padding: 1rem; border-radius: 10px; border-left: 4px solid var(--pico-primary);">
+						<strong style="display: block; margin-bottom: 0.5rem;">Langkah Penting:</strong>
+						<ol style="margin-bottom: 0; padding-left: 1.2rem; font-size: 0.9rem;">
+							<li>Klik tombol paket di atas. Nominal sudah terisi otomatis di halaman Saweria.</li>
+							<li>Di form Saweria, ganti <code>[GANTI_DENGAN_EMAIL_ANDA]</code> di kolom <strong>Email</strong> dengan alamat email aktif Anda.</li>
+							<li>Pastikan email sudah benar karena lisensi akan dikirimkan ke email tersebut.</li>
+						</ol>
+					</div>
+
+					<p class="secondary" style="font-size: 0.85rem; margin-top: 1.5rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1rem; margin-bottom: 0;">
+						* Kami juga menerima pembayaran via <a href="https://ko-fi.com/tmptmyid" target="_blank" rel="noopener noreferrer">Ko-fi (Paypal/Credit Card)</a>. Hubungi <a href="/contact">halaman kontak</a> jika ada kendala. Kunci aktivasi akan dikirim max 24 jam.
+					</p>
+				</article>
+			</div>
+
+			<!-- Activation Form -->
+			<article class="settings-card" style="margin-bottom: 0; display: flex; flex-direction: column;">
+				<div>
+					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Aktivasi Kunci Lisensi</h3>
+					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+						Masukkan kunci lisensi yang Anda terima melalui email untuk mengaktifkan TMPT Pro secara permanen di perangkat ini.
+					</p>
+					
+					<div style="margin-bottom: 1.5rem;">
+						<label for="license-key-input">Kunci Lisensi:</label>
+						<textarea id="license-key-input" rows="5" placeholder="TMPT-PRO.xxxxxx.xxxxxx" style="font-family: monospace; font-size: 0.85rem; border-radius: 10px; resize: none;"></textarea>
+					</div>
+				</div>
+
+				<div>
+					<button onclick="handleActivateLicense()" class="btn-navy" style="width: 100%; border-radius: 10px;">Verifikasi &amp; Aktifkan</button>
+				</div>
+			</article>
+
+		</div>
+	</main>
+
+	<div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+	<script>
+		// Handle page display on load
+		document.addEventListener('DOMContentLoaded', () => {
+			renderUI();
+		});
+
+		function renderUI() {
+			const status = window.TMPT_License.getProStatus();
+			
+			const activeSec = document.getElementById('pro-active-section');
+			const inactiveSec = document.getElementById('pro-inactive-grid');
+
+			if (status.isPro) {
+				activeSec.style.display = 'block';
+				inactiveSec.style.display = 'none';
+
+				document.getElementById('pro-plan-val').textContent = status.plan === 'trial' ? 'Free Trial (14 Hari)' : status.plan;
+				document.getElementById('pro-expiry-val').textContent = new Date(status.expiresAt).toLocaleDateString('id-ID', {
+					weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+				});
+				document.getElementById('pro-days-val').textContent = status.daysRemaining;
+
+				const emailRow = document.getElementById('pro-email-row');
+				const emailVal = document.getElementById('pro-email-val');
+				if (status.email) {
+					emailRow.style.display = 'table-row';
+					emailVal.textContent = status.email;
+				} else {
+					emailRow.style.display = 'none';
+				}
+
+				// Status badge style
+				const statusBadge = document.getElementById('pro-status-badge');
+				if (status.plan === 'trial') {
+					statusBadge.textContent = 'Masa Uji Coba';
+					statusBadge.style.color = '#eab308'; // kuning
+				} else {
+					statusBadge.textContent = 'Aktif (Premium)';
+					statusBadge.style.color = '#22c55e'; // hijau
+				}
+			} else {
+				activeSec.style.display = 'none';
+				inactiveSec.style.display = 'grid';
+
+				// Disable trial button if already used
+				const startTrialBtn = document.getElementById('btn-start-trial');
+				if (localStorage.getItem('tmpt_pro_trial_expiry')) {
+					startTrialBtn.disabled = true;
+					startTrialBtn.textContent = 'Trial Sudah Pernah Digunakan';
+					startTrialBtn.classList.remove('btn-navy');
+					startTrialBtn.classList.add('outline', 'secondary');
+				}
+			}
+
+			// Update PWA headers if loaded
+			if (window.initTMPTHeader) window.initTMPTHeader();
+			if (window.initTMPTAppHeader) window.initTMPTAppHeader();
+		}
+
+		async function handleActivateLicense() {
+			const keyInput = document.getElementById('license-key-input').value.trim();
+			if (!keyInput) {
+				window.TMPT_UI.toast("Silakan masukkan kunci lisensi.", "error");
+				return;
+			}
+
+			try {
+				window.TMPT_UI.toast("Memverifikasi tanda tangan kriptografis...", "info");
+				const result = await window.TMPT_License.activateLicense(keyInput);
+				window.TMPT_UI.toast(`Lisensi berhasil diaktifkan untuk ${result.email}!`, "success");
+				setTimeout(() => {
+					window.location.reload();
+				}, 1500);
+			} catch (err) {
+				window.TMPT_UI.toast("Aktivasi gagal: " + err.message, "error");
+			}
+		}
+
+		function handleStartTrial() {
+			try {
+				const result = window.TMPT_License.activateTrial();
+				window.TMPT_UI.toast("Free Trial 14 Hari diaktifkan! Menikmati fitur Pro.", "success");
+				setTimeout(() => {
+					window.location.reload();
+				}, 1500);
+			} catch (err) {
+				window.TMPT_UI.toast(err.message, "error");
+			}
+		}
+
+		async function handleDeactivate() {
+			const confirmed = await window.TMPT_UI.confirm(
+				"Apakah Anda yakin ingin menonaktifkan lisensi di perangkat ini? Fitur Pro akan dikunci kembali.",
+				"KONFIRMASI NONAKTIFKAN"
+			);
+			if (confirmed) {
+				window.TMPT_License.deactivate();
+				window.TMPT_UI.toast("Lisensi dinonaktifkan.", "success");
+				setTimeout(() => {
+					window.location.reload();
+				}, 1500);
+			}
+		}
+	</script>
+</body>
+</html>

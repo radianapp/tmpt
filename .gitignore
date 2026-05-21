@@ -11,4 +11,5 @@ task.md
 walkthrough.md
 arsip/
 tmp/
-
+dist/
+deploy/

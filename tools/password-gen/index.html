@@ -9,7 +9,31 @@
     <link rel="stylesheet" href="/assets/css/app.css?v=3">
     <script src="https://unpkg.com/htmx.org@2.0.0"></script>
     <script src="/assets/js/generator.js"></script>
+    <script src="/assets/js/checker.js"></script>
     <script src="/assets/js/ui.js"></script>
+    <style>
+        .mini-checker-bar {
+            height: 4px;
+            background-color: var(--pico-muted-border-color);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: flex;
+        }
+        .mini-checker-segment {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .mini-strength-1 { background-color: #ef4444; width: 25%; }
+        .mini-strength-2 { background-color: #f59e0b; width: 50%; }
+        .mini-strength-3 { background-color: #10b981; width: 75%; }
+        .mini-strength-4 { background-color: #3b82f6; width: 100%; }
+        .mini-text-1 { color: #ef4444; }
+        .mini-text-2 { color: #f59e0b; }
+        .mini-text-3 { color: #10b981; }
+        .mini-text-4 { color: #3b82f6; }
+    </style>
 </head>
 <body>
 
@@ -33,12 +57,20 @@
 
         <article class="generator-card">
             <!-- Output / Result Box -->
-            <fieldset role="group" class="generator-result-group">
+            <fieldset role="group" class="generator-result-group" style="margin-bottom: 0.5rem;">
                 <input type="text" id="gen-result" class="generator-input" readonly value="Memuat..." aria-label="Hasil Password" />
                 <button id="btn-copy" class="generator-btn-copy" onclick="copyResult()" title="Salin ke Clipboard">
                     Salin
                 </button>
             </fieldset>
+
+            <!-- Mini Strength Indicator -->
+            <div id="mini-checker-container" style="display: none; margin-bottom: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 600;">
+                <span id="mini-checker-text">-</span>
+                <div class="mini-checker-bar">
+                    <div id="mini-checker-segment" class="mini-checker-segment"></div>
+                </div>
+            </div>
 
             <!-- Password Hint Container -->
             <div id="hint-container" class="info-alert text-center" style="display: none; margin-bottom: 1.5rem; animation: slideIn 0.3s ease;">
@@ -162,6 +194,18 @@
                     <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
                 </svg>
             </button>
+
+            <!-- Shortcut: Cek Kekuatan Password -->
+            <div style="margin-top: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(56, 189, 248, 0.05);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.5rem;">🛡️</span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Seberapa kuat password ini?</div>
+                        <small class="secondary">Uji kekuatan password Anda dengan analisis entropi lokal.</small>
+                    </div>
+                </div>
+                <button onclick="goToChecker()" class="outline" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Cek Kekuatan →</button>
+            </div>
         </article>
     </main>
 
@@ -233,6 +277,29 @@
             } else {
                 if (hintContainer) hintContainer.style.display = 'none';
             }
+
+            // Update Mini Checker
+            if (window.TMPT_Checker && result) {
+                const checkRes = window.TMPT_Checker.calculateStrength(result);
+                const miniContainer = document.getElementById('mini-checker-container');
+                const miniText = document.getElementById('mini-checker-text');
+                const miniSegment = document.getElementById('mini-checker-segment');
+                
+                if (miniContainer && miniText && miniSegment) {
+                    miniContainer.style.display = 'block';
+                    
+                    miniSegment.className = 'mini-checker-segment';
+                    miniText.className = '';
+                    
+                    miniSegment.classList.add(`mini-strength-${checkRes.score}`);
+                    miniText.classList.add(`mini-text-${checkRes.score}`);
+                    
+                    if (checkRes.score === 1) miniText.textContent = 'Sangat Lemah';
+                    else if (checkRes.score === 2) miniText.textContent = 'Lemah';
+                    else if (checkRes.score === 3) miniText.textContent = 'Kuat';
+                    else if (checkRes.score === 4) miniText.textContent = 'Sangat Kuat';
+                }
+            }
         }
 
         function copyResult() {
@@ -269,6 +336,15 @@
                 generate();
             }
         });
+
+        function goToChecker() {
+            const pwd = document.getElementById('gen-result').value;
+            if (pwd) {
+                window.location.href = '/tools/password-checker/?pwd=' + encodeURIComponent(pwd);
+            } else {
+                window.location.href = '/tools/password-checker/';
+            }
+        }
     </script>
 </body>
 </html>

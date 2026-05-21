@@ -4,17 +4,60 @@
  */
 
 const VaultModule = {
-    STORAGE_KEY: 'tmpt_vault_v1',
+    DEFAULT_KEY: 'tmpt_vault_v1',
+    ACTIVE_VAULT_SETTING: 'tmpt_active_vault_id',
+
+    get STORAGE_KEY() {
+        return localStorage.getItem(this.ACTIVE_VAULT_SETTING) || this.DEFAULT_KEY;
+    },
+
+    set STORAGE_KEY(key) {
+        localStorage.setItem(this.ACTIVE_VAULT_SETTING, key);
+    },
 
     /**
-     * Check if a vault exists
+     * List all available vaults in localStorage
+     */
+    listVaults() {
+        const vaults = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('tmpt_vault_')) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    vaults.push({
+                        id: key,
+                        name: data.name || (key === this.DEFAULT_KEY ? 'Utama' : key.replace('tmpt_vault_', 'Brankas ')),
+                        isActive: key === this.STORAGE_KEY
+                    });
+                } catch(e) {}
+            }
+        }
+        return vaults.sort((a, b) => a.id.localeCompare(b.id));
+    },
+
+    /**
+     * Switch the active vault and redirect to login
+     */
+    switchVault(vaultId) {
+        if (localStorage.getItem(vaultId) !== null) {
+            this.STORAGE_KEY = vaultId;
+            sessionStorage.clear();
+            window.location.href = '/login';
+            return true;
+        }
+        return false;
+    },
+
+    /**
+     * Check if the active vault exists
      */
     exists() {
         return localStorage.getItem(this.STORAGE_KEY) !== null;
     },
 
     /**
-     * Get the vault metadata (salts, iterations, hint)
+     * Get the vault metadata (salts, iterations, hint, name)
      */
     getMetadata() {
         const raw = localStorage.getItem(this.STORAGE_KEY);
@@ -32,7 +75,24 @@ const VaultModule = {
      */
     async save(vaultData) {
         console.log("[VAULT] Saving full vault data...");
+        // Ensure name is preserved if it exists
+        const existing = this.getMetadata();
+        if (existing && existing.name && !vaultData.name) {
+            vaultData.name = existing.name;
+        }
         localStorage.setItem(this.STORAGE_KEY, JSON.stringify(vaultData));
+    },
+
+    /**
+     * Create a completely new vault with a specific ID and Name
+     */
+    async createNewVault(name, vaultData) {
+        const timestamp = Date.now();
+        const vaultId = `tmpt_vault_${timestamp}`;
+        vaultData.name = name;
+        localStorage.setItem(vaultId, JSON.stringify(vaultData));
+        this.STORAGE_KEY = vaultId;
+        return vaultId;
     },
 
     /**
@@ -72,10 +132,19 @@ const VaultModule = {
     },
 
     /**
-     * Delete the entire vault (Nuclear option)
+     * Delete the currently active vault
      */
     destroy() {
         localStorage.removeItem(this.STORAGE_KEY);
+        
+        // If there are other vaults, switch to one of them
+        const remainingVaults = this.listVaults();
+        if (remainingVaults.length > 0) {
+            this.STORAGE_KEY = remainingVaults[0].id;
+        } else {
+            localStorage.removeItem(this.ACTIVE_VAULT_SETTING);
+        }
+        
         sessionStorage.clear();
         window.location.href = '/';
     }

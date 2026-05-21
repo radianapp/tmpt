@@ -1,23 +1,34 @@
-const CACHE_NAME = 'tmpt-cache-v1.2';
+const CACHE_NAME = 'tmpt-cache-v1.3';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.png',
   '/assets/css/app.css',
+  '/assets/css/catat.css',
   '/assets/js/pwa.js',
   '/assets/js/auth.js',
   '/assets/js/crypto.js',
   '/assets/js/vault.js',
   '/assets/js/ui.js',
+  '/assets/js/backup.js',
+  '/assets/js/generator.js',
+  '/assets/js/checker.js',
+  '/assets/js/version.js',
   '/assets/img/logo.svg',
   '/shared/header.html',
   '/shared/footer.html',
   '/shared/app-header.html',
+  '/shared/vault-switcher.html',
   '/setup/index.html',
   '/login/index.html',
-  '/dashboard/index.html',
-  '/settings/index.html'
+  '/brankas/index.html',
+  '/catat/index.html',
+  '/settings/index.html',
+  '/tools/index.html',
+  '/tools/password-gen/index.html',
+  '/tools/password-checker/index.html',
+  '/tools/notes-encryptor/index.html'
 ];
 
 // Install Event

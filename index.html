@@ -25,21 +25,19 @@
 <body>
 
     <!-- Header -->
-    <div id="header-container" hx-get="shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
-
-    <main class="container">
+    <div id="header-container" hx-get="shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>    <main class="container">
 
         <!-- Hero Section: Two-column layout -->
         <section class="hero-section">
             <div class="hero-text">
-                <h1>Amankan Identitas Digital Kamu</h1>
-                <p class="secondary">
+                <h1 style="font-weight: 800; font-size: 2.75rem; color: var(--pico-h1-color);">Amankan Identitas Digital Kamu</h1>
+                <p class="secondary" style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 2rem;">
                     Kelola credential, tugas, dan catatan penting dalam satu platform. 
                     Terenkripsi secara lokal, tanpa server. Data kamu, kendali kamu.
                 </p>
                 <div class="hero-actions">
-                    <a href="/setup" role="button" class="hero-btn-primary">Mulai Gratis</a>
-                    <a href="/help" role="button" class="outline hero-btn-secondary">Pelajari Lebih Lanjut</a>
+                    <a href="/login" role="button" id="hero-btn-primary" class="btn-navy" style="border-radius: 10px; font-weight: 600; padding: 0.8rem 1.5rem;">Mulai Gratis</a>
+                    <a href="/help" role="button" class="outline secondary" style="border-radius: 10px; font-weight: 600; padding: 0.8rem 1.5rem; text-decoration: none;">Pelajari Lebih Lanjut</a>
                 </div>
             </div>
             <div class="hero-image">
@@ -48,57 +46,94 @@
         </section>
 
         <!-- Apps Section -->
-        <section class="apps-section">
-            <h2>Tools Privat Kamu</h2>
-            <div class="grid">
-                <!-- BRANKAS -->
-                <article class="app-card">
-                    <div class="app-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"/>
-                            <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/>
-                            <path d="M8 11v-4a4 4 0 1 1 8 0v4"/>
+        <section class="apps-section" style="margin-top: 4rem; text-align: center;">
+            <h2 style="font-weight: 800; font-size: 2rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Tools Privat Kamu</h2>
+            <p class="secondary" style="font-size: 1.1rem; margin-bottom: 2.5rem;">Kelola data Anda secara aman dan terenkripsi sepenuhnya di browser lokal.</p>
+            
+            <div class="app-selector-grid">
+                <!-- Kartu BRANKAS -->
+                <article class="app-selector-card">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+                            <defs>
+                                <linearGradient id="vaultGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#0ea5e9" />
+                                    <stop offset="100%" stop-color="#2563eb" />
+                                </linearGradient>
+                                <linearGradient id="vaultGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#10b981" stop-opacity="0.9" />
+                                    <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3" />
+                                </linearGradient>
+                                <linearGradient id="vaultGrad3" x1="100%" y1="100%" x2="0%" y2="0%">
+                                    <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.85" />
+                                    <stop offset="100%" stop-color="#c084fc" stop-opacity="0.2" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="25" y="98" width="16" height="12" rx="4" fill="#0284c7" />
+                            <rect x="79" y="98" width="16" height="12" rx="4" fill="#6d28d9" />
+                            <rect x="15" y="15" width="90" height="85" rx="16" fill="url(#vaultGrad1)" />
+                            <rect x="24" y="24" width="72" height="67" rx="10" fill="#1e3a8a" opacity="0.4" />
+                            <rect x="26" y="26" width="68" height="63" rx="8" fill="none" stroke="#60a5fa" stroke-width="2" opacity="0.5" />
+                            <circle cx="60" cy="57" r="16" fill="#3b82f6" opacity="0.8" />
+                            <circle cx="60" cy="57" r="12" fill="#1d4ed8" />
+                            <circle cx="60" cy="57" r="4" fill="#93c5fd" />
+                            <rect x="18" y="32" width="6" height="14" rx="3" fill="#3b82f6" />
+                            <rect x="18" y="68" width="6" height="14" rx="3" fill="#3b82f6" />
+                            <polygon points="15,15 75,15 45,100 15,100" fill="url(#vaultGrad2)" />
+                            <polygon points="65,15 105,15 105,100 45,100" fill="url(#vaultGrad3)" />
                         </svg>
                     </div>
-                    <h3>Brankas</h3>
-                    <p class="secondary">Simpan password, data identitas, dan informasi sensitif dengan aman dan terenkripsi.</p>
-                    <a href="/brankas" role="button" class="app-card-btn">Buka Brankas</a>
+                    <h3>BRANKAS</h3>
+                    <p>Simpan dan kelola kredensial serta informasi penting Anda dengan enkripsi tingkat tinggi secara lokal.</p>
+                    <div class="card-action">
+                        <a href="/brankas" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600; padding: 0.8rem 1rem;">Buka Aplikasi</a>
+                    </div>
                 </article>
 
-                <!-- DAFTAR -->
-                <article class="app-card app-card-soon">
-                    <div class="app-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M3.5 5.5l1.5 1.5l2.5 -2.5"/>
-                            <path d="M3.5 11.5l1.5 1.5l2.5 -2.5"/>
-                            <path d="M3.5 17.5l1.5 1.5l2.5 -2.5"/>
-                            <path d="M11 6l9 0"/>
-                            <path d="M11 12l9 0"/>
-                            <path d="M11 18l9 0"/>
+                <!-- Kartu CATAT -->
+                <article class="app-selector-card">
+                    <div class="icon-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="100%" height="100%">
+                            <defs>
+                                <linearGradient id="noteGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#f59e0b" />
+                                    <stop offset="100%" stop-color="#d97706" />
+                                </linearGradient>
+                                <linearGradient id="noteGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#fbbf24" />
+                                    <stop offset="100%" stop-color="#b45309" />
+                                </linearGradient>
+                            </defs>
+                            <rect x="35" y="15" width="65" height="75" rx="8" fill="url(#noteGrad1)" opacity="0.85" />
+                            <path d="M 20 35 L 75 35 L 90 50 L 90 95 C 90 99.4 86.4 103 82 103 L 28 103 C 23.6 103 20 99.4 20 95 Z" fill="url(#noteGrad2)" opacity="0.95" />
+                            <polygon points="75,35 90,50 75,50" fill="#fde68a" opacity="0.8" />
                         </svg>
                     </div>
-                    <h3>Daftar</h3>
-                    <p class="secondary">Kelola tugas dan daftar harian kamu secara efisien dan privat.</p>
-                    <button class="outline secondary app-card-btn" disabled>Segera Hadir</button>
+                    <h3>CATAT</h3>
+                    <p>Catatan privat dan daftar tugas (to-do lists) yang tersimpan aman di peramban lokal Anda.</p>
+                    <div class="card-action">
+                        <a href="/catat" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600; padding: 0.8rem 1rem; background-color: #f59e0b; border-color: #f59e0b;">Buka Aplikasi</a>
+                    </div>
                 </article>
+            </div>
+        </section>
 
-                <!-- CATAT -->
-                <article class="app-card app-card-soon">
-                    <div class="app-card-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                            <path d="M5 3m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/>
-                            <path d="M9 7l6 0"/>
-                            <path d="M9 11l6 0"/>
-                            <path d="M9 15l4 0"/>
-                        </svg>
-                    </div>
-                    <h3>Catat</h3>
-                    <p class="secondary">Tulis catatan rahasia dan ide-ide pribadi kamu secara privat.</p>
-                    <button class="outline secondary app-card-btn" disabled>Segera Hadir</button>
-                </article>
+        <!-- Kotak Status Keamanan -->
+        <section class="security-status-card">
+            <h4 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">Status Keamanan</h4>
+            <div class="security-info-grid">
+                <div class="security-info-item">
+                    <span id="vault-status-dot" class="dot dot-red"></span>
+                    <span id="vault-status-text">Status Tmpt: Belum Dibuat</span>
+                </div>
+                <div class="security-info-item" style="justify-content: center;">
+                    <span class="dot dot-blue"></span>
+                    <span>Lokasi Data: Browser Lokal</span>
+                </div>
+                <div class="security-info-item" style="justify-content: flex-end;">
+                    <span class="dot dot-purple"></span>
+                    <span>Enkripsi: AES-256-GCM</span>
+                </div>
             </div>
         </section>
 
@@ -110,9 +145,38 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             await window.TMPT_Auth.init();
-            if (window.TMPT_Vault.exists()) {
-                console.log("Vault detected.");
-            }
+            
+            const statusDot = document.getElementById('vault-status-dot');
+            const statusText = document.getElementById('vault-status-text');
+            const heroBtnPrimary = document.getElementById('hero-btn-primary');
+            
+            if (window.TMPT_Auth.isUnlocked()) {
+                if (statusDot) {
+                    statusDot.className = 'dot dot-green';
+                    statusText.textContent = 'Status Tmpt: Terbuka';
+                }
+                if (heroBtnPrimary) {
+                    heroBtnPrimary.href = '/dashboard';
+                    heroBtnPrimary.textContent = 'Buka Dashboard';
+                }
+            } else if (window.TMPT_Vault.exists()) {
+                if (statusDot) {
+                    statusDot.className = 'dot dot-blue';
+                    statusText.textContent = 'Status Tmpt: Terkunci (Ada)';
+                }
+                if (heroBtnPrimary) {
+                    heroBtnPrimary.href = '/login';
+                    heroBtnPrimary.textContent = 'Buka Tmpt';
+                }
+            } else {
+                if (statusDot) {
+                    statusDot.className = 'dot dot-red';
+                    statusText.textContent = 'Status Tmpt: Belum Dibuat';
+                }
+                if (heroBtnPrimary) {
+                    heroBtnPrimary.href = '/login';
+                    heroBtnPrimary.textContent = 'Mulai Gratis';
+                }
         });
     </script>
 </body>

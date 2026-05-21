@@ -36,7 +36,7 @@ const AuthModule = {
                     "raw",
                     keyBuffer,
                     { name: "AES-GCM" },
-                    false,
+                    true,
                     ["encrypt", "decrypt"]
                 );
                 console.log("[BRANKAS] Auth Init Selesai. Unlocked: true");
