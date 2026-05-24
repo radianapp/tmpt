@@ -1,0 +1,36 @@
+{
+  "packages": {
+    "99000": {
+      "category": "membership",
+      "package_name": "bulanan",
+      "duration_days": 30,
+      "display_price": "Rp 99.000",
+      "label": "Paket Bulanan"
+    },
+    "790000": {
+      "category": "membership",
+      "package_name": "tahunan",
+      "duration_days": 365,
+      "display_price": "Rp 790.000",
+      "label": "Paket Tahunan"
+    },
+    "2000000": {
+      "category": "sponsor",
+      "package_name": "silver",
+      "display_price": "Rp 2.000.000",
+      "label": "Sponsor Silver"
+    },
+    "5000000": {
+      "category": "sponsor",
+      "package_name": "gold",
+      "display_price": "Rp 5.000.000",
+      "label": "Sponsor Gold"
+    },
+    "10000000": {
+      "category": "sponsor",
+      "package_name": "diamond",
+      "display_price": "Rp 10.000.000",
+      "label": "Sponsor Diamond"
+    }
+  }
+}

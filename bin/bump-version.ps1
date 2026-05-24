@@ -88,6 +88,31 @@ if (Test-Path $docsFile) {
 
 Write-Host "File version.js dan VERSIONS.md berhasil diperbarui!" -ForegroundColor Green
 
+# 5b. Update Bubblewrap twa-manifest.json if exists
+$twaManifest = "deploy/bubblewrap/twa-manifest.json"
+if (Test-Path $twaManifest) {
+    Write-Host "Mendeteksi konfigurasi Bubblewrap TWA..." -ForegroundColor Cyan
+    try {
+        $json = Get-Content $twaManifest -Raw | ConvertFrom-Json
+        $oldCode = $json.appVersionCode
+        $newCode = $oldCode + 1
+        
+        $json.appVersionCode = $newCode
+        $json.appVersionName = $newFull
+        $json.appVersion = $newFull
+        
+        # Simpan kembali berkas JSON
+        $newJson = $json | ConvertTo-Json -Depth 100
+        Set-Content -Path $twaManifest -Value $newJson -Encoding UTF8
+        
+        Write-Host "Berhasil memperbarui twa-manifest.json!" -ForegroundColor Green
+        Write-Host " -> Kode Versi Android (appVersionCode): $oldCode -> $newCode" -ForegroundColor Yellow
+        Write-Host " -> Nama Versi Android (appVersionName): $newFull" -ForegroundColor Yellow
+    } catch {
+        Write-Host "Peringatan: Gagal memperbarui twa-manifest.json secara otomatis: $_" -ForegroundColor Yellow
+    }
+}
+
 # 6. Git Operations
 if (-not $SkipGit) {
     Write-Host "Melakukan commit dan tag di Git..." -ForegroundColor Cyan

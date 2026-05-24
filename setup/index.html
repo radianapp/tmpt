@@ -43,7 +43,7 @@
                     <strong>Tips Keamanan:</strong> Jika menggunakan mode <strong>Incognito/Private</strong>, data akan <strong>hilang otomatis</strong> saat browser ditutup. Gunakan fitur <strong>Backup</strong> untuk mengamankan data Anda.
                 </p>
             </div>
-            <!-- Vault exists warning removed for multi-vault support -->
+            <div id="setup-warning-container" style="margin-bottom: 1.5rem; display: none;"></div>
 
             <form id="setup-form">
                 <div style="margin-bottom: 1.25rem;">
@@ -99,6 +99,32 @@
             </footer>
         </article>
     </main>
+
+    <!-- Dialog Konfirmasi Risiko (Khusus Pengguna Gratis) -->
+    <dialog id="free-tier-warning-modal">
+        <article style="max-width: 500px; border-radius: 20px; padding: 2rem;">
+            <header style="border-bottom: none; margin-bottom: 1rem; padding-bottom: 0; text-align: center;">
+                <h3 style="font-weight: 800; color: #ef4444; margin: 0;">⚠️ Peringatan Kehilangan Akses</h3>
+            </header>
+            <p style="font-size: 0.95rem; line-height: 1.6; text-align: left; margin-bottom: 1.5rem;">
+                Anda terdeteksi memiliki Tmpt aktif di browser ini. Karena Anda berada pada <strong>Edisi Standar (Gratis)</strong>, Anda hanya bisa mengakses satu Tmpt aktif secara bergantian.
+            </p>
+            <div style="background-color: rgba(239, 68, 68, 0.05); border-left: 4px solid #ef4444; padding: 1rem; border-radius: 10px; margin-bottom: 1.5rem; text-align: left;">
+                <span style="font-size: 0.9rem; line-height: 1.5; font-weight: 600; display: block; color: var(--pico-color);">
+                    Membuat Tmpt baru akan menyebabkan Anda tidak bisa lagi mengakses Tmpt saat ini. Semua data di dalamnya akan tertutup dan terkunci.
+                </span>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--pico-secondary); margin-bottom: 2rem; text-align: left;">
+                Pastikan Anda sudah mengunduh Backup (.tmpt) dari Tmpt aktif Anda saat ini jika ingin mengamankan datanya.
+            </p>
+            <footer>
+                <div class="grid" style="gap: 1rem;">
+                    <button class="outline secondary" onclick="cancelSetupAndRedirect()" style="margin-bottom: 0; border-radius: 10px; padding: 0.5rem 1rem;">Batal &amp; Kembali</button>
+                    <button class="btn-danger" onclick="proceedCreateVault()" style="margin-bottom: 0; border-radius: 10px; background-color: #ef4444; border-color: #ef4444; color: white; padding: 0.5rem 1rem;">Ya, Buat Baru</button>
+                </div>
+            </footer>
+        </article>
+    </dialog>
 
     <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
@@ -174,6 +200,19 @@
             }
         }
 
+        let isFreeWarningApproved = false;
+
+        function cancelSetupAndRedirect() {
+            document.getElementById('free-tier-warning-modal').close();
+            window.location.href = '/brankas';
+        }
+
+        function proceedCreateVault() {
+            document.getElementById('free-tier-warning-modal').close();
+            isFreeWarningApproved = true;
+            document.getElementById('setup-form').requestSubmit();
+        }
+
         document.getElementById('setup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -184,6 +223,14 @@
 
             if (password !== confirm) {
                 window.TMPT_UI.toast("Password konfirmasi tidak cocok.", "error");
+                return;
+            }
+
+            // Pengecekan keamanan untuk pengguna gratis
+            const list = window.TMPT_Vault.listVaults();
+            const isPro = window.TMPT_License && window.TMPT_License.isPro();
+            if (list.length > 0 && !isPro && !isFreeWarningApproved) {
+                document.getElementById('free-tier-warning-modal').showModal();
                 return;
             }
 
@@ -230,6 +277,50 @@
                 window.TMPT_UI.toast("Gagal membuat vault. Silakan coba lagi.", "error");
             } finally {
                 window.TMPT_UI.setLoading('#submit-btn', false);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Load license module dynamically if not loaded
+            if (!window.TMPT_License) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = '/assets/js/license.js';
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                });
+            }
+
+            const list = window.TMPT_Vault.listVaults();
+            if (list.length > 0) {
+                const container = document.getElementById('setup-warning-container');
+                const isPro = window.TMPT_License && window.TMPT_License.isPro();
+                
+                if (container) {
+                    container.style.display = 'block';
+                    if (isPro) {
+                        container.innerHTML = `
+                            <div class="setup-alert warning" style="border-left: 4px solid var(--pico-primary); background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: 10px; text-align: left; margin-bottom: 1.5rem;">
+                                <strong style="color: var(--pico-primary); display: block; margin-bottom: 0.5rem;">⚠️ Multi-Vault Aktif (Edisi Pro)</strong>
+                                <p style="font-size: 0.9rem; margin-bottom: 0; line-height: 1.5;">
+                                    Anda terdeteksi memiliki <strong>${list.length} Tmpt</strong> di browser ini. Membuat Tmpt baru akan menambah daftar Brankas Anda secara paralel. Anda dapat beralih antar-Brankas kapan saja menggunakan fitur <strong>Ganti Tmpt</strong>.
+                                </p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = `
+                            <div class="setup-alert warning" style="border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.05); padding: 1rem; border-radius: 10px; text-align: left; margin-bottom: 1.5rem;">
+                                <strong style="color: #ef4444; display: block; margin-bottom: 0.5rem;">⚠️ Peringatan: Tmpt Aktif Terdeteksi</strong>
+                                <p style="font-size: 0.9rem; margin-bottom: 0.75rem; line-height: 1.5;">
+                                    Anda sudah memiliki Tmpt di perangkat ini. Karena Anda menggunakan <strong>Edisi Standar (Gratis)</strong>, fitur Ganti Tmpt tidak aktif. Membuat Tmpt baru akan membuat Tmpt lama Anda tidak dapat diakses lagi.
+                                </p>
+                                <p style="font-size: 0.9rem; margin-bottom: 0; font-weight: 600;">
+                                    Sangat disarankan untuk mem-backup data lama Anda (melalui menu Pengaturan di dalam Tmpt aktif) sebelum melanjutkan.
+                                </p>
+                            </div>
+                        `;
+                    }
+                }
             }
         });
     </script>

@@ -45,3 +45,11 @@
 - [x] Pembuatan project native Android (`android/`)
 - [x] Pembuatan project native iOS (`ios/`)
 - [x] Pembuatan dokumentasi panduan mobile (`docs/mobile-apps.md`)
+
+## Fase 7: Automasi Lisensi & Pricing
+- [x] Integrasi n8n dengan Saweria Webhook
+- [x] Validasi JWK privat key Ed25519 di n8n
+- [x] Sistem Konfigurasi Harga Terpusat (`pricing.json`)
+- [x] Pembaruan Frontend Dinamis (`harga/` & `pro/`)
+- [x] Dokumentasi Kebijakan & Pengaturan Harga
+

@@ -340,7 +340,6 @@
                 let planStr = 'Lifetime';
                 if (status.plan === 'monthly') planStr = 'Bulanan';
                 if (status.plan === 'yearly') planStr = 'Tahunan';
-                if (status.type === 'trial') planStr = 'Trial 14 Hari';
 
                 const endDate = new Date(status.expiresAt);
                 const formatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: '2-digit' });
@@ -353,9 +352,6 @@
                 } else if (status.plan === 'yearly') {
                     const start = new Date(endDate); start.setFullYear(start.getFullYear() - 1);
                     startDateStr = formatter.format(start) + ' s/d ';
-                } else if (status.type === 'trial') {
-                    const startStr = localStorage.getItem('tmpt_pro_trial_start');
-                    if (startStr) startDateStr = formatter.format(new Date(startStr)) + ' s/d ';
                 }
 
                 textEl.innerHTML = `<span style="color: #10b981; font-weight: 600;">Edisi Pro (${planStr})</span><br><small style="color: var(--pico-secondary); font-size: 0.8rem;">Masa aktif: ${startDateStr}${endDateStr}</small>`;

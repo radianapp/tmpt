@@ -164,20 +164,7 @@ const LicenseModule = {
             }
         }
 
-        // 2. Cek Trial status
-        const trialExpiryStr = localStorage.getItem('tmpt_pro_trial_expiry');
-        if (trialExpiryStr) {
-            const expiry = new Date(trialExpiryStr);
-            if (expiry > new Date()) {
-                res.isPro = true;
-                res.type = 'trial';
-                res.plan = 'trial';
-                res.expiresAt = trialExpiryStr;
-                res.daysRemaining = Math.max(0, Math.ceil((expiry - new Date()) / (1000 * 60 * 60 * 24)));
-                this._cachedStatus = res;
-                return res;
-            }
-        }
+        // 2. Cek Trial status (Dihapus)
 
         this._cachedStatus = res;
         return res;
@@ -194,9 +181,6 @@ const LicenseModule = {
             const result = await this.verifyLicenseKey(licenseKey);
             if (result.valid) {
                 localStorage.setItem('tmpt_pro_license', licenseKey);
-                // Matikan status trial jika ada
-                localStorage.removeItem('tmpt_pro_trial_expiry');
-                localStorage.removeItem('tmpt_pro_trial_start');
                 return result;
             }
             throw new Error("Kunci lisensi tidak valid.");
@@ -206,37 +190,11 @@ const LicenseModule = {
     },
 
     /**
-     * Start the 14-day Free Trial (Client-side localized)
-     */
-    activateTrial() {
-        this._cachedStatus = null;
-        
-        if (localStorage.getItem('tmpt_pro_trial_expiry')) {
-            throw new Error("Anda sudah pernah mengaktifkan Free Trial di perangkat ini.");
-        }
-
-        const now = new Date();
-        const expiry = new Date();
-        expiry.setDate(now.getDate() + 14); // 14 hari
-
-        localStorage.setItem('tmpt_pro_trial_start', now.toISOString());
-        localStorage.setItem('tmpt_pro_trial_expiry', expiry.toISOString());
-
-        return {
-            valid: true,
-            plan: 'trial',
-            expires: expiry.toISOString()
-        };
-    },
-
-    /**
      * Deactivate / Log out License (Kembali ke versi free)
      */
     deactivate() {
         this._cachedStatus = null;
         localStorage.removeItem('tmpt_pro_license');
-        localStorage.removeItem('tmpt_pro_trial_expiry');
-        localStorage.removeItem('tmpt_pro_trial_start');
     }
 };
 

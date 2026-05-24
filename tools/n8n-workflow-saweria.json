@@ -1,0 +1,369 @@
+{
+  "meta": {
+    "instanceId": "tmpt-saweria-auto-license"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "saweria-webhook",
+        "options": {}
+      },
+      "id": "e4b6c310-7ef8-4903-8848-bc1c8651819d",
+      "name": "Saweria Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [100, 360]
+    },
+    {
+      "parameters": {
+        "url": "https://tmpt.my.id/shared/pricing.json",
+        "options": {}
+      },
+      "id": "e2f1e2f1-1111-4c07-b3c9-940722fe11f9",
+      "name": "Ambil Pricing JSON",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [300, 360]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $items('Saweria Webhook')[0].json.body || {};\nconst message = body.message || '';\nconst amount = Number(body.amount_raw || 0);\nconst donatorName = body.donator_name || 'Donatur TMPT';\nconst donatorEmail = body.donator_email || null;\n\n// Ambil config pricing secara dinamis dari HTTP Request\nconst pricingConfig = $items('Ambil Pricing JSON')[0].json;\nconst packages = pricingConfig.packages || {};\n\nconst res = packages[amount] || { category: 'donasi', package_name: 'donasi_biasa' };\n\nconst emailMatch = message.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\\.[a-zA-Z0-9_-]+)/);\nconst email = emailMatch ? emailMatch[1] : donatorEmail;\n\nlet valid_from = '';\nlet valid_to = '';\nif (res.category === 'membership') {\n  const now = new Date();\n  valid_from = now.toISOString();\n  const exp = new Date();\n  exp.setDate(now.getDate() + res.duration_days);\n  valid_to = exp.toISOString();\n}\n\nreturn {\n  amount: amount,\n  email: email,\n  category: res.category,\n  package_name: res.package_name,\n  valid_from: valid_from,\n  valid_to: valid_to,\n  donor_name: donatorName,\n  donator_email: donatorEmail,\n  message: message\n};"
+      },
+      "id": "c20b7ee2-2a2b-4cd3-a801-7294fe4b123d",
+      "name": "Klasifikasi JS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 360]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.category }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "membership"
+            },
+            {
+              "value2": "sponsor",
+              "output": 1
+            },
+            {
+              "value2": "donasi",
+              "output": 2
+            }
+          ]
+        },
+        "fallbackOutput": 2
+      },
+      "id": "673f8bb1-aa88-410a-b30a-20faee7cc31e",
+      "name": "Switch Kategori",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [700, 360]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.email }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "id": "334f6bb1-2c09-411a-8c9e-56fa7e1cc28f",
+      "name": "Apakah Email Ada?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [920, 200]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "privateKeyJwk",
+              "value": "{\"key_ops\":[\"sign\"],\"ext\":true,\"crv\":\"Ed25519\",\"d\":\"GANTI_DENGAN_NILAI_d_ANDA\",\"x\":\"GANTI_DENGAN_NILAI_x_ANDA\",\"kty\":\"OKP\",\"alg\":\"Ed25519\"}"
+            }
+          ]
+        }
+      },
+      "id": "764b8bb2-3333-4c07-b3c9-940722fe11f9",
+      "name": "Set Private Key",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [920, 40]
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require('crypto');\n\nconst itemData = $items('Apakah Email Ada?')[0].json;\nconst keyData = $items('Set Private Key')[0].json;\n\nconst plan = itemData.package_name === 'bulanan' ? 'monthly' : 'yearly';\n\nconst payload = {\n  email: itemData.email,\n  plan: plan,\n  expires: itemData.valid_to,\n  trial: false\n};\n\nconst payloadString = JSON.stringify(payload);\n\nconst payloadB64 = Buffer.from(payloadString)\n  .toString('base64')\n  .replace(/=/g, '')\n  .replace(/\\+/g, '-')\n  .replace(/\\//g, '_');\n\ntry {\n  const rawJwkSource = keyData.privateKeyJwk || keyData.privateKeyPem || keyData.privateKey;\n  if (!rawJwkSource) {\n    throw new Error('Kunci privat tidak ditemukan. Pastikan Node \"Set Private Key\" memiliki field \"privateKeyJwk\".');\n  }\n\n  let rawJwk;\n  if (typeof rawJwkSource === 'string') {\n    rawJwk = JSON.parse(rawJwkSource);\n  } else {\n    rawJwk = rawJwkSource;\n  }\n\n  if (!rawJwk.d || !rawJwk.x) {\n    throw new Error('JWK tidak lengkap. Kunci privat JWK harus memiliki properti \"d\" dan \"x\". Properti yang ditemukan: ' + Object.keys(rawJwk).join(', '));\n  }\n\n  if (rawJwk.d.includes('GANTI_DENGAN') || rawJwk.d.includes('MASUKKAN') || rawJwk.d.length < 10) {\n    throw new Error('Nilai \"d\" pada JWK masih berupa placeholder atau tidak valid. Harap ganti dengan nilai asli dari tools/license-generator/.keys/private.jwk.json');\n  }\n\n  const cleanJwk = {\n    kty: rawJwk.kty,\n    crv: rawJwk.crv,\n    d: rawJwk.d,\n    x: rawJwk.x\n  };\n  const privateKey = crypto.createPrivateKey({\n    key: cleanJwk,\n    format: 'jwk'\n  });\n\n  const sig = crypto.sign(null, Buffer.from(payloadString), privateKey);\n  const sigB64 = sig\n    .toString('base64')\n    .replace(/=/g, '')\n    .replace(/\\+/g, '-')\n    .replace(/\\//g, '_');\n\n  const licenseKey = 'TMPT-PRO.' + payloadB64 + '.' + sigB64;\n\n  return {\n    license_key: licenseKey,\n    email: itemData.email,\n    donator_email: itemData.donator_email,\n    package_name: itemData.package_name,\n    valid_from: itemData.valid_from,\n    valid_to: itemData.valid_to,\n    donor_name: itemData.donor_name,\n    amount: itemData.amount\n  };\n} catch (err) {\n  throw new Error('Gagal generate lisensi Ed25519: ' + err.message);\n}"
+      },
+      "id": "874c8bc2-4444-4c07-b3c9-940722fe11f9",
+      "name": "Generate Ed25519 JS",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 120]
+    },
+    {
+      "parameters": {
+        "fromEmail": "no-reply@tmpt.my.id",
+        "toEmail": "={{ $json.email }}",
+        "subject": "Lisensi TMPT Pro Anda Aktif! 🚀",
+        "html": "<h3>Halo {{ $json.donor_name }},</h3>\n<p>Terima kasih banyak atas kontribusi langganan <strong>TMPT Pro {{ $json.package_name === 'bulanan' ? 'Bulanan' : 'Tahunan' }}</strong> Anda!</p>\n<p>Akun Pro Anda siap diaktifkan menggunakan tautan aktivasi instan di bawah ini (klik dari perangkat yang ingin dipasang):</p>\n<div style=\"margin: 20px 0;\">\n  <a href=\"https://tmpt.my.id/settings/?activate={{ $json.license_key }}\" style=\"display: inline-block; padding: 12px 24px; background: #1e40af; color: white; text-decoration: none; border-radius: 8px; font-weight: bold;\">Aktifkan TMPT Pro Secara Instan</a>\n</div>\n<p>Atau masukkan kunci lisensi berikut secara manual di menu Pengaturan TMPT:</p>\n<pre style=\"background: #1e293b; color: #38bdf8; padding: 15px; border-radius: 8px; font-family: monospace; overflow-x: auto; max-width: 100%; white-space: pre-wrap; word-break: break-all;\">{{ $json.license_key }}</pre>\n<p>Masa aktif lisensi: <br>\n<strong>{{ new Date($json.valid_from).toLocaleDateString('id-ID') }}</strong> s/d <strong>{{ new Date($json.valid_to).toLocaleDateString('id-ID') }}</strong></p>\n<p>Salam hangat,<br>Tim Pengembang TMPT</p>"
+      },
+      "id": "984d8cd2-5555-4c07-b3c9-940722fe11f9",
+      "name": "Kirim Lisensi ke User",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1360, 120]
+    },
+    {
+      "parameters": {
+        "fromEmail": "system@tmpt.my.id",
+        "toEmail": "tmptmyid@gmail.com",
+        "subject": "⚠️ Urgent: Pembelian Pro Tanpa Email!",
+        "html": "<h3>Ada Pembelian TMPT Pro tapi Email Kosong!</h3>\n<p><strong>Nama Donatur:</strong> {{ $json.donor_name }}</p>\n<p><strong>Nominal:</strong> Rp {{ $json.amount }}</p>\n<p><strong>Pesan:</strong> {{ $json.message }}</p>\n<p>Mohon hubungi donatur tersebut secara manual di sistem Saweria untuk memberikan lisensi.</p>"
+      },
+      "id": "473c8ef2-6666-4c07-b3c9-940722fe11fa",
+      "name": "Admin: Notif Email Kosong",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1140, 280]
+    },
+    {
+      "parameters": {
+        "fromEmail": "system@tmpt.my.id",
+        "toEmail": "tmptmyid@gmail.com",
+        "subject": "🎉 Pembelian TMPT Pro Sukses!",
+        "html": "<h3>Pendaftaran Lisensi Pro Berhasil!</h3>\n<p><strong>Nama:</strong> {{ $json.donor_name }}</p>\n<p><strong>Email:</strong> {{ $json.email }}</p>\n<p><strong>Paket:</strong> Pro {{ $json.package_name }}</p>\n<p><strong>Nominal:</strong> Rp {{ $json.amount }}</p>"
+      },
+      "id": "583c8ff2-7777-4c07-b3c9-940722fe11fb",
+      "name": "Admin: Notif Pro Sukses",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [1580, 120]
+    },
+    {
+      "parameters": {
+        "chatId": "ID_CHAT_TELEGRAM_ADMIN",
+        "text": "🎉 *New TMPT Pro Member!*\n\n👤 Nama: {{ $json.donor_name }}\n✉️ Email: {{ $json.email }}\n📦 Paket: Pro {{ $json.package_name }}\n💰 Nominal: Rp {{ $json.amount }}"
+      },
+      "id": "693c8ff2-8888-4c07-b3c9-940722fe11fc",
+      "name": "Telegram: Pro Sukses",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1580, 240]
+    },
+    {
+      "parameters": {
+        "chatId": "ID_CHAT_TELEGRAM_ADMIN",
+        "text": "⚠️ *ALARM: TMPT Pro Tanpa Email!*\n\n👤 Nama: {{ $json.donor_name }}\n💰 Nominal: Rp {{ $json.amount }}\n💬 Pesan: {{ $json.message }}"
+      },
+      "id": "793c8ff2-9999-4c07-b3c9-940722fe11fd",
+      "name": "Telegram: Email Kosong",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1360, 280]
+    },
+    {
+      "parameters": {
+        "fromEmail": "system@tmpt.my.id",
+        "toEmail": "tmptmyid@gmail.com",
+        "subject": "💎 Sponsor Baru TMPT!",
+        "html": "<h3>Terima Kasih Sponsor Baru!</h3>\n<p><strong>Nama Sponsor:</strong> {{ $json.donor_name }}</p>\n<p><strong>Tingkat:</strong> {{ $json.package_name.toUpperCase() }}</p>\n<p><strong>Nominal:</strong> Rp {{ $json.amount }}</p>\n<p><strong>Pesan:</strong> {{ $json.message }}</p>"
+      },
+      "id": "893c8ff2-aaaa-4c07-b3c9-940722fe11fe",
+      "name": "Admin: Notif Sponsor",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [920, 360]
+    },
+    {
+      "parameters": {
+        "chatId": "ID_CHAT_TELEGRAM_ADMIN",
+        "text": "💎 *New TMPT Sponsor!*\n\n👤 Nama: {{ $json.donor_name }}\n🏆 Tingkat: {{ $json.package_name.toUpperCase() }}\n💰 Nominal: Rp {{ $json.amount }}\n💬 Pesan: {{ $json.message }}"
+      },
+      "id": "993c8ff2-bbbb-4c07-b3c9-940722fe11ff",
+      "name": "Telegram: Sponsor Baru",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1100, 360]
+    },
+    {
+      "parameters": {
+        "fromEmail": "system@tmpt.my.id",
+        "toEmail": "tmptmyid@gmail.com",
+        "subject": "❤️ Donasi Baru TMPT",
+        "html": "<h3>Ada Donasi Baru Terbuka!</h3>\n<p><strong>Nama:</strong> {{ $json.donor_name }}</p>\n<p><strong>Nominal:</strong> Rp {{ $json.amount }}</p>\n<p><strong>Pesan:</strong> {{ $json.message }}</p>"
+      },
+      "id": "093c8ff2-cccc-4c07-b3c9-940722fe1200",
+      "name": "Admin: Notif Donasi",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [920, 520]
+    },
+    {
+      "parameters": {
+        "chatId": "ID_CHAT_TELEGRAM_ADMIN",
+        "text": "❤️ *New TMPT Donation!*\n\n👤 Nama: {{ $json.donor_name }}\n💰 Nominal: Rp {{ $json.amount }}\n💬 Pesan: {{ $json.message }}"
+      },
+      "id": "193c8ff2-dddd-4c07-b3c9-940722fe1201",
+      "name": "Telegram: Donasi Baru",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1100, 520]
+    }
+  ],
+  "connections": {
+    "Saweria Webhook": {
+      "main": [
+        [
+          {
+            "node": "Ambil Pricing JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambil Pricing JSON": {
+      "main": [
+        [
+          {
+            "node": "Klasifikasi JS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Klasifikasi JS": {
+      "main": [
+        [
+          {
+            "node": "Switch Kategori",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch Kategori": {
+      "main": [
+        [
+          {
+            "node": "Apakah Email Ada?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin: Notif Sponsor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin: Notif Donasi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apakah Email Ada?": {
+      "main": [
+        [
+          {
+            "node": "Set Private Key",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Admin: Notif Email Kosong",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Private Key": {
+      "main": [
+        [
+          {
+            "node": "Generate Ed25519 JS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Ed25519 JS": {
+      "main": [
+        [
+          {
+            "node": "Kirim Lisensi ke User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Kirim Lisensi ke User": {
+      "main": [
+        [
+          {
+            "node": "Admin: Notif Pro Sukses",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Telegram: Pro Sukses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin: Notif Email Kosong": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Email Kosong",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin: Notif Sponsor": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Sponsor Baru",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Admin: Notif Donasi": {
+      "main": [
+        [
+          {
+            "node": "Telegram: Donasi Baru",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

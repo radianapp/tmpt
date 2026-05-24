@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tmpt-cache-v1.3';
+const CACHE_NAME = 'tmpt-cache-v1.4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -20,6 +20,7 @@ const ASSETS = [
   '/shared/footer.html',
   '/shared/app-header.html',
   '/shared/vault-switcher.html',
+  '/shared/pricing.json',
   '/setup/index.html',
   '/login/index.html',
   '/brankas/index.html',
@@ -28,7 +29,12 @@ const ASSETS = [
   '/tools/index.html',
   '/tools/password-gen/index.html',
   '/tools/password-checker/index.html',
-  '/tools/notes-encryptor/index.html'
+  '/tools/notes-encryptor/index.html',
+  '/pro/index.html',
+  '/harga/index.html',
+  '/sponsor/index.html',
+  '/sponsor/donors.js',
+  '/sponsor/sponsor.css'
 ];
 
 // Install Event

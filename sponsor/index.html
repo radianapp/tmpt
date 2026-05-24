@@ -52,7 +52,7 @@
                 <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
                     <div style="font-size: 3rem; margin-bottom: 1.5rem;">💎</div>
                     <h3>Diamond</h3>
-                    <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 1.000.000+ / bulan</p>
+                    <p id="sponsor-diamond-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 10.000.000+ / bulan</p>
                     <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
                         <li style="margin-bottom: 0.5rem;">✅ Logo di halaman utama & sponsor</li>
                         <li style="margin-bottom: 0.5rem;">✅ Sebutan di README.md GitHub</li>
@@ -60,32 +60,32 @@
                         <li style="margin-bottom: 0.5rem;">✅ Priority feature request</li>
                     </ul>
                     <div class="card-action">
-                        <a href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                        <a id="sponsor-diamond-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
                     </div>
                 </article>
                 <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
                     <div style="font-size: 3rem; margin-bottom: 1.5rem;">🥇</div>
                     <h3>Gold</h3>
-                    <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 500.000+ / bulan</p>
+                    <p id="sponsor-gold-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 5.000.000+ / bulan</p>
                     <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
                         <li style="margin-bottom: 0.5rem;">✅ Logo di halaman sponsor</li>
                         <li style="margin-bottom: 0.5rem;">✅ Sebutan di README.md GitHub</li>
                         <li style="margin-bottom: 0.5rem;">✅ Badge "Gold Sponsor" di UI app</li>
                     </ul>
                     <div class="card-action">
-                        <a href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                        <a id="sponsor-gold-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
                     </div>
                 </article>
                 <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
                     <div style="font-size: 3rem; margin-bottom: 1.5rem;">🥈</div>
                     <h3>Silver</h3>
-                    <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 200.000+ / bulan</p>
+                    <p id="sponsor-silver-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 2.000.000+ / bulan</p>
                     <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
                         <li style="margin-bottom: 0.5rem;">✅ Nama di halaman sponsor</li>
                         <li style="margin-bottom: 0.5rem;">✅ Sebutan di CHANGELOG TMPT</li>
                     </ul>
                     <div class="card-action">
-                        <a href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                        <a id="sponsor-silver-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
                     </div>
                 </article>
             </div>
@@ -142,7 +142,8 @@
         </section>
 
         <!-- Community Donors -->
-        <section style="margin: 4rem 0 3rem 0;">
+        <!-- Community Donors -->
+        <section id="community-donors-section" style="margin: 4rem 0 3rem 0; display: none;">
             <h2 class="text-center" style="font-weight: 800; font-size: 2rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Pendukung Komunitas</h2>
             <p class="text-center secondary" style="margin-bottom: 2rem;">
                 Terima kasih kepada semua yang telah berdonasi dan membuat proyek ini tetap hidup! 🙏
@@ -168,7 +169,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('donors-container');
             const emptyMsg = document.getElementById('donors-empty');
+            const section = document.getElementById('community-donors-section');
             if (typeof TMPT_DONORS !== 'undefined' && TMPT_DONORS.length > 0) {
+                if (section) section.style.display = 'block';
                 TMPT_DONORS.forEach(donor => {
                     const tag = document.createElement('span');
                     tag.className = 'donor-badge';
@@ -179,9 +182,39 @@
                     container.appendChild(tag);
                 });
             } else {
-                emptyMsg.style.display = 'block';
+                if (section) section.style.display = 'none';
             }
+
+            loadPricing();
         });
+
+        function loadPricing() {
+            fetch('/shared/pricing.json')
+                .then(res => res.json())
+                .then(data => {
+                    const packages = data.packages || {};
+                    const diamondEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'diamond');
+                    const goldEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'gold');
+                    const silverEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'silver');
+
+                    if (diamondEntry) {
+                        const [amount, info] = diamondEntry;
+                        document.getElementById('sponsor-diamond-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-diamond-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Diamond&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                    if (goldEntry) {
+                        const [amount, info] = goldEntry;
+                        document.getElementById('sponsor-gold-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-gold-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Gold&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                    if (silverEntry) {
+                        const [amount, info] = silverEntry;
+                        document.getElementById('sponsor-silver-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-silver-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Silver&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                })
+                .catch(err => console.error('Failed to load pricing config:', err));
+        }
     </script>
 </body>
 </html>

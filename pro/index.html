@@ -12,6 +12,8 @@
 	<script src="/assets/js/ui.js?v=4"></script>
 	<script src="/assets/js/license.js"></script>
 	<script src="/assets/js/version.js"></script>
+	<!-- Midtrans Snap SDK (Uji Coba Sandbox) -->
+	<script type="text/javascript" src="https://app.sandbox.midtrans.com/snap/snap.js" data-client-key="Mid-client-8oOwXi7UM2hXoCmu"></script>
 </head>
 <body>
 	<div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -66,31 +68,22 @@
 			<!-- Trial & Payment Info -->
 			<div style="display: flex; flex-direction: column; gap: 2rem;">
 				
-				<!-- Free Trial Card -->
-				<article class="settings-card" style="margin-bottom: 0;">
-					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Coba Gratis 14 Hari</h3>
-					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
-						Aktifkan trial instan untuk mencoba seluruh fitur Pro. Tanpa kartu kredit, tanpa registrasi akun, 100% berjalan lokal di browser Anda.
-					</p>
-					<button id="btn-start-trial" onclick="handleStartTrial()" class="btn-navy" style="width: 100%; border-radius: 10px;">Mulai Trial Gratis</button>
-				</article>
-
 				<!-- How to Buy Card -->
 				<article class="settings-card" style="margin-bottom: 0;">
 					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Cara Berlangganan</h3>
 					
-					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">Pilih paket langganan Anda. Pembayaran dilakukan melalui wadah donasi resmi kami (Saweria). <strong>Pastikan Anda memasukkan nominal yang tepat dan mencantumkan alamat Email Anda pada kolom Pesan.</strong></p>
+					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">Pilih paket langganan Anda. Pembayaran dilakukan melalui wadah donasi resmi kami (Midtrans dan Saweria). <strong>Pastikan Anda memasukkan nominal yang tepat dan mencantumkan alamat Email Anda pada kolom Pesan.</strong></p>
 
 					<div class="grid" style="gap: 1rem; margin-bottom: 1.5rem;">
-						<a href="https://saweria.co/tmpt?amount=9900&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="outline" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem;">
+						<a id="btn-buy-monthly" href="https://saweria.co/tmpt?amount=9900&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="outline" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem;">
 							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">Paket Bulanan</span>
-							<span style="font-size: 1.5rem; font-weight: 800; color: var(--pico-h1-color);">Rp 9.900</span>
+							<span id="price-buy-monthly" style="font-size: 1.5rem; font-weight: 800; color: var(--pico-h1-color);">Rp 9.900</span>
 							<small style="margin-top: 0.5rem; color: var(--pico-secondary);">Bayar via Saweria</small>
 						</a>
 						
-						<a href="https://saweria.co/tmpt?amount=79000&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem; border: none; background: linear-gradient(135deg, #1e40af, #0284c7);">
+						<a id="btn-buy-yearly" href="https://saweria.co/tmpt?amount=79000&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem; border: none; background: linear-gradient(135deg, #1e40af, #0284c7);">
 							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: white;">Paket Tahunan</span>
-							<span style="font-size: 1.5rem; font-weight: 800; color: white;">Rp 79.000</span>
+							<span id="price-buy-yearly" style="font-size: 1.5rem; font-weight: 800; color: white;">Rp 79.000</span>
 							<small style="margin-top: 0.5rem; color: rgba(255,255,255,0.8);">Hemat 33% (Via Saweria)</small>
 						</a>
 					</div>
@@ -98,7 +91,7 @@
 					<div style="background-color: var(--pico-mark-background-color); padding: 1rem; border-radius: 10px; border-left: 4px solid var(--pico-primary);">
 						<strong style="display: block; margin-bottom: 0.5rem;">Langkah Penting:</strong>
 						<ol style="margin-bottom: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-							<li>Klik tombol paket di atas. Nominal sudah terisi otomatis di halaman Saweria.</li>
+							<li>Klik tombol paket di atas. Isi <code>nominal</code> di halaman Saweria sesuai harga yang tertera.</li>
 							<li>Di form Saweria, ganti <code>[GANTI_DENGAN_EMAIL_ANDA]</code> di kolom <strong>Email</strong> dengan alamat email aktif Anda.</li>
 							<li>Pastikan email sudah benar karena lisensi akan dikirimkan ke email tersebut.</li>
 						</ol>
@@ -108,6 +101,43 @@
 						* Kami juga menerima pembayaran via <a href="https://ko-fi.com/tmptmyid" target="_blank" rel="noopener noreferrer">Ko-fi (Paypal/Credit Card)</a>. Hubungi <a href="/contact">halaman kontak</a> jika ada kendala. Kunci aktivasi akan dikirim max 24 jam.
 					</p>
 				</article>
+
+				<!-- Midtrans Card -->
+				<article class="settings-card" style="margin-bottom: 0;">
+					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Pembayaran Instan (Midtrans)</h3>
+					<p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;">Opsi pembayaran aman, instan, dan otomatis via QRIS, GoPay, ShopeePay, Bank Transfer, atau Kartu Kredit.</p>
+					
+					<form id="midtrans-pay-form" style="margin-bottom: 0;">
+						<div style="margin-bottom: 1rem;">
+							<label for="pay-email" style="font-size: 0.85rem; font-weight: 600;">Email Penerima Lisensi:</label>
+							<input type="email" id="pay-email" placeholder="nama@email.com" style="border-radius: 8px; font-size: 0.9rem; padding: 0.5rem 0.75rem;" required>
+						</div>
+						<div class="grid" style="gap: 1rem; margin-bottom: 1rem; align-items: end;">
+							<div>
+								<label for="pay-package" style="font-size: 0.85rem; font-weight: 600;">Pilih Paket:</label>
+								<select id="pay-package" style="border-radius: 8px; font-size: 0.9rem; padding: 0.5rem 0.75rem;" required>
+									<option value="bulanan" data-amount="99000">Paket Bulanan - Rp 99.000</option>
+									<option value="tahunan" data-amount="790000">Paket Tahunan - Rp 790.000</option>
+								</select>
+							</div>
+							<div>
+								<button type="submit" id="btn-pay-midtrans" class="btn-navy" style="width: 100%; border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.9rem;">Bayar Sekarang</button>
+							</div>
+						</div>
+					</form>
+				</article>
+
+				<!-- Donation Appeal Card -->
+				<article class="settings-card" style="margin-bottom: 0; background: linear-gradient(135deg, rgba(244, 63, 94, 0.03), rgba(239, 68, 68, 0.03)); border-color: rgba(244, 63, 94, 0.2);">
+					<h4 style="font-weight: 700; color: #f43f5e; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem;">
+						<span>❤️</span> Dukung Proyek Open Source Kami
+					</h4>
+					<p class="secondary" style="font-size: 0.85rem; line-height: 1.5; margin-bottom: 1rem;">
+						Ingin membantu kami menjaga proyek ini tetap hidup dan gratis untuk ribuan pengguna lainnya tanpa berlangganan fitur Pro? Anda bisa memberikan donasi sukarela di halaman sponsor kami.
+					</p>
+					<a href="/sponsor/" role="button" class="outline secondary" style="border-radius: 8px; padding: 0.4rem 1rem; font-size: 0.8rem; text-decoration: none; display: inline-block;">Donasi &amp; Sponsor</a>
+				</article>
+
 			</div>
 
 			<!-- Activation Form -->
@@ -138,6 +168,130 @@
 		// Handle page display on load
 		document.addEventListener('DOMContentLoaded', () => {
 			renderUI();
+			loadPricing();
+		});
+
+		function loadPricing() {
+			fetch('/shared/pricing.json')
+				.then(res => res.json())
+				.then(data => {
+					const packages = data.packages || {};
+					const monthlyEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'bulanan');
+					const yearlyEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'tahunan');
+					
+					if (monthlyEntry) {
+						const [amount, info] = monthlyEntry;
+						const btnMonthly = document.getElementById('btn-buy-monthly');
+						if (btnMonthly) {
+							btnMonthly.href = `https://saweria.co/tmpt?amount=${amount}&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+						}
+						const priceVal = document.getElementById('price-buy-monthly');
+						if (priceVal) {
+							priceVal.textContent = info.display_price;
+						}
+						const optMonthly = document.querySelector('#pay-package option[value="bulanan"]');
+						if (optMonthly) {
+							optMonthly.setAttribute('data-amount', amount);
+							optMonthly.textContent = `${info.label} - ${info.display_price}`;
+						}
+					}
+					
+					if (yearlyEntry) {
+						const [amount, info] = yearlyEntry;
+						const btnYearly = document.getElementById('btn-buy-yearly');
+						if (btnYearly) {
+							btnYearly.href = `https://saweria.co/tmpt?amount=${amount}&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+						}
+						const priceVal = document.getElementById('price-buy-yearly');
+						if (priceVal) {
+							priceVal.textContent = info.display_price;
+						}
+						const optYearly = document.querySelector('#pay-package option[value="tahunan"]');
+						if (optYearly) {
+							optYearly.setAttribute('data-amount', amount);
+							optYearly.textContent = `${info.label} - ${info.display_price} (Hemat 33%)`;
+						}
+					}
+				})
+				.catch(err => console.error('Failed to load pricing config:', err));
+		}
+
+		// Event listener untuk form pembayaran Midtrans via n8n
+		document.addEventListener('DOMContentLoaded', () => {
+			const midtransForm = document.getElementById('midtrans-pay-form');
+			if (midtransForm) {
+				midtransForm.addEventListener('submit', async (e) => {
+					e.preventDefault();
+					const btn = document.getElementById('btn-pay-midtrans');
+					btn.disabled = true;
+					btn.textContent = 'Memproses...';
+
+					const email = document.getElementById('pay-email').value;
+					const packageSelect = document.getElementById('pay-package');
+					const packageName = packageSelect.value;
+					const amount = packageSelect.options[packageSelect.selectedIndex].getAttribute('data-amount');
+
+					try {
+						// Panggil n8n initiate webhook - Sesuaikan URL n8n Anda
+						const response = await fetch('https://n8n.radian.web.id/webhook-test/initiate-midtrans-payment', {
+							method: 'POST',
+							headers: { 'Content-Type': 'application/json' },
+							body: JSON.stringify({
+								email: email,
+								package_name: packageName,
+								amount: amount
+							})
+						});
+
+						const responseText = await response.text();
+						if (!response.ok) {
+							throw new Error('Gagal dari n8n (' + response.status + '): ' + responseText);
+						}
+
+						console.log('Respon n8n mentah:', responseText);
+
+						let data;
+						try {
+							const parsed = JSON.parse(responseText);
+							// n8n mengembalikan array [ { token: "..." } ] jika menggunakan "All Incoming Items"
+							data = Array.isArray(parsed) ? parsed[0] : parsed;
+						} catch (e) {
+							throw new Error('Respon n8n bukan JSON valid: ' + responseText);
+						}
+
+						console.log('Data ter-parsing:', data);
+
+						if (!data || !data.token) {
+							throw new Error('Token transaksi tidak ditemukan dalam respon n8n.');
+						}
+
+						window.snap.pay(data.token, {
+							onSuccess: function(result) {
+								window.TMPT_UI.toast("Pembayaran sukses! Silakan cek email Anda.", "success");
+								location.reload();
+							},
+							onPending: function(result) {
+								window.TMPT_UI.toast("Menunggu pembayaran diselesaikan.", "info");
+							},
+							onError: function(result) {
+								window.TMPT_UI.toast("Pembayaran gagal. Silakan coba lagi.", "error");
+								btn.disabled = false;
+								btn.textContent = 'Bayar Sekarang';
+							},
+							onClose: function() {
+								window.TMPT_UI.toast("Popup pembayaran ditutup.", "info");
+								btn.disabled = false;
+								btn.textContent = 'Bayar Sekarang';
+							}
+						});
+
+					} catch (err) {
+						window.TMPT_UI.toast('Kesalahan: ' + err.message, 'error');
+						btn.disabled = false;
+						btn.textContent = 'Bayar Sekarang';
+					}
+				});
+			}
 		});
 
 		function renderUI() {
@@ -150,7 +304,7 @@
 				activeSec.style.display = 'block';
 				inactiveSec.style.display = 'none';
 
-				document.getElementById('pro-plan-val').textContent = status.plan === 'trial' ? 'Free Trial (14 Hari)' : status.plan;
+				document.getElementById('pro-plan-val').textContent = status.plan;
 				document.getElementById('pro-expiry-val').textContent = new Date(status.expiresAt).toLocaleDateString('id-ID', {
 					weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
 				});
@@ -167,25 +321,11 @@
 
 				// Status badge style
 				const statusBadge = document.getElementById('pro-status-badge');
-				if (status.plan === 'trial') {
-					statusBadge.textContent = 'Masa Uji Coba';
-					statusBadge.style.color = '#eab308'; // kuning
-				} else {
-					statusBadge.textContent = 'Aktif (Premium)';
-					statusBadge.style.color = '#22c55e'; // hijau
-				}
+				statusBadge.textContent = 'Aktif (Premium)';
+				statusBadge.style.color = '#22c55e'; // hijau
 			} else {
 				activeSec.style.display = 'none';
 				inactiveSec.style.display = 'grid';
-
-				// Disable trial button if already used
-				const startTrialBtn = document.getElementById('btn-start-trial');
-				if (localStorage.getItem('tmpt_pro_trial_expiry')) {
-					startTrialBtn.disabled = true;
-					startTrialBtn.textContent = 'Trial Sudah Pernah Digunakan';
-					startTrialBtn.classList.remove('btn-navy');
-					startTrialBtn.classList.add('outline', 'secondary');
-				}
 			}
 
 			// Update PWA headers if loaded
@@ -209,18 +349,6 @@
 				}, 1500);
 			} catch (err) {
 				window.TMPT_UI.toast("Aktivasi gagal: " + err.message, "error");
-			}
-		}
-
-		function handleStartTrial() {
-			try {
-				const result = window.TMPT_License.activateTrial();
-				window.TMPT_UI.toast("Free Trial 14 Hari diaktifkan! Menikmati fitur Pro.", "success");
-				setTimeout(() => {
-					window.location.reload();
-				}, 1500);
-			} catch (err) {
-				window.TMPT_UI.toast(err.message, "error");
 			}
 		}
 
