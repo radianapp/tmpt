@@ -125,6 +125,7 @@
 							</div>
 						</div>
 					</form>
+					<div id="midtrans-debug-output" style="display: none; margin-top: 1rem; padding: 0.75rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; border: 1px solid var(--pico-muted-border-color); background-color: var(--pico-code-background-color); word-break: break-all;"></div>
 				</article>
 
 				<!-- Donation Appeal Card -->
@@ -265,24 +266,36 @@
 							throw new Error('Token transaksi tidak ditemukan dalam respon n8n.');
 						}
 
+						const debugDiv = document.getElementById('midtrans-debug-output');
+						const showDebug = (status, info) => {
+							if (debugDiv) {
+								debugDiv.style.display = 'block';
+								debugDiv.innerHTML = `<strong>Status Snap:</strong> ${status}<br><pre style="margin-top:0.5rem;margin-bottom:0;font-size:0.75rem;white-space:pre-wrap;word-break:break-all;">${JSON.stringify(info, null, 2)}</pre>`;
+							}
+						};
+
 						window.snap.pay(data.token, {
 							onSuccess: function(result) {
 								console.log('Midtrans Pembayaran Sukses:', result);
-								window.TMPT_UI.toast("Pembayaran sukses! Silakan cek email Anda.", "success");
-								location.reload();
+								showDebug('SUCCESS (Lunas)', result);
+								window.TMPT_UI.toast("Pembayaran sukses! Silakan cek email Anda. Halaman akan disegarkan dalam 8 detik.", "success");
+								setTimeout(() => location.reload(), 8000);
 							},
 							onPending: function(result) {
 								console.log('Midtrans Pembayaran Pending:', result);
+								showDebug('PENDING (Menunggu Pembayaran)', result);
 								window.TMPT_UI.toast("Menunggu pembayaran diselesaikan.", "info");
 							},
 							onError: function(result) {
 								console.log('Midtrans Pembayaran Error:', result);
+								showDebug('ERROR (Gagal)', result);
 								window.TMPT_UI.toast("Pembayaran gagal. Silakan coba lagi.", "error");
 								btn.disabled = false;
 								btn.textContent = 'Bayar Sekarang';
 							},
 							onClose: function() {
 								console.log('Midtrans Popup Ditutup');
+								showDebug('CLOSED (Popup Ditutup)', { message: 'Pengguna menutup jendela popup sebelum menyelesaikan transaksi.' });
 								window.TMPT_UI.toast("Popup pembayaran ditutup.", "info");
 								btn.disabled = false;
 								btn.textContent = 'Bayar Sekarang';
