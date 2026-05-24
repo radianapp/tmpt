@@ -233,7 +233,7 @@
 
 					try {
 						// Panggil n8n initiate webhook - Sesuaikan URL n8n Anda
-						const response = await fetch('https://n8n.radian.web.id/webhook-test/initiate-midtrans-payment', {
+						const response = await fetch('https://n8n.radian.web.id/webhook/initiate-midtrans-payment', {
 							method: 'POST',
 							headers: { 'Content-Type': 'application/json' },
 							body: JSON.stringify({
@@ -267,18 +267,22 @@
 
 						window.snap.pay(data.token, {
 							onSuccess: function(result) {
+								console.log('Midtrans Pembayaran Sukses:', result);
 								window.TMPT_UI.toast("Pembayaran sukses! Silakan cek email Anda.", "success");
 								location.reload();
 							},
 							onPending: function(result) {
+								console.log('Midtrans Pembayaran Pending:', result);
 								window.TMPT_UI.toast("Menunggu pembayaran diselesaikan.", "info");
 							},
 							onError: function(result) {
+								console.log('Midtrans Pembayaran Error:', result);
 								window.TMPT_UI.toast("Pembayaran gagal. Silakan coba lagi.", "error");
 								btn.disabled = false;
 								btn.textContent = 'Bayar Sekarang';
 							},
 							onClose: function() {
+								console.log('Midtrans Popup Ditutup');
 								window.TMPT_UI.toast("Popup pembayaran ditutup.", "info");
 								btn.disabled = false;
 								btn.textContent = 'Bayar Sekarang';
