@@ -217,8 +217,30 @@
 				.catch(err => console.error('Failed to load pricing config:', err));
 		}
 
+		// Periksa parameter redirect dari Midtrans setelah pembayaran selesai
+		function checkRedirectParams() {
+			const params = new URLSearchParams(window.location.search);
+			const transactionStatus = params.get('transaction_status');
+			const statusCode = params.get('status_code');
+
+			if (transactionStatus === 'settlement' || statusCode === '200') {
+				const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+				window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+				window.TMPT_UI.toast("Pembayaran sukses! Silakan periksa email Anda untuk menyalin kunci lisensi Pro.", "success");
+			} else if (transactionStatus === 'pending' || statusCode === '201') {
+				const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+				window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+				window.TMPT_UI.toast("Menunggu pembayaran diselesaikan. Silakan cek detail transaksi Anda.", "info");
+			} else if (transactionStatus === 'deny' || transactionStatus === 'expire' || transactionStatus === 'cancel') {
+				const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+				window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+				window.TMPT_UI.toast("Pembayaran gagal, kedaluwarsa, atau dibatalkan. Silakan coba lagi.", "error");
+			}
+		}
+
 		// Event listener untuk form pembayaran Midtrans via n8n
 		document.addEventListener('DOMContentLoaded', () => {
+			checkRedirectParams();
 			const midtransForm = document.getElementById('midtrans-pay-form');
 			if (midtransForm) {
 				midtransForm.addEventListener('submit', async (e) => {
