@@ -52,4 +52,6 @@
 - [x] Sistem Konfigurasi Harga Terpusat (`pricing.json`)
 - [x] Pembaruan Frontend Dinamis (`harga/` & `pro/`)
 - [x] Dokumentasi Kebijakan & Pengaturan Harga
+- [x] Integrasi n8n dengan Midtrans Webhook (Uji Coba Sandbox & Produksi)
+- [x] Implementasi Halaman Aktivasi `/pro/` dengan Snap SDK & Peningkatan UX Status Redirect
 

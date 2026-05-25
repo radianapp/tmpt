@@ -284,6 +284,12 @@
             console.log("[CATAT] Menginisialisasi aplikasi...");
             if (window.TMPT_Auth) {
                 await window.TMPT_Auth.init();
+                if (!window.TMPT_Auth.isUnlocked()) {
+                    console.warn("[CATAT] Vault terkunci, redirect ke login...");
+                    window.location.href = '/login';
+                    return;
+                }
+                window.TMPT_Auth.setupIdleListeners();
             }
             
             // Cek jika mode enkripsi aktif tapi user bukan Pro

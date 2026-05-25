@@ -67,40 +67,6 @@
 			
 			<!-- Trial & Payment Info -->
 			<div style="display: flex; flex-direction: column; gap: 2rem;">
-				
-				<!-- How to Buy Card -->
-				<article class="settings-card" style="margin-bottom: 0;">
-					<h3 style="font-weight: 700; color: var(--pico-h1-color); margin-bottom: 1rem;">Cara Berlangganan</h3>
-					
-					<p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">Pilih paket langganan Anda. Pembayaran dilakukan melalui wadah donasi resmi kami (Midtrans dan Saweria). <strong>Pastikan Anda memasukkan nominal yang tepat dan mencantumkan alamat Email Anda pada kolom Pesan.</strong></p>
-
-					<div class="grid" style="gap: 1rem; margin-bottom: 1.5rem;">
-						<a id="btn-buy-monthly" href="https://saweria.co/tmpt?amount=9900&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="outline" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem;">
-							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">Paket Bulanan</span>
-							<span id="price-buy-monthly" style="font-size: 1.5rem; font-weight: 800; color: var(--pico-h1-color);">Rp 9.900</span>
-							<small style="margin-top: 0.5rem; color: var(--pico-secondary);">Bayar via Saweria</small>
-						</a>
-						
-						<a id="btn-buy-yearly" href="https://saweria.co/tmpt?amount=79000&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="border-radius: 10px; display: flex; flex-direction: column; align-items: center; padding: 1rem; border: none; background: linear-gradient(135deg, #1e40af, #0284c7);">
-							<span style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; color: white;">Paket Tahunan</span>
-							<span id="price-buy-yearly" style="font-size: 1.5rem; font-weight: 800; color: white;">Rp 79.000</span>
-							<small style="margin-top: 0.5rem; color: rgba(255,255,255,0.8);">Hemat 33% (Via Saweria)</small>
-						</a>
-					</div>
-
-					<div style="background-color: var(--pico-mark-background-color); padding: 1rem; border-radius: 10px; border-left: 4px solid var(--pico-primary);">
-						<strong style="display: block; margin-bottom: 0.5rem;">Langkah Penting:</strong>
-						<ol style="margin-bottom: 0; padding-left: 1.2rem; font-size: 0.9rem;">
-							<li>Klik tombol paket di atas. Isi <code>nominal</code> di halaman Saweria sesuai harga yang tertera.</li>
-							<li>Di form Saweria, ganti <code>[GANTI_DENGAN_EMAIL_ANDA]</code> di kolom <strong>Email</strong> dengan alamat email aktif Anda.</li>
-							<li>Pastikan email sudah benar karena lisensi akan dikirimkan ke email tersebut.</li>
-						</ol>
-					</div>
-
-					<p class="secondary" style="font-size: 0.85rem; margin-top: 1.5rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1rem; margin-bottom: 0;">
-						* Kami juga menerima pembayaran via <a href="https://ko-fi.com/tmptmyid" target="_blank" rel="noopener noreferrer">Ko-fi (Paypal/Credit Card)</a>. Hubungi <a href="/contact">halaman kontak</a> jika ada kendala. Kunci aktivasi akan dikirim max 24 jam.
-					</p>
-				</article>
 
 				<!-- Midtrans Card -->
 				<article class="settings-card" style="margin-bottom: 0;">
@@ -182,14 +148,6 @@
 					
 					if (monthlyEntry) {
 						const [amount, info] = monthlyEntry;
-						const btnMonthly = document.getElementById('btn-buy-monthly');
-						if (btnMonthly) {
-							btnMonthly.href = `https://saweria.co/tmpt?amount=${amount}&message=Beli%20Pro%20Bulanan&email=[GANTI_DENGAN_EMAIL_ANDA]`;
-						}
-						const priceVal = document.getElementById('price-buy-monthly');
-						if (priceVal) {
-							priceVal.textContent = info.display_price;
-						}
 						const optMonthly = document.querySelector('#pay-package option[value="bulanan"]');
 						if (optMonthly) {
 							optMonthly.setAttribute('data-amount', amount);
@@ -199,14 +157,6 @@
 					
 					if (yearlyEntry) {
 						const [amount, info] = yearlyEntry;
-						const btnYearly = document.getElementById('btn-buy-yearly');
-						if (btnYearly) {
-							btnYearly.href = `https://saweria.co/tmpt?amount=${amount}&message=Beli%20Pro%20Tahunan&email=[GANTI_DENGAN_EMAIL_ANDA]`;
-						}
-						const priceVal = document.getElementById('price-buy-yearly');
-						if (priceVal) {
-							priceVal.textContent = info.display_price;
-						}
 						const optYearly = document.querySelector('#pay-package option[value="tahunan"]');
 						if (optYearly) {
 							optYearly.setAttribute('data-amount', amount);
