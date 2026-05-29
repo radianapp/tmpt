@@ -1,0 +1,36 @@
+{
+  "kerja": [
+    { "name": "Brankas", "url": "/app/kerja/vault/", "icon": "🔐", "desc": "Simpan Kredensial dengan Aman" },
+    { "name": "Hitung", "url": "/app/kerja/hitung/", "icon": "📊", "desc": "Spreadsheet Cepat & Privat" },
+    { "name": "Catatan", "url": "/app/kerja/catatan/", "icon": "📓", "desc": "Catatan Cepat untuk Ide Penting" },
+
+    { "name": "Berkas", "url": "/app/kerja/berkas/", "icon": "📁", "desc": "Pusat Semua File TMPT" },
+    { "name": "Tulis", "url": "/app/kerja/tulis/", "icon": "📝", "desc": "Tulis Dokumen Tanpa Gangguan" },
+    { "name": "Slide", "url": "/app/kerja/slide/", "icon": "🛝", "desc": "Presentasi Langsung dari Browser" },
+    { "name": "Forms", "url": "/app/kerja/forms/", "icon": "📋", "desc": "Form Builder Privat" },
+    { "name": "Kalender", "url": "/app/kerja/kalender/", "icon": "📅", "desc": "Atur Waktu & Deadline" },
+    { "name": "Tugas", "url": "/app/kerja/tugas/", "icon": "☑️", "desc": "Kelola Tugas Lebih Fokus" }
+    
+  ],
+  "dev": [
+    { "name": "Code", "url": "/app/dev/code/", "icon": "💻", "desc": "Editor Kode Ringan & Cepat" },
+    { "name": "Diagram", "url": "/app/dev/diagram/", "icon": "📊", "desc": "Visualisasikan Arsitektur & Flow" },
+    { "name": "Regex", "url": "/app/dev/regex/", "icon": "🔍", "desc": "Regex Tester Instan" },
+    { "name": "JSON", "url": "/app/dev/json/", "icon": "⚙️", "desc": "Formatter JSON & YAML" }
+  ],
+  "tools": [
+    { "name": "Password Generator", "url": "/app/tools/password-gen/", "icon": "🔑", "desc": "Buat Password yang Kuat" },
+    { "name": "Password Checker", "url": "/app/tools/password-checker/", "icon": "🛡️", "desc": "Cek Kekuatan Password" },
+    { "name": "Notes Encryptor", "url": "/app/tools/notes-encryptor/", "icon": "🔒", "desc": "Enkripsi pesan sensitif Anda" },
+    
+    { "name": "QR Tools", "url": "/app/tools/qr/", "icon": "📷", "desc": "QR Generator & Scanner" },
+    { "name": "Pomodoro", "url": "/app/tools/pomodoro/", "icon": "⏱️", "desc": "Fokus Kerja Lebih Teratur" },
+    { "name": "Kalkulator", "url": "/app/tools/kalkulator/", "icon": "🧮", "desc": "Perhitungan Cepat Tanpa Ribet" },
+    { "name": "Konversi", "url": "/app/tools/konversi/", "icon": "🔄", "desc": "Konversi Data & Satuan" }
+  ],
+  "platform": [
+    { "name": "Home", "url": "/", "icon": "🏠", "desc": "Halaman Depan" },
+    { "name": "App", "url": "/app/", "icon": "💻", "desc": "Dashboard Utama" },
+    { "name": "Setelan", "url": "/app/auth/settings/", "icon": "⚙️", "desc": "Setelan Akun & Keamanan" }
+  ]
+}

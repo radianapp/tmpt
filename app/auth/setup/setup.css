@@ -1,0 +1,141 @@
+/* Styles for TMPT Setup Page */
+
+.setup-header {
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0;
+}
+
+.setup-header h1 {
+    margin-bottom: 0.25rem;
+}
+
+.setup-warning-box {
+    margin-bottom: 1.5rem;
+}
+
+.form-group-margin-125 {
+    margin-bottom: 1.25rem;
+}
+
+.form-label-left {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    text-align: left;
+}
+
+.pwd-desc-small {
+    display: block;
+    text-align: left;
+    margin-top: 0.4rem;
+}
+
+.form-group-margin-15 {
+    margin-bottom: 1.5rem;
+}
+
+.hint-input-margin {
+    margin-bottom: 0.25rem;
+}
+
+.risk-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    text-align: left;
+    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+    cursor: pointer;
+}
+
+.risk-label input[type="checkbox"] {
+    margin-top: 0.2rem;
+}
+
+#submit-btn {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.setup-footer {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.setup-footer p {
+    font-size: 0.95rem;
+    margin: 0;
+    color: var(--pico-secondary);
+}
+
+.setup-footer p a {
+    font-weight: 600;
+    color: var(--pico-primary);
+    text-decoration: underline;
+}
+
+.free-warning-modal-header {
+    border-bottom: none;
+    margin-bottom: 1rem;
+    padding-bottom: 0;
+    text-align: center;
+}
+
+.free-warning-modal-header h3 {
+    font-weight: 800;
+    color: #ef4444;
+    margin: 0;
+}
+
+.free-warning-p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: left;
+    margin-bottom: 1.5rem;
+}
+
+.free-warning-box {
+    background-color: rgba(239, 68, 68, 0.05);
+    border-left: 4px solid #ef4444;
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.free-warning-box span {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    font-weight: 600;
+    display: block;
+    color: var(--pico-color);
+}
+
+.free-warning-info-p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--pico-secondary);
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.free-warning-actions {
+    gap: 1rem;
+}
+
+.free-warning-actions button {
+    margin-bottom: 0;
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+}
+
+.free-warning-actions button.btn-danger {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}

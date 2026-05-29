@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CATAT — TMPT</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="/assets/css/catat.css?v=1">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/license.js"></script>
+</head>
+<body>
+
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <!-- Header Judul Catat -->
+        <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
+                <div style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="m10 16 3-3 3 3"/></svg>
+                </div>
+                <div>
+                    <h1 style="margin-bottom: 0; font-weight: 800; font-size: 2.25rem; letter-spacing: -0.03em; line-height: 1.1;">Catat</h1>
+                    <p class="secondary" style="margin-bottom: 0; font-size: 0.95rem;">Catatan privat & daftar tugas di peramban lokal.</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <button id="security-mode-toggle" onclick="toggleSecurityMode()" class="security-badge standard" style="margin: 0; padding: 0.75rem 1rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem;" title="Beralih Mode Keamanan">
+                    <span id="sec-icon">🔓</span>
+                    <span id="sec-text">Standar</span>
+                </button>
+                <button onclick="openExportModal()" class="outline secondary" style="margin: 0; font-size: 0.95rem; padding: 0.75rem 1.25rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem; background: var(--pico-card-bg);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Ekspor / Impor
+                </button>
+                <button id="main-add-btn" onclick="openAddModal()" class="btn-amber" style="margin: 0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    <span id="add-btn-text">Buat Catatan</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Sub-Navigasi (Tab Switcher) -->
+        <nav class="app-subnav">
+            <button id="tab-notes" class="subnav-btn active" onclick="switchMode('notes')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+                Catatan
+            </button>
+            <button id="tab-lists" class="subnav-btn" onclick="switchMode('lists')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                Daftar Tugas
+            </button>
+        </nav>
+
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar">
+            <div class="search-wrapper" style="position: relative; display: flex; align-items: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" id="search-input" placeholder="Cari judul, konten, atau label..." oninput="renderCurrentMode(); document.getElementById('clear-search-btn').style.display = this.value ? 'block' : 'none';" style="padding-left: 2.5rem; padding-right: 2.5rem; margin-bottom: 0; width: 100%;">
+                <button type="button" id="clear-search-btn" onclick="document.getElementById('search-input').value=''; renderCurrentMode(); this.style.display='none';" style="position: absolute; right: 8px; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem; display: none; cursor: pointer; font-size: 1.25rem; line-height: 1;">✕</button>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div id="filter-notes-container">
+                    <select id="filter-notes" onchange="renderCurrentMode()" style="margin: 0; border-radius: 12px; font-size: 0.95rem;">
+                        <option value="all">📁 Semua Catatan</option>
+                        <option value="pinned">📌 Dipatok</option>
+                        <option value="archive">📦 Arsip</option>
+                        <option value="trash">🗑️ Sampah</option>
+                    </select>
+                </div>
+                <div id="filter-tags-container">
+                    <select id="filter-tags" onchange="renderCurrentMode()" style="margin: 0; border-radius: 12px; font-size: 0.95rem;">
+                        <option value="all">🏷️ Semua Label</option>
+                        <!-- Dynamic Tags -->
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Container Utama Konten -->
+        <div id="app-content-container">
+            <!-- Dirender secara dinamis oleh JavaScript -->
+        </div>
+
+        <!-- Shortcut: Notes Encryptor -->
+        <div style="margin-top: 2.5rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(168, 85, 247, 0.05);">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="font-size: 1.5rem;">🔐</span>
+                <div>
+                    <div style="font-weight: 600; font-size: 0.95rem;">Perlu berbagi catatan rahasia?</div>
+                    <small class="secondary">Enkripsi pesan dengan sandi dan bagikan ciphertext-nya dengan aman.</small>
+                </div>
+            </div>
+            <a href="/app/tools/notes-encryptor/" class="outline" role="button" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Buka Encryptor →</a>
+        </div>
+
+        <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 1rem;">
+            <span class="secondary tmpt-version" style="font-size: 0.85rem; opacity: 0.7;">v1.0.0-rc1</span>
+        </div>
+    </main>
+
+    <!-- Modal Buat/Edit Catatan -->
+    <dialog id="modal-note">
+        <article class="modal-premium" style="max-width: 650px; width: 95%;">
+            <div class="modal-header">
+                <h3 id="modal-note-title">Buat Catatan Baru</h3>
+                <button type="button" class="btn-close" onclick="closeNoteModal()">✕</button>
+            </div>
+            <form id="form-note" onsubmit="saveNote(event)">
+                <input type="hidden" id="note-id">
+                
+                <div style="margin-bottom: 1.25rem;">
+                    <input type="text" id="note-title-input" placeholder="Judul Catatan" required style="font-weight: 700; font-size: 1.25rem; margin-bottom: 0; border-radius: 12px;">
+                </div>
+
+                <div style="margin-bottom: 1.25rem;">
+                    <textarea id="note-body-input" rows="8" placeholder="Tuliskan ide atau isi catatan Anda di sini..." style="margin-bottom: 0; border-radius: 12px; font-size: 0.95rem;"></textarea>
+                </div>
+
+                <div class="grid" style="gap: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <label for="note-tags-input" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Label (pisahkan dengan koma)</label>
+                        <input type="text" id="note-tags-input" placeholder="misal: kerja, ide, penting" style="margin-bottom: 0; border-radius: 10px;">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Warna Kartu</label>
+                        <div class="color-picker-grid" id="note-color-picker">
+                            <div class="color-option color-white selected" onclick="selectColor('white')"></div>
+                            <div class="color-option color-red" onclick="selectColor('red')"></div>
+                            <div class="color-option color-orange" onclick="selectColor('orange')"></div>
+                            <div class="color-option color-yellow" onclick="selectColor('yellow')"></div>
+                            <div class="color-option color-green" onclick="selectColor('green')"></div>
+                            <div class="color-option color-blue" onclick="selectColor('blue')"></div>
+                            <div class="color-option color-purple" onclick="selectColor('purple')"></div>
+                            <div class="color-option color-pink" onclick="selectColor('pink')"></div>
+                        </div>
+                        <input type="hidden" id="note-color-input" value="white">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0; font-weight: 500;">
+                        <input type="checkbox" id="note-pin-input" style="margin: 0; accent-color: var(--catat-amber);">
+                        📌 Patok di bagian atas
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin: 0; font-weight: 500;" id="note-archive-label">
+                        <input type="checkbox" id="note-archive-input" style="margin: 0; accent-color: var(--catat-amber);">
+                        📦 Masukkan ke Arsip
+                    </label>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="btn-del-note" class="outline" style="color: var(--del-color); border-color: var(--del-color); margin: 0; border-radius: 10px; display: none;" onclick="deleteNote()">🗑️ Hapus</button>
+                    <div></div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn-gray" onclick="closeNoteModal()">Batal</button>
+                        <button type="submit" class="btn-amber" style="margin: 0;">Simpan Catatan</button>
+                    </div>
+                </div>
+            </form>
+        </article>
+    </dialog>
+
+    <!-- Modal Buat/Edit Daftar Tugas (List Collection) -->
+    <dialog id="modal-list">
+        <article class="modal-premium" style="max-width: 550px; width: 95%;">
+            <div class="modal-header">
+                <h3 id="modal-list-title">Buat Daftar Tugas Baru</h3>
+                <button type="button" class="btn-close" onclick="closeListModal()">✕</button>
+            </div>
+            <form id="form-list" onsubmit="saveList(event)">
+                <input type="hidden" id="list-id">
+                
+                <div class="grid" style="gap: 1rem; margin-bottom: 1.25rem;">
+                    <div style="flex: 0 0 90px; text-align: center;">
+                        <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Ikon</label>
+                        <button type="button" id="btn-select-icon" onclick="openIconPicker()" class="outline" style="font-size: 1.75rem; padding: 0.25rem 0; width: 100%; border-radius: 12px; margin: 0; background: var(--pico-form-element-background-color);">📝</button>
+                        <input type="hidden" id="list-icon-input" value="📝">
+                    </div>
+                    <div style="flex-grow: 1;">
+                        <label for="list-name-input" style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Nama Daftar</label>
+                        <input type="text" id="list-name-input" placeholder="Misal: Daftar Belanja Mingguan" required style="font-weight: 700; font-size: 1.15rem; margin-bottom: 0; border-radius: 12px;">
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
+                    <button type="button" id="btn-del-list" class="outline" style="color: var(--del-color); border-color: var(--del-color); margin: 0; border-radius: 10px; display: none;" onclick="deleteList()">🗑️ Hapus Daftar</button>
+                    <div></div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn-gray" onclick="closeListModal()">Batal</button>
+                        <button type="submit" class="btn-amber" style="margin: 0;">Simpan Daftar</button>
+                    </div>
+                </div>
+            </form>
+        </article>
+    </dialog>
+
+    <!-- Modal Pilihan Ikon (Icon Picker) -->
+    <dialog id="modal-icon-picker">
+        <article class="modal-premium" style="max-width: 400px; width: 95%;">
+            <div class="modal-header">
+                <h3>Pilih Ikon Daftar</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-icon-picker').close()">✕</button>
+            </div>
+            <div class="icon-picker-grid" id="icon-picker-container">
+                <!-- Ikon akan diisi secara dinamis oleh JS -->
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end; margin-top: 1rem;">
+                <button class="btn-gray" onclick="document.getElementById('modal-icon-picker').close()">Tutup</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal: Konfirmasi (Generic) -->
+    <dialog id="confirm-modal">
+        <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+            <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+            <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+            <div id="confirm-input-container" style="display: none; margin-bottom: 1.5rem;">
+                <input type="text" id="confirm-input" placeholder="Ketik kalimat konfirmasi di sini" autocomplete="off" style="border-radius: 10px;">
+            </div>
+            <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+                <button class="btn-gray" onclick="closeConfirm(false)" style="flex: 1;">Batal</button>
+                <button class="btn-navy" id="confirm-ok-btn" onclick="closeConfirm(true)" style="flex: 1;">Lanjutkan</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal Ekspor / Impor -->
+    <dialog id="modal-export">
+        <article class="modal-premium" style="max-width: 520px; width: 95%;">
+            <div class="modal-header">
+                <h3>Ekspor / Impor Catatan & Daftar</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-export').close()">✕</button>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <p class="secondary" style="font-size: 0.95rem; margin-bottom: 1.5rem;">Backup atau pulihkan seluruh catatan dan daftar Anda dalam berkas JSON terpadu tanpa server.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="padding: 1.25rem; border: 1px solid var(--catat-amber); border-radius: 16px; background: rgba(245, 158, 11, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--catat-amber); font-size: 1.1rem; margin-bottom: 0.25rem;">Unduh Backup Berkas</div>
+                            <small class="secondary">Seluruh catatan dan daftar tugas disimpan ke dalam satu berkas .json</small>
+                        </div>
+                        <button onclick="exportData()" class="btn-amber" style="margin: 0; padding: 0.5rem 1rem !important;">📥 Unduh JSON</button>
+                    </div>
+
+                    <div style="padding: 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 16px; background: var(--pico-card-background-color); text-align: center;">
+                        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">Pulihkan dari Berkas</div>
+                        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1rem;">Unggah berkas backup .json untuk memulihkan seluruh data ke peramban ini.</p>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;" onchange="importData(event)">
+                        <button onclick="document.getElementById('import-file-input').click()" class="btn-navy-outline" style="border-radius: 12px; margin: 0;">📤 Pilih Berkas JSON</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button class="btn-gray" onclick="document.getElementById('modal-export').close()">Tutup</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- ============================================================ -->
+    <!-- SCRIPT UTAMA CATAT & DAFTAR                                  -->
+    <!-- ============================================================ -->
+    <script>
+        let currentMode = 'notes'; // 'notes' | 'lists'
+        let notesData = [];
+        let listsData = [];
+        let isEncryptedMode = localStorage.getItem('catat_security_mode') === 'encrypted';
+        const ICON_OPTIONS = ["📝","🛒","🎯","💼","🏠","✈️","🚀","💡","🔑","📦","🎉","🔥","❤️","🌟","🍔","☕","⚽","🎮","📚","💰","⏰","🛠️"];
+
+        // Inisialisasi & Muat Data
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("[CATAT] Menginisialisasi aplikasi...");
+            if (window.TMPT_Auth) {
+                await window.TMPT_Auth.init();
+                if (!window.TMPT_Auth.isUnlocked()) {
+                    console.warn("[CATAT] Vault terkunci, redirect ke login...");
+                    window.location.href = '/app/auth/login/';
+                    return;
+                }
+                window.TMPT_Auth.setupIdleListeners();
+            }
+            
+            // Cek jika mode enkripsi aktif tapi user bukan Pro
+            if (isEncryptedMode && (!window.TMPT_License || !window.TMPT_License.isPro())) {
+                isEncryptedMode = false;
+                localStorage.setItem('catat_security_mode', 'standard');
+            }
+
+            updateSecurityBadge();
+            await loadStorageData();
+            renderCurrentMode();
+            renderIconPicker();
+        });
+
+        function updateSecurityBadge() {
+            const toggleEl = document.getElementById('security-mode-toggle');
+            const iconEl = document.getElementById('sec-icon');
+            const textEl = document.getElementById('sec-text');
+            if (!toggleEl || !iconEl || !textEl) return;
+
+            if (isEncryptedMode) {
+                toggleEl.className = 'security-badge encrypted';
+                iconEl.textContent = '🔒';
+                textEl.textContent = 'Terenkripsi Pro';
+            } else {
+                toggleEl.className = 'security-badge standard';
+                iconEl.textContent = '🔓';
+                textEl.textContent = 'Standar Cepat';
+            }
+        }
+
+        function showProUpgradeModal(featureName) {
+            let modal = document.getElementById('pro-upgrade-modal');
+            if (!modal) {
+                modal = document.createElement('dialog');
+                modal.id = 'pro-upgrade-modal';
+                modal.innerHTML = `
+                    <article style="border-radius: 15px; padding: 2rem; max-width: 400px; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem; line-height: 1;">✨</div>
+                        <h3 style="margin-bottom: 0.5rem;">Fitur Premium</h3>
+                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;">Fitur <strong>${featureName}</strong> eksklusif untuk pengguna Edisi Pro. Tingkatkan akun Anda untuk mengaktifkan enkripsi militer pada catatan Anda.</p>
+                        <div class="grid" style="gap: 1rem;">
+                            <button class="outline secondary" onclick="document.getElementById('pro-upgrade-modal').close()" style="margin-bottom: 0;">Nanti Saja</button>
+                            <a href="/pro/" role="button" class="btn-navy" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
+                        </div>
+                    </article>
+                `;
+                document.body.appendChild(modal);
+            }
+            modal.showModal();
+        }
+
+        async function toggleSecurityMode() {
+            // Blokir jika user bukan Pro
+            if (!window.TMPT_License || !window.TMPT_License.isPro()) {
+                showProUpgradeModal('Enkripsi Catatan & Daftar Tugas');
+                return;
+            }
+
+            if (!window.TMPT_Auth || !window.TMPT_Auth.isUnlocked()) {
+                const wantLogin = confirm("Fitur Enkripsi Pro memerlukan Brankas yang terbuka. Apakah Anda ingin membuka Brankas sekarang?");
+                if (wantLogin) {
+                    window.location.href = '/app/auth/login/';
+                }
+                return;
+            }
+
+            const nextMode = !isEncryptedMode;
+            const confirmMsg = nextMode 
+                ? "Apakah Anda ingin mengaktifkan Enkripsi Pro? Seluruh catatan dan daftar tugas akan dienkripsi menggunakan kunci sandi master Brankas Anda dan tidak bisa dibaca tanpa kunci tersebut."
+                : "Apakah Anda ingin kembali ke Mode Standar Cepat? Catatan akan disimpan tanpa enkripsi agar lebih cepat diakses tanpa membuka kunci Brankas.";
+
+            const confirmed = await window.TMPT_UI.confirm(confirmMsg);
+            if (!confirmed) return;
+
+            isEncryptedMode = nextMode;
+            localStorage.setItem('catat_security_mode', isEncryptedMode ? 'encrypted' : 'standard');
+            updateSecurityBadge();
+
+            // Simpan ulang semua data ke storage dengan format baru
+            await saveNotesToStorage();
+            await saveListsToStorage();
+
+            if (isEncryptedMode) {
+                localStorage.removeItem('catat_notes');
+                localStorage.removeItem('catat_lists');
+                if (window.TMPT_UI) window.TMPT_UI.toast("Catatan kini terenkripsi penuh!", "success");
+            } else {
+                localStorage.removeItem('catat_notes_enc');
+                localStorage.removeItem('catat_lists_enc');
+                if (window.TMPT_UI) window.TMPT_UI.toast("Beralih ke mode penyimpanan standar.", "info");
+            }
+        }
+
+        async function loadStorageData() {
+            try {
+                if (isEncryptedMode) {
+                    if (!window.TMPT_Auth || !window.TMPT_Auth.isUnlocked()) {
+                        notesData = [{ id: 'locked_1', title: '🔒 Catatan Terkunci', body: 'Brankas Anda dalam kondisi terkunci. Silakan buka kunci Brankas untuk membaca catatan terenkripsi Anda.', tags: ['terkunci'], color: 'red' }];
+                        listsData = [{ id: 'locked_l1', name: '🔒 Daftar Tugas Terkunci', icon: '🔒', items: [] }];
+                        return;
+                    }
+                    const key = window.TMPT_Auth.getKey();
+                    const encNotes = localStorage.getItem('catat_notes_enc');
+                    const encLists = localStorage.getItem('catat_lists_enc');
+
+                    if (encNotes) {
+                        const dec = await window.TMPT_Crypto.decrypt(encNotes, key);
+                        notesData = JSON.parse(dec);
+                    } else {
+                        notesData = getSampleNotes();
+                        await saveNotesToStorage();
+                    }
+
+                    if (encLists) {
+                        const dec = await window.TMPT_Crypto.decrypt(encLists, key);
+                        listsData = JSON.parse(dec);
+                    } else {
+                        listsData = getSampleLists();
+                        await saveListsToStorage();
+                    }
+                } else {
+                    const storedNotes = localStorage.getItem('catat_notes');
+                    const storedLists = localStorage.getItem('catat_lists');
+                    notesData = storedNotes ? JSON.parse(storedNotes) : getSampleNotes();
+                    listsData = storedLists ? JSON.parse(storedLists) : getSampleLists();
+                    if (!storedNotes) saveNotesToStorage();
+                    if (!storedLists) saveListsToStorage();
+                }
+                updateTagFilters();
+            } catch (err) {
+                console.error("[CATAT] Gagal memuat data dari storage:", err);
+                notesData = [];
+                listsData = [];
+            }
+        }
+
+        async function saveNotesToStorage() {
+            try {
+                const dataStr = JSON.stringify(notesData);
+                if (isEncryptedMode && window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) {
+                    const key = window.TMPT_Auth.getKey();
+                    const enc = await window.TMPT_Crypto.encrypt(dataStr, key);
+                    localStorage.setItem('catat_notes_enc', enc);
+                } else {
+                    localStorage.setItem('catat_notes', dataStr);
+                }
+                updateTagFilters();
+            } catch (err) {
+                console.error("[CATAT] Gagal menyimpan notes:", err);
+            }
+        }
+
+        async function saveListsToStorage() {
+            try {
+                const dataStr = JSON.stringify(listsData);
+                if (isEncryptedMode && window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) {
+                    const key = window.TMPT_Auth.getKey();
+                    const enc = await window.TMPT_Crypto.encrypt(dataStr, key);
+                    localStorage.setItem('catat_lists_enc', enc);
+                } else {
+                    localStorage.setItem('catat_lists', dataStr);
+                }
+            } catch (err) {
+                console.error("[CATAT] Gagal menyimpan lists:", err);
+            }
+        }
+
+        // Data Sampel Awal
+        function getSampleNotes() {
+            return [
+                {
+                    id: 'note_' + Date.now() + '_1',
+                    title: '🚀 Selamat Datang di Catat TMPT',
+                    body: 'Aplikasi pencatatan privat yang menyimpan data 100% di peramban Anda.\n\nFitur utama:\n- Tidak ada sinkronisasi server (Zero-Knowledge)\n- Label & warna kartu untuk organisasi\n- Patok catatan penting di atas\n- Tab Daftar Tugas terintegrasi di sebelahnya\n- Mode Enkripsi Pro menggunakan sandi Brankas',
+                    tags: ['panduan', 'tmpt'],
+                    color: 'amber',
+                    pinned: true,
+                    archived: false,
+                    trashed: false,
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    id: 'note_' + Date.now() + '_2',
+                    title: '💡 Ide Proyek Sampingan',
+                    body: 'Membuat generator kata sandi berbasis gambar atau emoji yang mudah diingat manusia namun sulit ditebak oleh komputer.',
+                    tags: ['ide', 'proyek'],
+                    color: 'blue',
+                    pinned: false,
+                    archived: false,
+                    trashed: false,
+                    updated_at: new Date().toISOString()
+                }
+            ];
+        }
+
+        function getSampleLists() {
+            return [
+                {
+                    id: 'list_' + Date.now() + '_1',
+                    name: '🛒 Daftar Belanja Mingguan',
+                    icon: '🛒',
+                    items: [
+                        { id: 'item_1', text: 'Kopi Bubuk Arabica', checked: true },
+                        { id: 'item_2', text: 'Susu UHT 1 Liter', checked: false },
+                        { id: 'item_3', text: 'Roti Gandum', checked: false },
+                        { id: 'item_4', text: 'Telur Ayam 1 Kg', checked: true }
+                    ],
+                    updated_at: new Date().toISOString()
+                },
+                {
+                    id: 'list_' + Date.now() + '_2',
+                    name: '💼 Target Pekerjaan Hari Ini',
+                    icon: '🎯',
+                    items: [
+                        { id: 'item_5', text: 'Selesaikan implementasi Catat & Daftar', checked: true },
+                        { id: 'item_6', text: 'Review kode dengan tim keamanan', checked: false }
+                    ],
+                    updated_at: new Date().toISOString()
+                }
+            ];
+        }
+
+        // ── TAB SWITCHER (MODE) ───────────────────────────────────
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('tab-notes').classList.toggle('active', mode === 'notes');
+            document.getElementById('tab-lists').classList.toggle('active', mode === 'lists');
+
+            const addBtnText = document.getElementById('add-btn-text');
+            const filterNotesCont = document.getElementById('filter-notes-container');
+            const filterTagsCont = document.getElementById('filter-tags-container');
+
+            if (mode === 'notes') {
+                addBtnText.textContent = "Buat Catatan";
+                filterNotesCont.style.display = 'block';
+                filterTagsCont.style.display = 'block';
+            } else {
+                addBtnText.textContent = "Buat Daftar Tugas";
+                filterNotesCont.style.display = 'none';
+                filterTagsCont.style.display = 'none';
+            }
+
+            document.getElementById('search-input').value = '';
+            renderCurrentMode();
+        }
+
+        function openAddModal() {
+            if (currentMode === 'notes') {
+                document.getElementById('form-note').reset();
+                document.getElementById('note-id').value = '';
+                document.getElementById('btn-del-note').style.display = 'none';
+                document.getElementById('modal-note-title').textContent = "Buat Catatan Baru";
+                selectColor('white');
+                document.getElementById('modal-note').showModal();
+            } else {
+                document.getElementById('form-list').reset();
+                document.getElementById('list-id').value = '';
+                document.getElementById('btn-del-list').style.display = 'none';
+                document.getElementById('modal-list-title').textContent = "Buat Daftar Tugas Baru";
+                document.getElementById('list-icon-input').value = '📝';
+                document.getElementById('btn-select-icon').textContent = '📝';
+                document.getElementById('modal-list').showModal();
+            }
+        }
+
+        // ── RENDER UMUM ───────────────────────────────────────────
+        function renderCurrentMode() {
+            if (currentMode === 'notes') {
+                renderNotes();
+            } else {
+                renderLists();
+            }
+        }
+
+        function updateTagFilters() {
+            const selectEl = document.getElementById('filter-tags');
+            if (!selectEl) return;
+            
+            const currentVal = selectEl.value;
+            const allTags = new Set();
+            notesData.forEach(note => {
+                if (!note.trashed && note.tags) {
+                    note.tags.forEach(t => allTags.add(t.trim().toLowerCase()));
+                }
+            });
+
+            const optionsHtml = ['<option value="all">🏷️ Semua Label</option>'];
+            Array.from(allTags).sort().forEach(tag => {
+                if (tag) {
+                    const sel = (tag === currentVal) ? ' selected' : '';
+                    optionsHtml.push(`<option value="${tag}"${sel}>🏷️ #${tag}</option>`);
+                }
+            });
+
+            selectEl.innerHTML = optionsHtml.join('');
+        }
+
+        // ── ICON PICKER & CONFIRM MODAL ───────────────────────────
+        function renderIconPicker() {
+            const container = document.getElementById('icon-picker-container');
+            if (!container) return;
+            container.innerHTML = ICON_OPTIONS.map(icon => `
+                <div class="icon-option" onclick="selectIconOption('${icon}')">${icon}</div>
+            `).join('');
+        }
+
+        function openIconPicker() {
+            const currentIcon = document.getElementById('list-icon-input').value;
+            document.querySelectorAll('#icon-picker-container .icon-option').forEach(el => {
+                el.classList.toggle('selected', el.textContent.trim() === currentIcon);
+            });
+            document.getElementById('modal-icon-picker').showModal();
+        }
+
+        function selectIconOption(icon) {
+            document.getElementById('list-icon-input').value = icon;
+            document.getElementById('btn-select-icon').textContent = icon;
+            document.getElementById('modal-icon-picker').close();
+        }
+
+        function closeConfirm(confirmed) {
+            const modal = document.getElementById('confirm-modal');
+            if (modal) {
+                modal.close();
+                if (modal._resolve) {
+                    modal._resolve(confirmed);
+                    modal._resolve = null;
+                }
+            }
+        }
+
+        // ── RENDER CATATAN (NOTES) ────────────────────────────────
+        function renderNotes() {
+            const container = document.getElementById('app-content-container');
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filterType = document.getElementById('filter-notes').value;
+            const tagFilter = document.getElementById('filter-tags').value;
+
+            let filtered = notesData.filter(note => {
+                if (filterType === 'trash') return note.trashed;
+                if (note.trashed) return false;
+                
+                if (filterType === 'archive') return note.archived;
+                if (filterType === 'pinned') return note.pinned && !note.archived;
+                if (filterType === 'all') if (note.archived) return false;
+
+                if (tagFilter !== 'all') {
+                    if (!note.tags || !note.tags.some(t => t.trim().toLowerCase() === tagFilter)) return false;
+                }
+
+                if (query) {
+                    const matchesTitle = note.title && note.title.toLowerCase().includes(query);
+                    const matchesBody = note.body && note.body.toLowerCase().includes(query);
+                    const matchesTag = note.tags && note.tags.some(t => t.toLowerCase().includes(query));
+                    return matchesTitle || matchesBody || matchesTag;
+                }
+
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                let msgTitle = "Belum Ada Catatan";
+                let msgSub = "Buat catatan pertama Anda atau sesuaikan kata kunci pencarian.";
+                if (filterType === 'trash') { msgTitle = "Sampah Kosong"; msgSub = "Tidak ada catatan di dalam keranjang sampah."; }
+                else if (filterType === 'archive') { msgTitle = "Arsip Kosong"; msgSub = "Belum ada catatan yang diarsipkan."; }
+
+                container.innerHTML = `
+                    <div class="empty-catat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="m10 16 3-3 3 3"/></svg>
+                        <h3>${msgTitle}</h3>
+                        <p class="secondary" style="margin-bottom: 2rem;">${msgSub}</p>
+                        ${filterType === 'all' ? `<button onclick="openAddModal()" class="btn-amber" style="margin: 0;">Buat Catatan Sekarang</button>` : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            let pinnedNotes = [];
+            let otherNotes = [];
+
+            if (filterType === 'all' || tagFilter !== 'all') {
+                pinnedNotes = filtered.filter(n => n.pinned);
+                otherNotes = filtered.filter(n => !n.pinned);
+            } else {
+                otherNotes = filtered;
+            }
+
+            let html = '';
+
+            if (pinnedNotes.length > 0) {
+                html += `
+                    <h5 class="secondary" style="margin-bottom: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>📌 Dipatok</span>
+                    </h5>
+                    <div class="notes-grid" style="margin-bottom: 2.5rem;">
+                        ${pinnedNotes.map(n => getNoteCardHtml(n)).join('')}
+                    </div>
+                    ${otherNotes.length > 0 ? `<h5 class="secondary" style="margin-bottom: 1rem; font-weight: 700;">Lainnya</h5>` : ''}
+                `;
+            }
+
+            if (otherNotes.length > 0) {
+                html += `
+                    <div class="notes-grid">
+                        ${otherNotes.map(n => getNoteCardHtml(n)).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function getNoteCardHtml(note) {
+            const tagsHtml = note.tags ? note.tags.map(t => `<span class="tag-badge">#${t.trim()}</span>`).join('') : '';
+            const pinClass = note.pinned ? ' pinned' : '';
+            const pinTitle = note.pinned ? 'Lepas Patok' : 'Patok Catatan';
+            const colorAttr = note.color || 'white';
+
+            return `
+                <article class="note-card" data-color="${colorAttr}" onclick="if(!event.target.closest('button')) editNote('${note.id}')">
+                    <div class="note-header">
+                        <h3 class="note-title">${note.title || '(Tanpa Judul)'}</h3>
+                        <button type="button" class="btn-pin${pinClass}" title="${pinTitle}" onclick="event.stopPropagation(); togglePinNote('${note.id}')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="${note.pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2.5"><path d="M12 17v5"/><path d="M9 10.75 C9 8.5, 10 5, 12 3 C14 5, 15 8.5, 15 10.75 L17 14 H7 Z"/></svg>
+                        </button>
+                    </div>
+                    <div class="note-body">${escapeHtml(note.body || '')}</div>
+                    <div class="note-footer">
+                        <div class="note-tags">${tagsHtml}</div>
+                        <div>
+                            ${note.archived ? '<span title="Diarsipkan">📦</span>' : ''}
+                            ${note.trashed ? '<span title="Di Tempat Sampah">🗑️</span>' : ''}
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        // ── RENDER DAFTAR (LISTS) ─────────────────────────────────
+        function renderLists() {
+            const container = document.getElementById('app-content-container');
+            const query = document.getElementById('search-input').value.toLowerCase();
+
+            let filtered = listsData;
+            if (query) {
+                filtered = listsData.filter(l => {
+                    const matchesName = l.name && l.name.toLowerCase().includes(query);
+                    const matchesItem = l.items && l.items.some(i => i.text.toLowerCase().includes(query));
+                    return matchesName || matchesItem;
+                });
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-catat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        <h3>Belum Ada Daftar Tugas</h3>
+                        <p class="secondary" style="margin-bottom: 2rem;">Buat daftar belanja, target harian, atau checklist kegiatan Anda.</p>
+                        <button onclick="openAddModal()" class="btn-amber" style="margin: 0;">Buat Daftar Tugas</button>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="lists-grid">
+                    ${filtered.map(list => getListCardHtml(list)).join('')}
+                </div>
+            `;
+        }
+
+        function getListCardHtml(list) {
+            const total = list.items ? list.items.length : 0;
+            const completedItems = list.items ? list.items.filter(i => i.checked) : [];
+            const activeItems = list.items ? list.items.filter(i => !i.checked) : [];
+            const completed = completedItems.length;
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+            const activeHtml = activeItems.map(item => `
+                <div class="check-item">
+                    <label>
+                        <input type="checkbox" onchange="toggleItemChecked('${list.id}', '${item.id}')">
+                        ${escapeHtml(item.text)}
+                    </label>
+                    <button type="button" class="btn-del-item" onclick="deleteItemFromList('${list.id}', '${item.id}')" title="Hapus Tugas">✕</button>
+                </div>
+            `).join('');
+
+            const completedHtml = completedItems.map(item => `
+                <div class="check-item done">
+                    <label>
+                        <input type="checkbox" checked onchange="toggleItemChecked('${list.id}', '${item.id}')">
+                        ${escapeHtml(item.text)}
+                    </label>
+                    <button type="button" class="btn-del-item" onclick="deleteItemFromList('${list.id}', '${item.id}')" title="Hapus Tugas">✕</button>
+                </div>
+            `).join('');
+
+            let checklistContent = `<div class="checklist-container" style="margin-bottom: 0;">${activeHtml}</div>`;
+
+            if (completedItems.length > 0) {
+                checklistContent += `
+                    <div class="completed-container">
+                        <details>
+                            <summary class="completed-summary">Selesai (${completedItems.length})</summary>
+                            <div class="checklist-container" style="max-height: 200px; margin-top: 0.5rem; margin-bottom: 0;">
+                                ${completedHtml}
+                            </div>
+                        </details>
+                    </div>
+                `;
+            }
+
+            return `
+                <article class="list-card">
+                    <div class="list-header">
+                        <div class="list-title-group" onclick="editList('${list.id}')" style="cursor: pointer; flex-grow: 1;">
+                            <span class="list-icon">${list.icon || '📝'}</span>
+                            <h3 class="list-title">${escapeHtml(list.name)}</h3>
+                        </div>
+                        <button class="outline secondary" style="border: none; padding: 0.25rem 0.5rem; margin: 0; font-size: 1.25rem;" onclick="editList('${list.id}')" title="Pengaturan Daftar">⚙️</button>
+                    </div>
+
+                    <div class="progress-container">
+                        <div class="progress-bar" style="width: ${percentage}%;"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span>Progress Penyelesaian</span>
+                        <span>${completed} / ${total} Selesai (${percentage}%)</span>
+                    </div>
+
+                    ${checklistContent}
+
+                    <form class="quick-add-form" onsubmit="quickAddItem(event, '${list.id}')" style="margin-top: 1.25rem;">
+                        <input type="text" placeholder="+ Tambah item baru..." required>
+                        <button type="submit">Tambah</button>
+                    </form>
+                </article>
+            `;
+        }
+
+        // ── LOGIKA CRUD CATATAN ───────────────────────────────────
+        function selectColor(color) {
+            document.querySelectorAll('#note-color-picker .color-option').forEach(el => el.classList.remove('selected'));
+            const optionEl = document.querySelector(`#note-color-picker .color-${color}`);
+            if (optionEl) optionEl.classList.add('selected');
+            document.getElementById('note-color-input').value = color;
+        }
+
+        function closeNoteModal() {
+            document.getElementById('modal-note').close();
+        }
+
+        function saveNote(e) {
+            e.preventDefault();
+            const idInput = document.getElementById('note-id').value;
+            const titleInput = document.getElementById('note-title-input').value;
+            const bodyInput = document.getElementById('note-body-input').value;
+            const tagsInput = document.getElementById('note-tags-input').value;
+            const colorInput = document.getElementById('note-color-input').value;
+            const pinInput = document.getElementById('note-pin-input').checked;
+            const archiveInput = document.getElementById('note-archive-input').checked;
+
+            const tagsArr = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+            if (idInput) {
+                const index = notesData.findIndex(n => n.id === idInput);
+                if (index !== -1) {
+                    notesData[index].title = titleInput;
+                    notesData[index].body = bodyInput;
+                    notesData[index].tags = tagsArr;
+                    notesData[index].color = colorInput;
+                    notesData[index].pinned = pinInput;
+                    notesData[index].archived = archiveInput;
+                    notesData[index].updated_at = new Date().toISOString();
+                }
+            } else {
+                notesData.unshift({
+                    id: 'note_' + Date.now(),
+                    title: titleInput,
+                    body: bodyInput,
+                    tags: tagsArr,
+                    color: colorInput,
+                    pinned: pinInput,
+                    archived: archiveInput,
+                    trashed: false,
+                    updated_at: new Date().toISOString()
+                });
+            }
+
+            saveNotesToStorage();
+            closeNoteModal();
+            renderNotes();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Catatan berhasil disimpan!", "success");
+        }
+
+        function editNote(id) {
+            const note = notesData.find(n => n.id === id);
+            if (!note) return;
+
+            document.getElementById('note-id').value = note.id;
+            document.getElementById('note-title-input').value = note.title || '';
+            document.getElementById('note-body-input').value = note.body || '';
+            document.getElementById('note-tags-input').value = note.tags ? note.tags.join(', ') : '';
+            selectColor(note.color || 'white');
+            document.getElementById('note-pin-input').checked = note.pinned || false;
+            document.getElementById('note-archive-input').checked = note.archived || false;
+
+            document.getElementById('modal-note-title').textContent = "Edit Catatan";
+            document.getElementById('btn-del-note').style.display = 'inline-block';
+            
+            if (note.trashed) {
+                document.getElementById('btn-del-note').textContent = "📦 Pulihkan dari Sampah";
+            } else {
+                document.getElementById('btn-del-note').textContent = "🗑️ Hapus";
+            }
+
+            document.getElementById('modal-note').showModal();
+        }
+
+        function togglePinNote(id) {
+            const note = notesData.find(n => n.id === id);
+            if (!note) return;
+            note.pinned = !note.pinned;
+            saveNotesToStorage();
+            renderNotes();
+        }
+
+        function deleteNote() {
+            const id = document.getElementById('note-id').value;
+            const index = notesData.findIndex(n => n.id === id);
+            if (index === -1) return;
+
+            if (notesData[index].trashed) {
+                notesData[index].trashed = false;
+                if (window.TMPT_UI) window.TMPT_UI.toast("Catatan dipulihkan dari sampah", "success");
+            } else {
+                notesData[index].trashed = true;
+                notesData[index].pinned = false;
+                if (window.TMPT_UI) window.TMPT_UI.toast("Catatan dipindahkan ke sampah", "success");
+            }
+
+            saveNotesToStorage();
+            closeNoteModal();
+            renderNotes();
+        }
+
+        // ── LOGIKA CRUD DAFTAR TUGAS ──────────────────────────────
+        function closeListModal() {
+            document.getElementById('modal-list').close();
+        }
+
+        function saveList(e) {
+            e.preventDefault();
+            const id = document.getElementById('list-id').value;
+            const name = document.getElementById('list-name-input').value;
+            const icon = document.getElementById('list-icon-input').value;
+
+            if (id) {
+                const idx = listsData.findIndex(l => l.id === id);
+                if (idx !== -1) {
+                    listsData[idx].name = name;
+                    listsData[idx].icon = icon;
+                    listsData[idx].updated_at = new Date().toISOString();
+                }
+            } else {
+                listsData.unshift({
+                    id: 'list_' + Date.now(),
+                    name: name,
+                    icon: icon || '📝',
+                    items: [],
+                    updated_at: new Date().toISOString()
+                });
+            }
+
+            saveListsToStorage();
+            closeListModal();
+            renderLists();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Daftar tugas disimpan!", "success");
+        }
+
+        function editList(id) {
+            const list = listsData.find(l => l.id === id);
+            if (!list) return;
+
+            document.getElementById('list-id').value = list.id;
+            document.getElementById('list-name-input').value = list.name;
+            const icon = list.icon || '📝';
+            document.getElementById('list-icon-input').value = icon;
+            document.getElementById('btn-select-icon').textContent = icon;
+
+            document.getElementById('modal-list-title').textContent = "Pengaturan Daftar Tugas";
+            document.getElementById('btn-del-list').style.display = 'inline-block';
+            document.getElementById('modal-list').showModal();
+        }
+
+        async function deleteList() {
+            const id = document.getElementById('list-id').value;
+            const confirmDel = await window.TMPT_UI.confirm("Apakah Anda yakin ingin menghapus seluruh daftar tugas ini beserta isinya?");
+            if (!confirmDel) return;
+
+            listsData = listsData.filter(l => l.id !== id);
+            saveListsToStorage();
+            closeListModal();
+            renderLists();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Daftar tugas dihapus", "success");
+        }
+
+        function quickAddItem(e, listId) {
+            e.preventDefault();
+            const form = e.target;
+            const input = form.querySelector('input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const list = listsData.find(l => l.id === listId);
+            if (!list) return;
+
+            if (!list.items) list.items = [];
+            list.items.push({
+                id: 'item_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+                text: text,
+                checked: false
+            });
+
+            list.updated_at = new Date().toISOString();
+            saveListsToStorage();
+            input.value = '';
+            renderLists();
+        }
+
+        function toggleItemChecked(listId, itemId) {
+            const list = listsData.find(l => l.id === listId);
+            if (!list || !list.items) return;
+
+            const item = list.items.find(i => i.id === itemId);
+            if (!item) return;
+
+            item.checked = !item.checked;
+            list.updated_at = new Date().toISOString();
+            saveListsToStorage();
+            renderLists();
+        }
+
+        function deleteItemFromList(listId, itemId) {
+            const list = listsData.find(l => l.id === listId);
+            if (!list || !list.items) return;
+
+            list.items = list.items.filter(i => i.id !== itemId);
+            list.updated_at = new Date().toISOString();
+            saveListsToStorage();
+            renderLists();
+        }
+
+        // ── EKSPOR / IMPOR ────────────────────────────────────────
+        function openExportModal() {
+            document.getElementById('modal-export').showModal();
+        }
+
+        function exportData() {
+            const bundle = {
+                app: "TMPT-Catat-Daftar",
+                version: "1.0",
+                exported_at: new Date().toISOString(),
+                security_mode: isEncryptedMode ? "encrypted" : "standard",
+                data: {
+                    notes: notesData,
+                    lists: listsData
+                }
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bundle, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `tmpt-catat-backup-${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            
+            document.getElementById('modal-export').close();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Berkas JSON berhasil diunduh", "success");
+        }
+
+        function importData(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    if (!parsed.data || (!parsed.data.notes && !parsed.data.lists)) {
+                        alert("Berkas JSON tidak memiliki struktur data Catat/Daftar TMPT yang valid.");
+                        return;
+                    }
+
+                    if (parsed.data.notes && Array.isArray(parsed.data.notes)) {
+                        notesData = parsed.data.notes;
+                        await saveNotesToStorage();
+                    }
+                    if (parsed.data.lists && Array.isArray(parsed.data.lists)) {
+                        listsData = parsed.data.lists;
+                        await saveListsToStorage();
+                    }
+
+                    document.getElementById('modal-export').close();
+                    renderCurrentMode();
+                    if (window.TMPT_UI) window.TMPT_UI.toast("Data berhasil dipulihkan dari berkas backup!", "success");
+                } catch (err) {
+                    alert("Gagal membaca berkas JSON. Berkas mungkin korup atau tidak valid.");
+                    console.error("[CATAT] Import error:", err);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = ''; // Reset input
+        }
+
+        // Helpers
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+    </script>
+<div id="toast-container" aria-live="polite"></div>
+</body>
+</html>

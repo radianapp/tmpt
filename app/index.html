@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+</head>
+<body>
+
+    <script>
+        // Check auth before rendering anything
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+        })();
+    </script>
+
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+
+        
+        <div id="app-dashboard-grid">
+            <!-- Akan diisi secara dinamis dari renderAppSelectorGrid, per kategori -->
+        </div>
+
+        <!-- Kotak Status Keamanan -->
+        <section class="security-status-card">
+            <h4>Status Keamanan</h4>
+            <div class="security-info-grid">
+                <div class="security-info-item">
+                    <span class="dot dot-green"></span>
+                    <span>Status Tmpt: Terbuka</span>
+                </div>
+                <div class="security-info-item" style="justify-content: center;">
+                    <span class="dot dot-blue"></span>
+                    <span>Lokasi Data: Browser Lokal</span>
+                </div>
+                <div class="security-info-item" style="justify-content: flex-end;">
+                    <span class="dot dot-purple"></span>
+                    <span>Enkripsi: AES-256-GCM</span>
+                </div>
+            </div>
+        </section>
+    </main>
+<div id="toast-container" aria-live="polite"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (window.TMPT_UI && window.TMPT_UI.renderAppSelectorGrid) {
+            // Merender semua aplikasi Kerja, Dev, dan Tools yang terdaftar di shared/apps.json
+            await window.TMPT_UI.renderAppSelectorGrid('#app-dashboard-grid');
+        }
+    });
+</script>
+</body>
+</html>

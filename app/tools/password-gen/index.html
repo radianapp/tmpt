@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator Aman - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=3">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/generator.js"></script>
+    <script src="/shared/checker.js"></script>
+    <script src="/shared/ui.js"></script>
+    <style>
+        .mini-checker-bar {
+            height: 4px;
+            background-color: var(--pico-muted-border-color);
+            border-radius: 2px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: flex;
+        }
+        .mini-checker-segment {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        .mini-strength-1 { background-color: #ef4444; width: 25%; }
+        .mini-strength-2 { background-color: #f59e0b; width: 50%; }
+        .mini-strength-3 { background-color: #10b981; width: 75%; }
+        .mini-strength-4 { background-color: #3b82f6; width: 100%; }
+        .mini-text-1 { color: #ef4444; }
+        .mini-text-2 { color: #f59e0b; }
+        .mini-text-3 { color: #10b981; }
+        .mini-text-4 { color: #3b82f6; }
+    </style>
+</head>
+<body>
+
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <hgroup class="text-center" style="margin-bottom: 2.5rem;">
+            <div class="shield-header">
+                <div class="shield-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+                        <circle cx="12" cy="11" r="1" />
+                        <line x1="12" y1="12" x2="12" y2="14.5" />
+                    </svg>
+                </div>
+                <h1 style="margin: 0; font-size: 2.25rem; font-weight: 700;">Password Generator</h1>
+            </div>
+            <p class="secondary" style="font-size: 1.1rem;">Buat kata sandi acak, aman, dan kuat langsung di browser Anda.<br>Tidak ada data yang dikirim ke server.</p>
+        </hgroup>
+
+        <article class="generator-card">
+            <!-- Output / Result Box -->
+            <fieldset role="group" class="generator-result-group" style="margin-bottom: 0.5rem;">
+                <input type="text" id="gen-result" class="generator-input" readonly value="Memuat..." aria-label="Hasil Password" />
+                <button id="btn-copy" class="generator-btn-copy" onclick="copyResult()" title="Salin ke Clipboard">
+                    Salin
+                </button>
+            </fieldset>
+
+            <!-- Mini Strength Indicator -->
+            <div id="mini-checker-container" style="display: none; margin-bottom: 1.5rem; text-align: right; font-size: 0.85rem; font-weight: 600;">
+                <span id="mini-checker-text">-</span>
+                <div class="mini-checker-bar">
+                    <div id="mini-checker-segment" class="mini-checker-segment"></div>
+                </div>
+            </div>
+
+            <!-- Password Hint Container -->
+            <div id="hint-container" class="info-alert text-center" style="display: none; margin-bottom: 1.5rem; animation: slideIn 0.3s ease;">
+                <small class="secondary" style="font-weight: 600;">💡 Rekomendasi Password Hint:</small>
+                <div id="gen-hint" style="font-size: 1.1rem; font-weight: 700; color: var(--pico-primary); margin-top: 0.25rem;"></div>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <nav class="generator-tabs">
+                <ul>
+                    <li>
+                        <a href="#" id="link-random" class="tab-link active" onclick="switchTab('random', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <rect x="4" y="4" width="16" height="16" rx="2" />
+                                <circle cx="8.5" cy="8.5" r="1" fill="currentColor" />
+                                <circle cx="15.5" cy="8.5" r="1" fill="currentColor" />
+                                <circle cx="8.5" cy="15.5" r="1" fill="currentColor" />
+                                <circle cx="15.5" cy="15.5" r="1" fill="currentColor" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                            </svg>
+                            Acak Kuat
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="link-memorable" class="tab-link" onclick="switchTab('memorable', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <path d="M15.5 13a3.5 3.5 0 0 0 -3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8" />
+                                <path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1 -7 0v-1.8" />
+                                <path d="M17.5 16a3.5 3.5 0 0 0 0 -7h-.5" />
+                                <path d="M19 9.3v-2.8a3.5 3.5 0 0 0 -7 0" />
+                                <path d="M6.5 16a3.5 3.5 0 0 1 0 -7h.5" />
+                                <path d="M5 9.3v-2.8a3.5 3.5 0 0 1 7 0v10" />
+                            </svg>
+                            Mudah Diingat
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" id="link-pin" class="tab-link" onclick="switchTab('pin', event)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                                <rect x="3" y="3" width="18" height="18" rx="2" />
+                                <circle cx="8" cy="8" r="1" fill="currentColor" />
+                                <circle cx="12" cy="8" r="1" fill="currentColor" />
+                                <circle cx="16" cy="8" r="1" fill="currentColor" />
+                                <circle cx="8" cy="12" r="1" fill="currentColor" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                                <circle cx="16" cy="12" r="1" fill="currentColor" />
+                                <circle cx="8" cy="16" r="1" fill="currentColor" />
+                                <circle cx="12" cy="16" r="1" fill="currentColor" />
+                                <circle cx="16" cy="16" r="1" fill="currentColor" />
+                            </svg>
+                            PIN Angka
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- Tab Content: Random -->
+            <div id="tab-random" class="tab-content">
+                <div class="generator-range-wrapper">
+                    <div class="generator-range-header">
+                        <label for="random-length" style="margin: 0;">Panjang Karakter</label>
+                        <span id="length-val" class="generator-badge">16</span>
+                    </div>
+                    <input type="range" id="random-length" min="8" max="64" value="16" oninput="document.getElementById('length-val').innerText = this.value; generate()" aria-label="Pengatur Panjang Password">
+                </div>
+                
+                <div class="options-grid">
+                    <label><input type="checkbox" id="chk-upper" checked onchange="generate()"> Huruf Besar (A-Z)</label>
+                    <label><input type="checkbox" id="chk-lower" checked onchange="generate()"> Huruf Kecil (a-z)</label>
+                    <label><input type="checkbox" id="chk-num" checked onchange="generate()"> Angka (0-9)</label>
+                    <label><input type="checkbox" id="chk-sym" checked onchange="generate()"> Simbol (!@#$)</label>
+                </div>
+            </div>
+
+            <!-- Tab Content: Memorable -->
+            <div id="tab-memorable" class="tab-content" style="display: none;">
+                <div class="generator-range-wrapper">
+                    <div class="generator-range-header">
+                        <label for="memo-words" style="margin: 0;">Jumlah Kata</label>
+                        <span id="words-val" class="generator-badge">4</span>
+                    </div>
+                    <input type="range" id="memo-words" min="3" max="8" value="4" oninput="document.getElementById('words-val').innerText = this.value; generate()" aria-label="Pengatur Jumlah Kata">
+                </div>
+                
+                <div class="options-grid">
+                    <label><input type="checkbox" id="chk-cap" checked onchange="generate()"> Huruf Besar Awal</label>
+                    <label><input type="checkbox" id="chk-addnum" checked onchange="generate()"> Tambah Angka</label>
+                    <label><input type="checkbox" id="chk-addsym" onchange="generate()"> Tambah Simbol</label>
+                    <label style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;">
+                        <span style="font-size: 0.85rem; color: var(--pico-secondary);">Pemisah Kata</span>
+                        <select id="memo-sep" onchange="generate()" style="margin: 0; padding: 0.4rem 0.75rem;">
+                            <option value="-">Strip (-)</option>
+                            <option value=" ">Spasi ( )</option>
+                            <option value=".">Titik (.)</option>
+                            <option value="">Tanpa Pemisah</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Tab Content: PIN -->
+            <div id="tab-pin" class="tab-content" style="display: none;">
+                <div class="generator-range-wrapper" style="margin-bottom: 2.5rem;">
+                    <div class="generator-range-header">
+                        <label for="pin-length" style="margin: 0;">Panjang PIN</label>
+                        <span id="pin-val" class="generator-badge">6 digit</span>
+                    </div>
+                    <input type="range" id="pin-length" min="4" max="12" value="6" oninput="document.getElementById('pin-val').innerText = this.value + ' digit'; generate()" aria-label="Pengatur Panjang PIN">
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button onclick="generate()" class="btn-generate">
+                Ganti Password Baru
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4" />
+                    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4" />
+                </svg>
+            </button>
+
+            <!-- Shortcut: Cek Kekuatan Password -->
+            <div style="margin-top: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(56, 189, 248, 0.05);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.5rem;">🛡️</span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Seberapa kuat password ini?</div>
+                        <small class="secondary">Uji kekuatan password Anda dengan analisis entropi lokal.</small>
+                    </div>
+                </div>
+                <button onclick="goToChecker()" class="outline" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Cek Kekuatan →</button>
+            </div>
+        </article>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        let currentTab = 'random';
+
+        function switchTab(tabId, event) {
+            if (event) event.preventDefault();
+            currentTab = tabId;
+            
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            // Remove active class
+            document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
+            
+            // Show selected tab
+            const targetContent = document.getElementById(`tab-${tabId}`);
+            if (targetContent) targetContent.style.display = 'block';
+            
+            // Add active class
+            const activeLink = document.getElementById(`link-${tabId}`);
+            if (activeLink) activeLink.classList.add('active');
+
+            generate();
+        }
+
+        function generate() {
+            if (!window.TMPT_Generator) return;
+            
+            let result = '';
+            let hint = '';
+            if (currentTab === 'random') {
+                const len = parseInt(document.getElementById('random-length').value);
+                const opts = {
+                    lowercase: document.getElementById('chk-lower').checked,
+                    uppercase: document.getElementById('chk-upper').checked,
+                    numbers: document.getElementById('chk-num').checked,
+                    symbols: document.getElementById('chk-sym').checked
+                };
+                result = window.TMPT_Generator.generateRandom(len, opts);
+                hint = '';
+            } else if (currentTab === 'memorable') {
+                const words = parseInt(document.getElementById('memo-words').value);
+                const cap = document.getElementById('chk-cap').checked;
+                const addNum = document.getElementById('chk-addnum').checked;
+                const addSym = document.getElementById('chk-addsym').checked;
+                const sep = document.getElementById('memo-sep').value;
+                result = window.TMPT_Generator.generateMemorable(words, sep, cap, addNum, addSym);
+                
+                // Construct hint
+                const parts = result.split(sep || /(?=[A-Z])/); // fallback regex if no separator
+                const wordsOnly = parts.filter(p => isNaN(p) && p.length > 0).join(' ');
+                hint = `Otomatis: ${wordsOnly}`;
+            } else if (currentTab === 'pin') {
+                const len = parseInt(document.getElementById('pin-length').value);
+                result = window.TMPT_Generator.generatePIN(len);
+                hint = '';
+            }
+
+            const inputRes = document.getElementById('gen-result');
+            if (inputRes) inputRes.value = result;
+            
+            const hintContainer = document.getElementById('hint-container');
+            if (hint) {
+                document.getElementById('gen-hint').innerText = hint;
+                if (hintContainer) hintContainer.style.display = 'block';
+            } else {
+                if (hintContainer) hintContainer.style.display = 'none';
+            }
+
+            // Update Mini Checker
+            if (window.TMPT_Checker && result) {
+                const checkRes = window.TMPT_Checker.calculateStrength(result);
+                const miniContainer = document.getElementById('mini-checker-container');
+                const miniText = document.getElementById('mini-checker-text');
+                const miniSegment = document.getElementById('mini-checker-segment');
+                
+                if (miniContainer && miniText && miniSegment) {
+                    miniContainer.style.display = 'block';
+                    
+                    miniSegment.className = 'mini-checker-segment';
+                    miniText.className = '';
+                    
+                    miniSegment.classList.add(`mini-strength-${checkRes.score}`);
+                    miniText.classList.add(`mini-text-${checkRes.score}`);
+                    
+                    if (checkRes.score === 1) miniText.textContent = 'Sangat Lemah';
+                    else if (checkRes.score === 2) miniText.textContent = 'Lemah';
+                    else if (checkRes.score === 3) miniText.textContent = 'Kuat';
+                    else if (checkRes.score === 4) miniText.textContent = 'Sangat Kuat';
+                }
+            }
+        }
+
+        function copyResult() {
+            const inputRes = document.getElementById('gen-result');
+            if (!inputRes) return;
+            
+            const text = inputRes.value;
+            navigator.clipboard.writeText(text).then(() => {
+                if (window.TMPT_UI && typeof window.TMPT_UI.toast === 'function') {
+                    window.TMPT_UI.toast("Password disalin ke clipboard!", "success");
+                }
+                
+                const copyBtn = document.getElementById('btn-copy');
+                if (copyBtn) {
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = `✓ Tersalin`;
+                    copyBtn.style.backgroundColor = '#2e7d32';
+                    copyBtn.style.borderColor = '#2e7d32';
+                    copyBtn.style.color = '#ffffff';
+                    
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHtml;
+                        copyBtn.style.backgroundColor = '';
+                        copyBtn.style.borderColor = '';
+                        copyBtn.style.color = '';
+                    }, 2000);
+                }
+            });
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof generate === 'function') {
+                generate();
+            }
+        });
+
+        function goToChecker() {
+            const pwd = document.getElementById('gen-result').value;
+            if (pwd) {
+                window.location.href = '/app/tools/password-checker/?pwd=' + encodeURIComponent(pwd);
+            } else {
+                window.location.href = '/app/tools/password-checker/';
+            }
+        }
+    </script>
+<div id="toast-container" aria-live="polite"></div>
+</body>
+</html>

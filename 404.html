@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Tidak Ditemukan (404) — TMPT</title>
+    <meta name="description" content="Halaman yang Anda cari tidak dapat ditemukan di TMPT.">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <meta name="theme-color" content="#2563eb">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=3">
+    
+    <!-- JS -->
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js?v=4"></script>
+</head>
+<body>
+
+    <!-- Header -->
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70vh; text-align: center; padding: 2rem 1rem;">
+        <div style="max-width: 500px; width: 100%;">
+            <!-- Illustration -->
+            <div style="margin-bottom: 2rem; display: flex; justify-content: center;">
+                <svg viewBox="0 0 200 200" width="180" height="180" style="max-width: 100%;">
+                    <!-- Background Soft Circle -->
+                    <circle cx="100" cy="100" r="80" fill="var(--pico-card-sectioning-background-color)" />
+                    
+                    <!-- Paper Document -->
+                    <rect x="65" y="45" width="70" height="90" rx="8" fill="var(--pico-card-background-color)" stroke="var(--pico-muted-border-color)" stroke-width="4" />
+                    <!-- Folded Corner -->
+                    <path d="M115 45 L135 65 L115 65 Z" fill="var(--pico-muted-border-color)" />
+                    
+                    <!-- Magnifying Glass -->
+                    <circle cx="115" cy="115" r="28" fill="none" stroke="var(--primary)" stroke-width="6" />
+                    <line x1="135" y1="135" x2="160" y2="160" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" />
+                    
+                    <!-- Question Mark inside Document -->
+                    <text x="92" y="95" font-family="system-ui, sans-serif" font-size="32" font-weight="800" fill="var(--pico-muted-color)" text-anchor="middle">?</text>
+                    
+                    <!-- Little Sparkles -->
+                    <path d="M40 70 L48 70 M44 66 M44 74" stroke="var(--pico-muted-color)" stroke-width="2" stroke-linecap="round" />
+                    <path d="M150 50 L158 50 M154 46 M154 54" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+
+            <h1 style="font-weight: 800; font-size: 2.25rem; margin-bottom: 0.5rem; color: var(--pico-h1-color);">Waduh, Halaman Hilang!</h1>
+            <h2 style="font-size: 1.1rem; font-weight: 600; color: var(--pico-muted-color); margin-bottom: 1.5rem;">Error Code: 404 (Halaman Tidak Ditemukan)</h2>
+            
+            <p class="secondary" style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                Halaman atau berkas yang Anda tuju tidak ditemukan di server lokal. Kemungkinan tautan tersebut salah ketik, berkas telah dipindahkan, atau halaman aplikasi tersebut belum diimplementasikan di versi lokal Anda.
+            </p>
+
+            <div style="font-family: monospace; background: var(--pico-card-sectioning-background-color); padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--pico-muted-border-color); font-size: 0.85rem; margin-bottom: 2rem; word-break: break-all; text-align: left;">
+                <span style="font-weight: 700; color: var(--pico-muted-color);">PATH:</span> <span id="error-path" style="color: var(--primary);">/</span>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
+                <a href="/" class="btn-navy" role="button" style="border-radius: 10px; font-weight: 600; text-decoration: none; padding: 0.75rem 1.5rem; margin-bottom: 0;">Ke Beranda</a>
+                <a href="/app/" class="outline secondary" role="button" style="border-radius: 10px; font-weight: 600; text-decoration: none; padding: 0.75rem 1.5rem; margin-bottom: 0;">Buka Dashboard App</a>
+            </div>
+
+            <!-- Formulir Laporan Masalah -->
+            <details style="margin-top: 2rem; text-align: left; border: 1px solid var(--pico-muted-border-color); border-radius: 16px; padding: 0.75rem 1.25rem;">
+                <summary style="font-weight: 700; font-size: 0.9rem; cursor: pointer; color: var(--pico-color);">Lapor Masalah / Error</summary>
+                <div style="margin-top: 1rem;">
+                    <label for="error-description" style="font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: block;">Deskripsi Masalah:</label>
+                    <textarea id="error-description" placeholder="Jelaskan apa yang Anda lakukan sebelum halaman ini muncul..." style="font-size: 0.85rem; border-radius: 10px; min-height: 80px; margin-bottom: 1rem;"></textarea>
+                    <button onclick="sendErrorReport()" class="btn-navy" style="width: 100%; border-radius: 10px; font-size: 0.85rem; padding: 0.6rem; margin-bottom: 0;">Kirim Laporan via Email</button>
+                </div>
+            </details>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('error-path').textContent = window.location.pathname + window.location.search;
+
+        function sendErrorReport() {
+            const path = window.location.pathname + window.location.search;
+            const host = window.location.host;
+            const description = document.getElementById('error-description').value;
+            const userAgent = navigator.userAgent;
+            
+            const subject = encodeURIComponent("Laporan Error 404 - TMPT");
+            const body = encodeURIComponent(
+                `Halo Tim TMPT,\n\nSaya menemukan error 404 pada:\n` +
+                `- Domain/Host: ${host}\n` +
+                `- Path URL: ${path}\n\n` +
+                `Deskripsi Kejadian:\n${description || '(Tidak ada deskripsi)'}\n\n` +
+                `Metadata:\n` +
+                `- User Agent: ${userAgent}\n` +
+                `- Platform: ${navigator.platform}\n\n` +
+                `Terima kasih.`
+            );
+            
+            window.location.href = `mailto:info@tmpt.my.id?subject=${subject}&body=${body}`;
+        }
+    </script>
+
+    <!-- Footer (Opsional, jika ada footer bersama) -->
+    <footer class="container" style="text-align: center; padding: 2rem 0; font-size: 0.8rem; color: var(--pico-muted-color); border-top: 1px solid var(--pico-muted-border-color); margin-top: auto;">
+        <p>&copy; 2026 TMPT. Berjalan sepenuhnya di browser Anda secara lokal & privat.</p>
+    </footer>
+
+</body>
+</html>

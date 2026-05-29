@@ -2,7 +2,7 @@
     <nav>
         <ul>
             <li>
-                <a href="/dashboard" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                     <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img">
                     <strong>TMPT</strong>
                     <span id="app-header-pro-badge" style="display: none; background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 6px; letter-spacing: 0.05em; line-height: 1;">PRO</span>
@@ -10,31 +10,88 @@
             </li>
         </ul>
         <ul>
-            <li class="hide-mobile"><a href="/dashboard" class="secondary">Dashboard</a></li>
-            <li class="hide-mobile"><a href="/tools" class="secondary">Tools</a></li>
-            <li class="hide-mobile"><a href="/settings" class="secondary">Pengaturan</a></li>
+            <!-- Ganti Tema -->
             <li>
-                <button class="theme-toggle" onclick="handleSwitchVaultClick()" aria-label="Ganti Tmpt" title="Ganti Tmpt">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <rect x="7" y="3" width="14" height="14" rx="2"></rect>
-                        <path d="M17 17v2a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2"></path>
-                    </svg>
-                </button>
-            </li>
-            <li>
-                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema">
+                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
                     <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
                         <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
                     </svg>
                 </button>
             </li>
-            <li class="hide-mobile">
-                <button onclick="window.TMPT_Auth.lock()" class="outline secondary" style="border-radius: 10px; padding: 0.4rem 1rem; margin-bottom: 0;">Kunci Tmpt</button>
+            
+            <!-- App Launcher -->
+            <li>
+                <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
+                    <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <rect x="4" y="4" width="4" height="4" rx="1"></rect>
+                            <rect x="10" y="4" width="4" height="4" rx="1"></rect>
+                            <rect x="16" y="4" width="4" height="4" rx="1"></rect>
+                            <rect x="4" y="10" width="4" height="4" rx="1"></rect>
+                            <rect x="10" y="10" width="4" height="4" rx="1"></rect>
+                            <rect x="16" y="10" width="4" height="4" rx="1"></rect>
+                            <rect x="4" y="16" width="4" height="4" rx="1"></rect>
+                            <rect x="10" y="16" width="4" height="4" rx="1"></rect>
+                            <rect x="16" y="16" width="4" height="4" rx="1"></rect>
+                        </svg>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="tmpt-app-launcher-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 16px !important; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left; opacity: 1 !important;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; color: var(--pico-color);">Aplikasi TMPT</h4>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                            <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
+                                <span style="font-size: 1.5rem;">💻</span>
+                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
+                            </a>
+                            <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
+                                <span style="font-size: 1.5rem;">🔐</span>
+                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
+                            </a>
+                            <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
+                                <span style="font-size: 1.5rem;">📝</span>
+                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
+                            </a>
+                            <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
+                                <span style="font-size: 1.5rem;">📊</span>
+                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </li>
-            <li class="show-mobile" style="display: none;">
-                <button class="outline secondary" aria-label="Menu Navigasi" onclick="document.getElementById('mobile-app-nav-modal').showModal()" style="padding: 0.35rem 0.75rem; margin-bottom: 0;">☰</button>
+            
+            <!-- Profile Dropdown -->
+            <li>
+                <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
+                    <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 15px; text-transform: uppercase;">
+                        <span id="tmpt-profile-initial">G</span>
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div id="tmpt-profile-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 20px !important; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: var(--pico-color) !important; opacity: 1 !important;">
+                        <div id="tmpt-profile-email" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
+                        <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                            <div id="tmpt-profile-avatar-large" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid var(--pico-muted-border-color); text-transform: uppercase;">G</div>
+                        </div>
+                        <h3 id="tmpt-profile-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Halo, Tamu.</h3>
+                        <p id="tmpt-profile-subtitle" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.25rem;">Tmpt terkunci</p>
+                        
+                        <div id="tmpt-profile-status-badge" style="margin-bottom: 1.5rem;"></div>
+                        
+                        <hr style="margin: 1rem 0;">
+                        
+                        <div id="tmpt-profile-vault-list" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                        
+                        <hr style="margin: 1rem 0;">
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <button id="tmpt-profile-action-btn" class="outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">Buka Tmpt</button>
+                            <button id="tmpt-profile-settings-btn" class="outline secondary" onclick="window.location.href='/app/auth/settings/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; display: none;">Setelan</button>
+                            <button id="tmpt-profile-setup-btn" class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">+ Buat Tmpt Baru</button>
+                        </div>
+                    </div>
+                </div>
             </li>
         </ul>
     </nav>
@@ -48,9 +105,9 @@
             <button class="close" aria-label="Tutup" onclick="document.getElementById('mobile-app-nav-modal').close()" style="margin-bottom: 0; background: transparent; border: none; font-size: 1.5rem; color: var(--pico-secondary); padding: 0; width: auto; height: auto;">✕</button>
         </header>
         <ul style="list-style: none !important; padding-left: 0 !important; margin: 0;">
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/dashboard" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Dashboard</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/tools" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Tools & Generator</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/settings" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Pengaturan</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Dashboard</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/tools/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Tools &amp; Generator</a></li>
+            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/auth/settings/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Pengaturan</a></li>
             <li style="margin-top: 2rem; list-style: none !important;">
                 <button role="button" class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_Auth.lock();">Kunci Tmpt</button>
             </li>
@@ -82,7 +139,7 @@
                     <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;">Fitur <strong>${featureName}</strong> eksklusif untuk pengguna Edisi Pro. Tingkatkan akun Anda untuk mengelola banyak brankas secara bersamaan.</p>
                     <div class="grid" style="gap: 1rem;">
                         <button class="outline secondary" onclick="document.getElementById('pro-upgrade-modal').close()" style="margin-bottom: 0;">Nanti Saja</button>
-                        <a href="/pro/" role="button" class="btn-navy" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
+                        <a href="/app/home/pro/" role="button" class="btn-navy" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
                     </div>
                 </article>
             `;
@@ -95,7 +152,7 @@
         if (!window.TMPT_License) {
             await new Promise((resolve) => {
                 const script = document.createElement('script');
-                script.src = '/assets/js/license.js';
+                script.src = '/shared/license.js';
                 script.onload = resolve;
                 document.head.appendChild(script);
             });
@@ -108,7 +165,10 @@
         if (proBadge && window.TMPT_License && window.TMPT_License.isPro()) {
             proBadge.style.display = 'inline-block';
         }
-        if (window.TMPT_UI) window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'system');
+        if (window.TMPT_UI) {
+            window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'light');
+            window.TMPT_UI.updateProfileUI();
+        }
     }
 
     if (document.readyState === 'loading') {

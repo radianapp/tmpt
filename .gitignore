@@ -13,3 +13,7 @@ arsip/
 tmp/
 dist/
 deploy/
+
+PROMPT.md
+
+app/tools/license-generator/

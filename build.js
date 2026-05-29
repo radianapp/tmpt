@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetDir = path.join(__dirname, 'dist');
+const targetDir = path.join(__dirname, 'deploy','dist');
 
 // Bersihkan direktori dist jika sudah ada
 if (fs.existsSync(targetDir)) {
@@ -9,32 +9,20 @@ if (fs.existsSync(targetDir)) {
 }
 fs.mkdirSync(targetDir, { recursive: true });
 
-// Daftar item yang akan disalin
 const itemsToCopy = [
-    'about',
+    'app',
     'assets',
-    'brankas',
-    'catat',
-    'contact',
-    'dashboard',
-    'faq',
-    'harga',
-    'help',
-    'login',
-    'privacy',
-    'settings',
-    'setup',
     'shared',
-    'sponsor',
-    'terms',
-    'tools',
     'index.html',
+    '404.html',
     'favicon.png',
+    'favicon-48.png',
+    'favicon-512.png',
     'manifest.json',
     'sw.js'
 ];
 
-console.log('Memulai proses build ke direktori dist...');
+console.log('Memulai proses build ke direktori deploy/dist...');
 
 itemsToCopy.forEach(item => {
     const srcPath = path.join(__dirname, item);

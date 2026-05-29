@@ -1,7 +1,7 @@
 {
   "appId": "id.my.tmpt.app",
   "appName": "TMPT",
-  "webDir": "dist",
+  "webDir": "deploy/dist",
   "server": {
     "androidScheme": "https",
     "iosScheme": "https"

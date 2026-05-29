@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syarat & Ketentuan - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/version.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <div style="max-width: 720px; margin: 0 auto;">
+            <hgroup style="margin-bottom: 2rem;">
+                <h1>Syarat &amp; Ketentuan</h1>
+                <p>Terakhir diperbarui: Mei 2026</p>
+            </hgroup>
+
+            <section>
+                <h3>1. Penerimaan Syarat</h3>
+                <p>Dengan menggunakan aplikasi TMPT ("Layanan"), Anda menyetujui untuk terikat oleh Syarat & Ketentuan ini. Jika Anda tidak setuju, harap hentikan penggunaan layanan ini.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>2. Sifat Layanan</h3>
+                <p>TMPT adalah aplikasi <em>client-side</em> yang beroperasi sepenuhnya di dalam browser perangkat Anda. Kami <strong>tidak menyediakan penyimpanan data di server</strong> milik kami untuk data personal Anda.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>3. Tanggung Jawab Pengguna</h3>
+                <p>Anda bertanggung jawab penuh atas:</p>
+                <ul>
+                    <li><strong>Keamanan Kata Kunci Utama Anda.</strong> Jika Anda lupa password, tidak ada mekanisme pemulihan. Data Anda akan hilang permanen.</li>
+                    <li><strong>Menjaga salinan backup file <code>.tmpt</code></strong> Anda secara berkala. Kehilangan data akibat penghapusan browser cache adalah tanggung jawab Anda.</li>
+                    <li>Menggunakan layanan ini sesuai dengan hukum yang berlaku.</li>
+                </ul>
+            </section>
+
+            <section class="mt-2">
+                <h3>4. Batasan Tanggung Jawab</h3>
+                <p>TMPT disediakan "sebagaimana adanya" (<em>as-is</em>) tanpa jaminan apa pun. Kami tidak bertanggung jawab atas kehilangan data yang terjadi akibat lupa password, kerusakan perangkat, atau penghapusan data browser.</p>
+            </section>
+
+            <section class="mt-2">
+                <h3>5. Perubahan Syarat</h3>
+                <p>Kami berhak untuk mengubah syarat ini sewaktu-waktu. Perubahan akan diinformasikan melalui pembaruan di halaman ini.</p>
+            </section>
+        </div>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

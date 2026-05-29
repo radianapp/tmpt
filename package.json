@@ -7,12 +7,20 @@
     "build": "node build.js",
     "cap:sync": "npm run build && npx cap sync",
     "cap:open:android": "npx cap open android",
-    "cap:open:ios": "npx cap open ios"
+    "cap:open:ios": "npx cap open ios",
+    "test:unit": "vitest run test/unit",
+    "test:e2e": "playwright test --config=test/e2e/playwright.config.js",
+    "test:browser": "echo \"Buka http://localhost:8000/test/browser/ di browser Anda.\""
   },
   "dependencies": {
     "@capacitor/android": "^6.0.0",
     "@capacitor/cli": "^6.0.0",
     "@capacitor/core": "^6.0.0",
     "@capacitor/ios": "^6.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.7"
   }
 }

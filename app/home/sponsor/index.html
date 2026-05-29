@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsor & Donasi - TMPT</title>
+    <meta name="description" content="TMPT adalah proyek open-source yang didukung oleh komunitas. Dukung pengembangan TMPT melalui donasi atau menjadi sponsor utama.">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="/app/home/sponsor/sponsor.css">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/version.js"></script>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+
+        <!-- Hero -->
+        <header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
+            <div style="font-size: 3.5rem; margin-bottom: 0.75rem;">❤️</div>
+            <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Dukung TMPT</h1>
+            <p class="secondary" style="max-width: 600px; margin: 0 auto 2rem; font-size: 1.15rem;">
+                TMPT is a free, privacy-first project.
+                If you find it useful, please consider supporting its development.
+            </p>
+            <div class="sponsor-cta-grid" style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+                <a href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" class="sponsor-btn saweria-btn" role="button" style="text-decoration: none;">
+                    <span class="sponsor-btn-icon">🇮🇩</span>
+                    <div>
+                        <strong>Donasi via Saweria</strong>
+                        <small>Untuk pengguna Indonesia</small>
+                    </div>
+                </a>
+                <a href="https://ko-fi.com/tmptmyid" target="_blank" rel="noopener noreferrer" class="sponsor-btn kofi-btn" role="button" style="text-decoration: none;">
+                    <span class="sponsor-btn-icon">☕</span>
+                    <div>
+                        <strong>Buy Me a Coffee via Ko-fi</strong>
+                        <small>For global supporters</small>
+                    </div>
+                </a>
+            </div>
+        </header>
+
+        <!-- Tiers -->
+        <section style="margin: 4rem 0;">
+            <h2 class="text-center" style="font-weight: 800; font-size: 2rem; color: var(--pico-h1-color); margin-bottom: 2rem;">Tier Sponsor Utama</h2>
+            <div class="app-selector-grid">
+                <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem;">💎</div>
+                    <h3>Diamond</h3>
+                    <p id="sponsor-diamond-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 10.000.000+ / bulan</p>
+                    <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
+                        <li style="margin-bottom: 0.5rem;">✅ Logo di halaman utama & sponsor</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Sebutan di README.md GitHub</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Badge "Diamond Sponsor" di UI</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Priority feature request</li>
+                    </ul>
+                    <div class="card-action">
+                        <a id="sponsor-diamond-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                    </div>
+                </article>
+                <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem;">🥇</div>
+                    <h3>Gold</h3>
+                    <p id="sponsor-gold-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 5.000.000+ / bulan</p>
+                    <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
+                        <li style="margin-bottom: 0.5rem;">✅ Logo di halaman sponsor</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Sebutan di README.md GitHub</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Badge "Gold Sponsor" di UI app</li>
+                    </ul>
+                    <div class="card-action">
+                        <a id="sponsor-gold-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                    </div>
+                </article>
+                <article class="app-selector-card text-center" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; padding: 2.5rem 2rem;">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem;">🥈</div>
+                    <h3>Silver</h3>
+                    <p id="sponsor-silver-price" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Rp 2.000.000+ / bulan</p>
+                    <ul class="no-bullets" style="text-align: left; margin: 0 0 2rem 0; padding-left: 0; list-style: none;">
+                        <li style="margin-bottom: 0.5rem;">✅ Nama di halaman sponsor</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Sebutan di CHANGELOG TMPT</li>
+                    </ul>
+                    <div class="card-action">
+                        <a id="sponsor-silver-btn" href="https://saweria.co/tmpt" target="_blank" rel="noopener noreferrer" role="button" class="btn-navy" style="width:100%; border-radius: 10px; padding: 0.6rem 1rem;">Daftar via Saweria</a>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- Infrastructure Sponsors -->
+        <section style="margin: 4rem 0;">
+            <h2 class="text-center" style="font-weight: 800; font-size: 2rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Ditenagai Oleh</h2>
+            <p class="text-center secondary" style="margin-bottom: 2.5rem;">Proyek-proyek open-source luar biasa yang membuat TMPT bisa ada tanpa biaya operasional.</p>
+            <div class="infra-grid">
+                <a href="https://picocss.com" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="PicoCSS">
+                    <span class="infra-emoji">🎨</span>
+                    <div>
+                        <strong>PicoCSS</strong>
+                        <small>CSS Framework minimalis dan elegan</small>
+                    </div>
+                </a>
+                <a href="https://htmx.org" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="HTMX">
+                    <span class="infra-emoji">⚡</span>
+                    <div>
+                        <strong>HTMX</strong>
+                        <small>Interaktivitas UI tanpa framework besar</small>
+                    </div>
+                </a>
+                <a href="https://pages.github.com" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="GitHub Pages">
+                    <span class="infra-emoji">🐙</span>
+                    <div>
+                        <strong>GitHub Pages</strong>
+                        <small>Hosting gratis dan andal</small>
+                    </div>
+                </a>
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="Web Crypto API">
+                    <span class="infra-emoji">🔐</span>
+                    <div>
+                        <strong>Web Crypto API</strong>
+                        <small>Enkripsi AES-256 native browser</small>
+                    </div>
+                </a>
+                <a href="https://tabler.io/icons" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="Tabler Icons">
+                    <span class="infra-emoji">🖼️</span>
+                    <div>
+                        <strong>Tabler Icons</strong>
+                        <small>5800+ ikon SVG berkualitas tinggi</small>
+                    </div>
+                </a>
+                <a href="https://www.cloudflare.com" target="_blank" rel="noopener noreferrer" class="infra-card" aria-label="Cloudflare">
+                    <span class="infra-emoji">☁️</span>
+                    <div>
+                        <strong>Cloudflare</strong>
+                        <small>CDN & Worker untuk lisensi Pro</small>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Community Donors -->
+        <section id="community-donors-section" style="margin: 4rem 0 3rem 0; display: none;">
+            <h2 class="text-center" style="font-weight: 800; font-size: 2rem; color: var(--pico-h1-color); margin-bottom: 0.5rem;">Pendukung Komunitas</h2>
+            <p class="text-center secondary" style="margin-bottom: 2rem;">
+                Terima kasih kepada semua yang telah berdonasi dan membuat proyek ini tetap hidup! 🙏
+            </p>
+            <article id="donors-list" class="settings-card text-center" style="padding: 2.5rem; margin-bottom: 0;">
+                <div id="donors-container" style="display: flex; flex-wrap: wrap; gap: 0.75rem; justify-content: center;"></div>
+                <p class="secondary" id="donors-empty" style="margin-top: 1rem; display: none;">
+                    Belum ada donatur. Jadilah yang pertama! ❤️
+                </p>
+            </article>
+            <p class="text-center secondary" style="margin-top: 1.5rem; font-size: 0.85rem;">
+                * Nama donatur diperbarui secara manual setiap minggu. Donasi via Saweria/Ko-fi dan kirim nama kamu ke <a href="/app/home/contact/">halaman Kontak</a> untuk ditampilkan di sini.
+            </p>
+        </section>
+
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script src="/app/home/sponsor/donors.js"></script>
+    <script>
+        // Render donors from donors.js file
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('donors-container');
+            const emptyMsg = document.getElementById('donors-empty');
+            const section = document.getElementById('community-donors-section');
+            if (typeof TMPT_DONORS !== 'undefined' && TMPT_DONORS.length > 0) {
+                if (section) section.style.display = 'block';
+                TMPT_DONORS.forEach(donor => {
+                    const tag = document.createElement('span');
+                    tag.className = 'donor-badge';
+                    const tier = donor.tier || 'community';
+                    const emoji = { diamond: '💎', gold: '🥇', silver: '🥈', community: '❤️' }[tier] || '❤️';
+                    tag.textContent = `${emoji} ${donor.name}`;
+                    tag.title = donor.platform ? `via ${donor.platform}` : '';
+                    container.appendChild(tag);
+                });
+            } else {
+                if (section) section.style.display = 'none';
+            }
+
+            loadPricing();
+        });
+
+        function loadPricing() {
+            fetch('/shared/pricing.json')
+                .then(res => res.json())
+                .then(data => {
+                    const packages = data.packages || {};
+                    const diamondEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'diamond');
+                    const goldEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'gold');
+                    const silverEntry = Object.entries(packages).find(([_, p]) => p.package_name === 'silver');
+
+                    if (diamondEntry) {
+                        const [amount, info] = diamondEntry;
+                        document.getElementById('sponsor-diamond-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-diamond-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Diamond&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                    if (goldEntry) {
+                        const [amount, info] = goldEntry;
+                        document.getElementById('sponsor-gold-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-gold-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Gold&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                    if (silverEntry) {
+                        const [amount, info] = silverEntry;
+                        document.getElementById('sponsor-silver-price').textContent = `${info.display_price}+ / bulan`;
+                        document.getElementById('sponsor-silver-btn').href = `https://saweria.co/tmpt?amount=${amount}&message=Sponsor%20Silver&email=[GANTI_DENGAN_EMAIL_ANDA]`;
+                    }
+                })
+                .catch(err => console.error('Failed to load pricing config:', err));
+        }
+    </script>
+</body>
+</html>

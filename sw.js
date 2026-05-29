@@ -21,20 +21,18 @@ const ASSETS = [
   '/shared/app-header.html',
   '/shared/vault-switcher.html',
   '/shared/pricing.json',
-  '/setup/index.html',
-  '/login/index.html',
-  '/brankas/index.html',
-  '/catat/index.html',
-  '/settings/index.html',
-  '/tools/index.html',
-  '/tools/password-gen/index.html',
-  '/tools/password-checker/index.html',
-  '/tools/notes-encryptor/index.html',
-  '/pro/index.html',
-  '/harga/index.html',
-  '/sponsor/index.html',
-  '/sponsor/donors.js',
-  '/sponsor/sponsor.css'
+  '/app/auth/setup/index.html',
+  '/app/auth/login/index.html',
+  '/app/auth/settings/index.html',
+  '/app/tools/index.html',
+  '/app/tools/password-gen/index.html',
+  '/app/tools/password-checker/index.html',
+  '/app/tools/notes-encryptor/index.html',
+  '/app/home/pro/index.html',
+  '/app/home/harga/index.html',
+  '/app/home/sponsor/index.html',
+  '/app/home/sponsor/donors.js',
+  '/app/home/sponsor/sponsor.css'
 ];
 
 // Install Event

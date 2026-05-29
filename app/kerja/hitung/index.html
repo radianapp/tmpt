@@ -1,0 +1,1920 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HITUNG — TMPT</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/license.js"></script>
+    
+    <!-- CSS Dependensi -->
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=3">
+    <link rel="stylesheet" href="./vendor/xspreadsheet.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Source+Sans+Pro:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Custom Styling Premium untuk HITUNG -->
+    <style>
+        :root {
+            --hitung-primary: #0F6E56;
+            --hitung-primary-hover: #0a4f3d;
+            --hitung-accent: #e8f5e9;
+            --hitung-border: rgba(15, 110, 86, 0.2);
+        }
+
+        .btn-hitung {
+            background-color: var(--hitung-primary) !important;
+            border-color: var(--hitung-primary) !important;
+            color: #ffffff !important;
+        }
+        .btn-hitung:hover {
+            background-color: var(--hitung-primary-hover) !important;
+            border-color: var(--hitung-primary-hover) !important;
+        }
+
+        /* Badge Keamanan */
+        .security-badge {
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.5rem 0.8rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .security-badge.standard {
+            background-color: rgba(245, 158, 11, 0.1) !important;
+            color: #d97706 !important;
+            border: 1px solid rgba(245, 158, 11, 0.3) !important;
+        }
+        .security-badge.encrypted {
+            background-color: rgba(15, 110, 86, 0.1) !important;
+            color: #0F6E56 !important;
+            border: 1px solid rgba(15, 110, 86, 0.3) !important;
+        }
+
+        /* Layout Grid Spreadsheet */
+        .editor-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 4px;
+            position: relative;
+            z-index: 1 !important;
+        }
+
+        /* Toolbar Editor */
+        .hitung-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            align-items: center;
+            background: var(--pico-card-bg);
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--pico-muted-border-color);
+        }
+        .hitung-toolbar button, .hitung-toolbar select {
+            margin: 0;
+            padding: 0.4rem 0.75rem !important;
+            font-size: 0.85rem;
+            height: auto;
+            width: auto;
+            border-radius: 8px !important;
+        }
+        .hitung-toolbar select {
+            width: 140px;
+        }
+
+        /* Formula Bar */
+        .formula-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--pico-card-bg);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 12px;
+            padding: 0.5rem;
+        }
+        .formula-bar .cell-address {
+            font-weight: bold;
+            font-family: monospace;
+            background: var(--hitung-accent);
+            color: var(--hitung-primary);
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            min-width: 45px;
+            text-align: center;
+        }
+        .formula-bar .formula-fx {
+            font-weight: bold;
+            font-style: italic;
+            color: var(--pico-muted-color);
+            user-select: none;
+        }
+        .formula-bar input {
+            flex: 1;
+            margin-bottom: 0;
+            border-radius: 8px;
+            padding: 0.35rem 0.75rem;
+            font-family: monospace;
+        }
+
+        /* Grid */
+        #spreadsheet-grid {
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--pico-background-color);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--pico-muted-color);
+            padding: 0.25rem 0.5rem;
+            border-top: 1px solid var(--pico-muted-border-color);
+        }
+
+        /* Assistant Asisten */
+        .assistant-panel {
+            background: rgba(15, 110, 86, 0.05);
+            border: 1px dashed var(--hitung-primary);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .assistant-panel input {
+            flex: 1;
+            margin-bottom: 0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            padding: 0.4rem 0.75rem;
+        }
+
+        /* Google Sheets Style Menu Bar */
+        .sheets-menu-bar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.85rem;
+            color: #5f6368;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            margin-bottom: 0px !important;
+            user-select: none;
+            background: #ffffff;
+            border-radius: 8px;
+            position: relative;
+            z-index: 100000 !important;
+        }
+        .sheets-menu-bar .menu-item {
+            position: relative;
+        }
+        .sheets-menu-bar .menu-item span {
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            display: inline-block;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .sheets-menu-bar .menu-item span:hover,
+        .sheets-menu-bar .menu-item:hover span {
+            background-color: #f1f3f4;
+            color: #1a73e8;
+        }
+        .sheets-menu-bar .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            border: 1px solid #dadce0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 8px;
+            min-width: 220px;
+            padding: 6px 0;
+            z-index: 99999 !important;
+            opacity: 1 !important;
+        }
+        .sheets-menu-bar .menu-item:hover .menu-dropdown {
+            display: block;
+        }
+        .sheets-menu-bar .menu-dropdown a {
+            display: block;
+            padding: 6px 12px;
+            color: #3c4043;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background-color 0.1s;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+        }
+        .sheets-menu-bar .menu-dropdown a:hover {
+            background: #f1f3f4 !important;
+            background-color: #f1f3f4 !important;
+            color: #1a73e8;
+        }
+        .sheets-menu-bar .menu-dropdown hr {
+            margin: 4px 0;
+            border: 0;
+            border-top: 1px solid #dadce0;
+        }
+
+        /* CSS Resets to isolate x-spreadsheet from PicoCSS overrides */
+        .x-spreadsheet {
+            box-sizing: content-box !important;
+        }
+        .x-spreadsheet * {
+            box-sizing: content-box !important;
+        }
+        .x-spreadsheet ul, .x-spreadsheet li {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        .x-spreadsheet button {
+            width: auto !important;
+            height: auto !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            color: inherit !important;
+            line-height: inherit !important;
+        }
+        .x-spreadsheet input {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            border-radius: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            background: transparent !important;
+        }
+        .x-spreadsheet table {
+            width: auto !important;
+            margin: 0 !important;
+            border-collapse: collapse !important;
+            background: transparent !important;
+        }
+        .x-spreadsheet td, .x-spreadsheet th {
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+        }
+        .x-spreadsheet-menu {
+            height: auto !important;
+        }
+        .x-spreadsheet-dropdown {
+            z-index: 1005 !important;
+        }
+
+        /* Sembunyikan header editor, menu bar, dan status bar jika print preview x-spreadsheet sedang aktif */
+        #editor-view:has(.x-spreadsheet-print-settings) #editor-header,
+        #editor-view:has(.x-spreadsheet-print-settings) .sheets-menu-bar,
+        #editor-view:has(.x-spreadsheet-print-settings) .status-bar {
+            display: none !important;
+        }
+
+        /* Styling cetak browser */
+        @media print {
+            #editor-header,
+            .sheets-menu-bar,
+            .status-bar,
+            .x-spreadsheet-toolbar,
+            .x-spreadsheet-bottombar {
+                display: none !important;
+            }
+            #editor-view {
+                padding: 0 !important;
+            }
+        }
+
+        /* Sembunyikan footer platform secara permanen di halaman Hitung */
+        body > footer, #app-footer {
+            display: none !important;
+        }
+    </style>
+
+    <!-- JS Dependensi -->
+    <script src="/shared/htmx.min.js"></script>
+    <script src="./vendor/xspreadsheet.js"></script>
+    <script src="./vendor/xlsx.full.min.js"></script>
+    <script src="./vendor/chart.js"></script>
+ 
+    <!-- Platform Modules TMPT -->
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script>
+        // Force Theme to Light in Hitung
+        document.documentElement.setAttribute('data-theme', 'light');
+        if (window.TMPT_UI) {
+            window.TMPT_UI.applyTheme = function(theme) {
+                document.documentElement.setAttribute('data-theme', 'light');
+                window.TMPT_UI.updateThemeIcons('light');
+            };
+            const origInitTheme = window.TMPT_UI.initTheme;
+            window.TMPT_UI.initTheme = function() {
+                document.documentElement.setAttribute('data-theme', 'light');
+                window.TMPT_UI.updateThemeIcons('light');
+                const savedStylesheet = localStorage.getItem('tmpt_theme_stylesheet') || 'tmpt.css';
+                window.TMPT_UI.applyThemeStylesheet(savedStylesheet);
+            };
+            window.TMPT_UI.initTheme();
+        }
+    </script>
+    <script src="/shared/license.js"></script>
+ 
+    <!-- HITUNG Modules -->
+    <script src="./hitung_storage.js"></script>
+    <script src="./hitung_formula.js"></script>
+    <script src="./hitung_converter.js"></script>
+    <script src="./hitung_chart.js"></script>
+    <script src="./hitung_template.js"></script>
+</head>
+<body>
+    <script>
+        (async () => {
+            if (window.TMPT_Auth) {
+                await window.TMPT_Auth.init();
+                window.TMPT_Auth.requireAuth();
+            }
+        })();
+    </script>
+
+    <!-- Vault Switcher Include -->
+    <div hx-get="/shared/vault-switcher.html?v=3" hx-trigger="load" hx-swap="outerHTML"></div>
+
+
+
+    <main>
+        
+        <!-- ==================== VIEW 1: DASHBOARD ==================== -->
+        <div id="dashboard-view" style="display: block; width: 100%; max-width: 100%; padding: 0; background-color: #ffffff;">
+            <!-- Header Google Sheets Style -->
+            <header class="sheets-dashboard-header" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background-color: #ffffff; border-bottom: 1px solid #e0e0e0; height: 64px;">
+                <!-- Left Section: Logo + Title -->
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="window.location.reload()">
+                        <div style="width: 40px; height: 40px; border-radius: 8px; background: linear-gradient(135deg, #0F6E56 0%, #064e3b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(15, 110, 86, 0.2);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                        </div>
+                        <span style="font-size: 22px; font-weight: 500; color: #202124; font-family: 'Google Sans', Roboto, Arial, sans-serif; letter-spacing: -0.5px;">Hitung</span>
+                    </div>
+                </div>
+
+                <!-- Center Section: Search Bar -->
+                <div style="flex: 0 1 720px; margin: 0 30px;">
+                    <div style="position: relative; width: 100%;">
+                        <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #5f6368; display: flex; align-items: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        </span>
+                        <input type="text" id="dashboard-search" oninput="filterDashboardFiles()" placeholder="Cari berkas..." style="width: 100%; height: 48px; background-color: #f1f3f4; border: none; border-radius: 8px; padding-left: 52px; padding-right: 16px; margin-bottom: 0; font-size: 16px; color: #3c4043; transition: background-color 0.15s, box-shadow 0.15s;" onfocus="this.style.backgroundColor='#ffffff'; this.style.boxShadow='0 1px 1px 0 rgba(65,69,73,0.3), 0 1px 3px 1px rgba(65,69,73,0.15)';" onblur="this.style.backgroundColor='#f1f3f4'; this.style.boxShadow='none';">
+                    </div>
+                </div>
+
+                <!-- Right Section: Account / Platform Links -->
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- App Launcher -->
+                    <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
+                        <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <rect x="4" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="4" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="4" y="16" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="16" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="16" width="4" height="4" rx="1"></rect>
+                            </svg>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="tmpt-app-launcher-menu-class" style="display: none; position: absolute; top: 50px; right: 0; background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #dadce0 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 16px !important; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left; opacity: 1 !important;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #dadce0; padding-bottom: 0.5rem; color: #202124;">Aplikasi TMPT</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                                <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">💻</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
+                                </a>
+                                <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">🔐</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
+                                </a>
+                                <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">📝</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
+                                </a>
+                                <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #0f6e56; font-size: 0.75rem; font-weight: 700; padding: 0.5rem 0; border-radius: 12px; background-color: #e6f4ea; transition: background-color 0.2s;">
+                                    <span style="font-size: 1.5rem;">📊</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
+                                </a>
+                                <a href="/app/auth/settings/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">⚙️</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Setelan</span>
+                                </a>
+                                <a href="/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">🏠</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Home</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Dropdown -->
+                    <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
+                        <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 15px; text-transform: uppercase;">
+                            <span class="tmpt-profile-initial-class">G</span>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="tmpt-profile-menu-class" style="display: none; position: absolute; top: 50px; right: 0; background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #dadce0 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 20px !important; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: #202124 !important; opacity: 1 !important;">
+                            <div class="tmpt-profile-email-class" style="font-size: 0.85rem; color: #5f6368; margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
+                            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                                <div class="tmpt-profile-avatar-large-class" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid #f1f3f4; text-transform: uppercase;">G</div>
+                            </div>
+                            <h3 class="tmpt-profile-title-class" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; color: #202124;">Halo, Tamu.</h3>
+                            <p class="tmpt-profile-subtitle-class" style="font-size: 0.85rem; margin-bottom: 1.25rem; color: #5f6368;">Brankas terkunci</p>
+                            
+                            <div class="tmpt-profile-status-badge-class" style="margin-bottom: 1.5rem;"></div>
+                            
+                            <hr style="margin: 1rem 0; border: none; border-bottom: 1px solid #dadce0;">
+                            
+                            <div class="tmpt-profile-vault-list-class" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                            
+                            <hr style="margin: 1rem 0; border: none; border-bottom: 1px solid #dadce0;">
+                            
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="tmpt-profile-action-btn-class outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; padding: 0.5rem 1rem;">Buka Tmpt</button>
+                                <button class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; padding: 0.5rem 1rem;">+ Buat Tmpt Baru</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Template Gallery Area (Gray background) -->
+            <div style="background-color: #f1f3f4; padding: 16px 0 24px 0; border-bottom: 1px solid #dadce0;">
+                <div style="max-width: 1200px; margin: 0 auto; padding: 0 16px;">
+                    <!-- Row 1: Start a new spreadsheet title + Template gallery dropdown button -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span style="font-size: 14px; color: #202124; font-weight: 500;">Mulai spreadsheet baru</span>
+                        <div style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #5f6368; font-size: 14px;">
+                            <span>Galeri templat</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Grid of Template cards -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 20px;" id="templates-container">
+                        <!-- Template cards will go here dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- File list Area (White background) -->
+            <div style="max-width: 1200px; margin: 0 auto; padding: 24px 16px;">
+                <!-- Row 1: Earlier title + Filter controls -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+                    <span style="font-size: 16px; color: #202124; font-weight: 500;">Berkas terbaru</span>
+                    <div style="display: flex; align-items: center; gap: 16px; font-size: 14px; color: #5f6368;">
+                        <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                            <span>Milik siapa saja</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </div>
+                        <button onclick="triggerImport()" class="outline secondary" style="margin: 0; padding: 6px 12px; font-size: 0.85rem; border-radius: 6px; display: flex; align-items: center; gap: 6px; height: auto; width: auto;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Impor Berkas
+                        </button>
+                        <input type="file" id="file-uploader" style="display: none;" accept=".xlsx,.xls,.csv,.hitung" onchange="handleFileImport(event)">
+                        
+                        <button id="security-mode-toggle" onclick="toggleSecurityMode()" class="security-badge standard" style="margin: 0; height: auto; width: auto;">
+                            <span id="sec-icon">🔓</span>
+                            <span id="sec-text">Standar Cepat</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- File list Table or Cards -->
+                <div id="files-list-container">
+                    <p class="secondary" style="text-align: center; padding: 2rem;">Belum ada lembar kerja yang disimpan. Buat baru atau impor berkas!</p>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- ==================== VIEW 2: EDITOR ==================== -->
+        <div id="editor-view" style="display: none; max-width: 100%; padding: 0 8px;" data-theme="light">
+            <!-- Editor Sub Header -->
+            <header id="editor-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; flex: 1;">
+                    <!-- Tombol Kembali dengan Logo Hitung -->
+                    <div onclick="backToDashboard()" title="Kembali ke Dashboard" style="cursor: pointer; width: 38px; height: 38px; border-radius: 8px; background: linear-gradient(135deg, #0F6E56 0%, #064e3b 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(15, 110, 86, 0.2); transition: transform 0.15s ease;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                    </div>
+                    <input type="text" id="editor-file-title" value="Lembar Kerja Tanpa Judul" style="font-weight: 800; font-size: 1.5rem; margin-bottom: 0; border: none; background: transparent; border-bottom: 1px dashed var(--pico-muted-border-color); padding: 0.2rem 0.5rem; width: auto; max-width: 400px;" onchange="saveActiveSheetMetadata()">
+                    <span id="save-status" class="secondary" style="font-size: 0.85rem; font-style: italic;">Semua perubahan disimpan.</span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- App Launcher -->
+                    <div class="tmpt-app-launcher" style="position: relative; display: inline-block; margin-left: 8px;">
+                        <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <rect x="4" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="4" width="4" height="4" rx="1"></rect>
+                                <rect x="4" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="10" width="4" height="4" rx="1"></rect>
+                                <rect x="4" y="16" width="4" height="4" rx="1"></rect>
+                                <rect x="10" y="16" width="4" height="4" rx="1"></rect>
+                                <rect x="16" y="16" width="4" height="4" rx="1"></rect>
+                            </svg>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="tmpt-app-launcher-menu-class" style="display: none; position: absolute; top: 50px; right: 0; background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #dadce0 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 16px !important; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left; opacity: 1 !important;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid #dadce0; padding-bottom: 0.5rem; color: #202124;">Aplikasi TMPT</h4>
+                            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                                <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">💻</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
+                                </a>
+                                <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">🔐</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
+                                </a>
+                                <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">📝</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
+                                </a>
+                                <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #0f6e56; font-size: 0.75rem; font-weight: 700; padding: 0.5rem 0; border-radius: 12px; background-color: #e6f4ea; transition: background-color 0.2s;">
+                                    <span style="font-size: 1.5rem;">📊</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
+                                </a>
+                                <a href="/app/auth/settings/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">⚙️</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Setelan</span>
+                                </a>
+                                <a href="/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: #3c4043; font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                                    <span style="font-size: 1.5rem;">🏠</span>
+                                    <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Home</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Profile Dropdown -->
+                    <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block; margin-left: 8px;">
+                        <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 15px; text-transform: uppercase;">
+                            <span class="tmpt-profile-initial-class">G</span>
+                        </button>
+                        <!-- Dropdown Menu -->
+                        <div class="tmpt-profile-menu-class" style="display: none; position: absolute; top: 50px; right: 0; background: #ffffff !important; background-color: #ffffff !important; border: 1px solid #dadce0 !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 20px !important; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: #202124 !important; opacity: 1 !important;">
+                            <div class="tmpt-profile-email-class" style="font-size: 0.85rem; color: #5f6368; margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
+                            <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                                <div class="tmpt-profile-avatar-large-class" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid #f1f3f4; text-transform: uppercase;">G</div>
+                            </div>
+                            <h3 class="tmpt-profile-title-class" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem; color: #202124;">Halo, Tamu.</h3>
+                            <p class="tmpt-profile-subtitle-class" style="font-size: 0.85rem; margin-bottom: 1.25rem; color: #5f6368;">Brankas terkunci</p>
+                            
+                            <div class="tmpt-profile-status-badge-class" style="margin-bottom: 1.5rem;"></div>
+                            
+                            <hr style="margin: 1rem 0; border: none; border-bottom: 1px solid #dadce0;">
+                            
+                            <div class="tmpt-profile-vault-list-class" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                            
+                            <hr style="margin: 1rem 0; border: none; border-bottom: 1px solid #dadce0;">
+                            
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <button class="tmpt-profile-action-btn-class outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; padding: 0.5rem 1rem;">Buka Tmpt</button>
+                                <button class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; padding: 0.5rem 1rem;">+ Buat Tmpt Baru</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Google Sheets Style Menu Bar -->
+            <div class="sheets-menu-bar">
+                <div class="menu-item">
+                    <span>Berkas</span>
+                    <div class="menu-dropdown">
+                        <a href="#" onclick="backToDashboard()">← Kembali ke Dashboard</a>
+                        <hr>
+                        <a href="#" onclick="triggerSaveToStorage()">💾 Simpan Ke Vault</a>
+                        <a href="#" onclick="showExportOptionsModal()">📤 Ekspor Berkas...</a>
+                        <hr>
+                        <a href="#" onclick="window.location.reload()">➕ Spreadsheet Baru</a>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <span>Ubah</span>
+                    <div class="menu-dropdown">
+                        <a href="#" onclick="triggerUndo(); return false;">Urungkan</a>
+                        <a href="#" onclick="triggerRedo(); return false;">Ulangi</a>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <span>Tampilan</span>
+                    <div class="menu-dropdown">
+                        <a href="#" onclick="if(grid) { grid.sheet.data.showGrid = !grid.sheet.data.showGrid; grid.reRender(); } return false;">Sembunyikan/Tampilkan Garis Kisi</a>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <span>Format</span>
+                    <div class="menu-dropdown">
+                        <a href="#" onclick="applyCellFormat('normal')">Normal (Default)</a>
+                        <a href="#" onclick="applyCellFormat('text')">Teks Polos (Plain Text)</a>
+                        <a href="#" onclick="applyCellFormat('number')">Angka (Number)</a>
+                        <a href="#" onclick="applyCellFormat('percent')">Persentase (Percent)</a>
+                        <a href="#" onclick="applyCellFormat('date')">Tanggal (Date)</a>
+                        <a href="#" onclick="applyCellFormat('currency')">Mata Uang (Currency)</a>
+                        <hr>
+                        <a href="#" onclick="applyCellFontAttr('font-bold')"><b>Tebal (Bold)</b></a>
+                        <a href="#" onclick="applyCellFontAttr('font-italic')"><i>Miring (Italic)</i></a>
+                        <a href="#" onclick="applyCellFontAttr('underline')"><u>Garis Bawah (Underline)</u></a>
+                        <a href="#" onclick="applyCellFontAttr('strike')"><s>Coret (Strikethrough)</s></a>
+                        <hr>
+                        <a href="#" onclick="triggerMergeCells(); return false;">🔗 Gabungkan Sel (Merge)</a>
+                        <a href="#" onclick="triggerUnmergeCells(); return false;">🔓 Pisahkan Sel (Split/Unmerge)</a>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <span>Bantuan</span>
+                    <div class="menu-dropdown">
+                        <a href="#" onclick="showPicoAlert('Tentang HITUNG', 'HITUNG adalah aplikasi spreadsheet berbasis web statis, Zero-Knowledge, dan offline-first. Semua data Anda diproses 100% di browser dan tidak pernah dikirim ke server luar.')">Tentang HITUNG</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Canvas Grid Container -->
+            <div class="editor-container" style="position: relative; z-index: 1;">
+                <div id="spreadsheet-grid"></div>
+                <!-- Tempat grafik mengambang menempel -->
+                <div id="charts-overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99;"></div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar">
+                <div>Aktif: <span id="status-active-cell" style="font-family: monospace;">A1</span></div>
+                <div id="status-selection-stats">Rata-rata: 0 | Jumlah Sel: 0 | Total: 0</div>
+                <div id="status-license-info">Edisi Standar</div>
+            </div>
+        </div>
+
+        <!-- ==================== MODAL 1: CHART BUILDER ==================== -->
+        <dialog id="chart-builder-modal">
+            <article style="border-radius: 16px; padding: 1.5rem; max-width: 450px; width: 100%;">
+                <h4 style="margin-bottom: 1rem;">Buat Grafik Baru</h4>
+                <label for="chart-type">Tipe Grafik</label>
+                <select id="chart-type">
+                    <option value="line">📈 Garis (Line Chart)</option>
+                    <option value="bar" selected>📊 Batang (Bar Chart)</option>
+                    <option value="pie">🍕 Pai (Pie Chart)</option>
+                </select>
+
+                <label for="chart-range">Rentang Sel Data</label>
+                <input type="text" id="chart-range" placeholder="Contoh: A3:D8">
+
+                <label for="chart-title">Judul Grafik</label>
+                <input type="text" id="chart-title" placeholder="Contoh: Laporan Penjualan">
+
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <button class="outline secondary" onclick="document.getElementById('chart-builder-modal').close()" style="margin: 0;">Batal</button>
+                    <button onclick="buildChartFromModal()" class="btn-hitung" style="margin: 0;">Buat Grafik</button>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- ==================== MODAL 2: EXPORT OPTIONS ==================== -->
+        <dialog id="export-options-modal">
+            <article style="border-radius: 16px; padding: 1.5rem; max-width: 450px; width: 100%;">
+                <h4 style="margin-bottom: 1rem;">Ekspor Lembar Kerja</h4>
+                <p class="secondary" style="font-size: 0.9rem;">Pilih format keluaran untuk mengunduh spreadsheet Anda.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button class="outline secondary" onclick="exportActiveFile('xlsx')" style="text-align: left; padding: 0.75rem 1rem;">
+                        📁 Ekspor ke Excel (.xlsx)
+                    </button>
+                    <button class="outline secondary" onclick="exportActiveFile('csv')" style="text-align: left; padding: 0.75rem 1rem;">
+                        📄 Ekspor ke CSV (.csv)
+                    </button>
+                    <button class="outline secondary" onclick="exportActiveFile('hitung')" style="text-align: left; padding: 0.75rem 1rem;">
+                        🧩 Ekspor File Native (.hitung)
+                    </button>
+                    <button class="outline primary" onclick="showPasswordEncryptModal()" style="text-align: left; padding: 0.75rem 1rem;">
+                        🔒 Ekspor File Native Terenkripsi (.hitung)
+                    </button>
+                </div>
+
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button class="outline secondary" onclick="document.getElementById('export-options-modal').close()" style="margin: 0;">Tutup</button>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- ==================== MODAL 3: PASSWORD ENCRYPTION ==================== -->
+        <dialog id="password-encrypt-modal">
+            <article style="border-radius: 16px; padding: 1.5rem; max-width: 400px; width: 100%;">
+                <h4 style="margin-bottom: 0.5rem;">Enkripsi Sandi Kustom</h4>
+                <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Masukkan password kustom untuk mengamankan file .hitung ini. File ini hanya bisa dibuka dengan memasukkan sandi ini kembali.</p>
+                
+                <label for="custom-password-input">Kata Sandi (Password)</label>
+                <input type="password" id="custom-password-input" placeholder="Masukkan password pengunci...">
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="outline secondary" onclick="document.getElementById('password-encrypt-modal').close()" style="margin: 0;">Batal</button>
+                    <button onclick="executePasswordEncryptedExport()" class="btn-hitung" style="margin: 0;">Ekspor Sekarang</button>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- ==================== MODAL 4: DECRYPTION PROMPT ==================== -->
+        <dialog id="decryption-prompt-modal">
+            <article style="border-radius: 16px; padding: 1.5rem; max-width: 400px; width: 100%;">
+                <h4 style="margin-bottom: 0.5rem;">Berkas Terkunci</h4>
+                <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Berkas ini diamankan oleh enkripsi sandi kustom. Masukkan kata sandi yang sesuai untuk membukanya.</p>
+                
+                <label for="decrypt-password-input">Kata Sandi (Password)</label>
+                <input type="password" id="decrypt-password-input" placeholder="Masukkan password pembuka...">
+
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button class="outline secondary" onclick="cancelDecryptionPrompt()" style="margin: 0;">Batal</button>
+                    <button onclick="executeDecryptionPrompt()" class="btn-hitung" style="margin: 0;">Buka Berkas</button>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- ==================== MODAL 5: PRO UPGRADE ==================== -->
+        <dialog id="pro-upgrade-modal">
+            <article style="border-radius: 15px; padding: 2rem; max-width: 400px; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem; line-height: 1;">✨</div>
+                <h3 style="margin-bottom: 0.5rem;">Fitur Premium</h3>
+                <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;">Fitur <strong id="pro-feature-name">Enkripsi Brankas Pro</strong> eksklusif untuk pengguna Edisi Pro. Tingkatkan akun Anda untuk mengaktifkan perlindungan ekstra tingkat militer pada spreadsheet Anda.</p>
+                <div class="grid" style="gap: 1rem;">
+                    <button class="outline secondary" onclick="document.getElementById('pro-upgrade-modal').close()" style="margin-bottom: 0;">Nanti Saja</button>
+                    <a href="/pro/" role="button" class="btn-hitung" style="text-decoration: none; margin-bottom: 0;">Pelajari Pro</a>
+                </div>
+            </article>
+        </dialog>
+
+        <!-- ==================== MODAL 6: CUSTOM ALERT & CONFIRM (PicoCSS) ==================== -->
+        <dialog id="pico-alert-confirm-modal">
+            <article style="border-radius: 16px; padding: 1.5rem; max-width: 450px; width: 100%;">
+                <h4 id="pico-modal-title" style="margin-bottom: 0.5rem;">Konfirmasi</h4>
+                <p id="pico-modal-message" class="secondary" style="font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;"></p>
+                
+                <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+                    <button id="pico-modal-cancel-btn" class="outline secondary" onclick="handlePicoModalCancel()" style="margin: 0;">Batal</button>
+                    <button id="pico-modal-confirm-btn" class="btn-hitung" onclick="handlePicoModalConfirm()" style="margin: 0;">OK</button>
+                </div>
+            </article>
+        </dialog>
+
+    </main>
+
+    <!-- JavaScript Aplikasi Controller -->
+    <script>
+        let grid = null;
+        let activeFileId = null;
+        let activeFileTitle = "Lembar Kerja Tanpa Judul";
+        let autoSaveTimer = null;
+        let isRecalculating = false;
+        let hasUnsavedChanges = false;
+
+        // Manajemen Riwayat (Undo/Redo) Kustom
+        let hitungHistory = [];
+        let hitungHistoryIndex = -1;
+        const MAX_HISTORY_STATES = 50;
+
+        function pushHistoryState() {
+            if (!grid) return;
+            try {
+                const xData = grid.getData();
+                const stateStr = JSON.stringify(xData);
+                
+                // Hapus state redo jika indeks berada di tengah
+                if (hitungHistoryIndex < hitungHistory.length - 1) {
+                    hitungHistory = hitungHistory.slice(0, hitungHistoryIndex + 1);
+                }
+                
+                hitungHistory.push(stateStr);
+                if (hitungHistory.length > MAX_HISTORY_STATES) {
+                    hitungHistory.shift();
+                }
+                hitungHistoryIndex = hitungHistory.length - 1;
+            } catch (e) {
+                console.error("Gagal menyimpan riwayat:", e);
+            }
+        }
+
+        function triggerUndo() {
+            if (hitungHistoryIndex > 0) {
+                hitungHistoryIndex--;
+                const stateStr = hitungHistory[hitungHistoryIndex];
+                try {
+                    const xData = JSON.parse(stateStr);
+                    isRecalculating = true;
+                    try {
+                        grid.loadData(xData);
+                        recalculateSheet();
+                    } finally {
+                        isRecalculating = false;
+                    }
+                    hasUnsavedChanges = true;
+                    setSaveStatus("Ada perubahan belum disimpan.");
+                } catch (e) {
+                    console.error("Gagal melakukan urungkan:", e);
+                }
+            }
+        }
+
+        function triggerRedo() {
+            if (hitungHistoryIndex < hitungHistory.length - 1) {
+                hitungHistoryIndex++;
+                const stateStr = hitungHistory[hitungHistoryIndex];
+                try {
+                    const xData = JSON.parse(stateStr);
+                    isRecalculating = true;
+                    try {
+                        grid.loadData(xData);
+                        recalculateSheet();
+                    } finally {
+                        isRecalculating = false;
+                    }
+                    hasUnsavedChanges = true;
+                    setSaveStatus("Ada perubahan belum disimpan.");
+                } catch (e) {
+                    console.error("Gagal melakukan ulangi:", e);
+                }
+            }
+        }
+
+        // Tangkap pintasan keyboard Ctrl+Z dan Ctrl+Y untuk Undo/Redo kustom
+        window.addEventListener('keydown', (e) => {
+            const editorView = document.getElementById('editor-view');
+            if (editorView && editorView.style.display === 'block') {
+                if (e.ctrlKey && !e.shiftKey && e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerUndo();
+                } else if ((e.ctrlKey && e.key.toLowerCase() === 'y') || (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'z')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerRedo();
+                }
+            }
+        }, true);
+
+        // Pending import file if decryption password is required
+        let pendingImportData = null;
+
+        // PicoCSS Custom Modal Dialog System for Alert & Confirm
+        let picoModalResolve = null;
+        
+        function showPicoAlert(title, message) {
+            return new Promise((resolve) => {
+                document.getElementById('pico-modal-title').textContent = title || "Informasi";
+                document.getElementById('pico-modal-message').textContent = message;
+                document.getElementById('pico-modal-cancel-btn').style.display = 'none';
+                document.getElementById('pico-modal-confirm-btn').textContent = "OK";
+                
+                picoModalResolve = () => {
+                    document.getElementById('pico-alert-confirm-modal').close();
+                    resolve(true);
+                };
+                
+                document.getElementById('pico-alert-confirm-modal').showModal();
+            });
+        }
+        
+        function showPicoConfirm(title, message) {
+            return new Promise((resolve) => {
+                document.getElementById('pico-modal-title').textContent = title || "Konfirmasi";
+                document.getElementById('pico-modal-message').textContent = message;
+                document.getElementById('pico-modal-cancel-btn').style.display = 'inline-block';
+                document.getElementById('pico-modal-cancel-btn').textContent = "Batal";
+                document.getElementById('pico-modal-confirm-btn').textContent = "Ya";
+                
+                picoModalResolve = (result) => {
+                    document.getElementById('pico-alert-confirm-modal').close();
+                    resolve(result);
+                };
+                
+                document.getElementById('pico-alert-confirm-modal').showModal();
+            });
+        }
+        
+        function handlePicoModalConfirm() {
+            if (picoModalResolve) picoModalResolve(true);
+        }
+        
+        function handlePicoModalCancel() {
+            if (picoModalResolve) picoModalResolve(false);
+        }
+
+        // Inisialisasi awal aplikasi
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.TMPT_Auth) {
+                await window.TMPT_Auth.init();
+                // Jika brankas terdaftar tapi dalam keadaan terkunci, paksa ke halaman login dengan redirect
+                if (window.TMPT_Vault.exists() && !window.TMPT_Auth.isUnlocked()) {
+                    console.warn("[HITUNG] Vault terkunci, redirect ke login...");
+                    window.location.href = '/app/auth/login/?redirect=/hitung/';
+                    return;
+                }
+                if (window.TMPT_Auth.isUnlocked()) {
+                    window.TMPT_Auth.setupIdleListeners();
+                }
+            }
+            
+            // Render Daftar Templat
+            renderTemplatesGallery();
+            
+            // Update UI status keamanan & lisensi
+            updateSecurityBadge();
+            updateLicenseStatus();
+            
+            // Inisialisasi tampilan profile & launcher
+            if (window.TMPT_UI && typeof window.TMPT_UI.updateProfileUI === 'function') {
+                window.TMPT_UI.updateProfileUI();
+            }
+
+            // Muat daftar berkas terbaru di dashboard
+            await renderFilesList();
+
+            // Pulihkan draft jika ada crash
+            const draft = HitungStorage.getActiveDraft();
+            if (draft) {
+                const wantRestore = await showPicoConfirm("Pemulihan Draf", "Kami menemukan draf pekerjaan terakhir yang belum disimpan. Apakah Anda ingin memulihkannya?");
+                if (wantRestore) {
+                    openSpreadsheetEditor(draft.id || 'draft_' + Date.now(), draft);
+                } else {
+                    HitungStorage.clearActiveDraft();
+                }
+            }
+        });
+
+        // ═══════════════════════════════════════════════════
+        // 1. DASHBOARD CONTROLLERS
+        // ═══════════════════════════════════════════════════
+
+        function renderTemplatesGallery() {
+            const container = document.getElementById('templates-container');
+            if (!container) return;
+
+            const list = HitungTemplates.getTemplatesList();
+            
+            // Map warna tema untuk masing-masing templat
+            const colors = {
+                monthly_budget: '#0F6E56',
+                invoice: '#1e3a8a',
+                expense_tracker: '#b45309',
+                household_finance: '#4f46e5',
+                project_tracker: '#0d9488',
+                habit_tracker: '#db2777'
+            };
+
+            const blankCard = `
+                <div style="cursor: pointer; display: flex; flex-direction: column; gap: 8px; text-decoration: none;" onclick="createNewBlankSheet()">
+                    <div style="height: 120px; border: 1px solid #dadce0; border-radius: 4px; background-color: #ffffff; display: flex; align-items: center; justify-content: center; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#0F6E56'; this.style.boxShadow='0 1px 3px rgba(60,64,67,0.3)';" onmouseout="this.style.borderColor='#dadce0'; this.style.boxShadow='none';">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </div>
+                    <span style="font-size: 13px; font-weight: 500; color: #3c4043; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Kosong</span>
+                </div>
+            `;
+
+            const templateCards = list.map(t => {
+                const color = colors[t.id] || '#0F6E56';
+                return `
+                    <div style="cursor: pointer; display: flex; flex-direction: column; gap: 8px; text-decoration: none;" onclick="loadTemplate('${t.id}')" title="${t.desc}">
+                        <div style="height: 120px; border: 1px solid #dadce0; border-radius: 4px; background-color: #ffffff; overflow: hidden; position: relative; transition: all 0.15s ease;" onmouseover="this.style.borderColor='#0F6E56'; this.style.boxShadow='0 1px 3px rgba(60,64,67,0.3)';" onmouseout="this.style.borderColor='#dadce0'; this.style.boxShadow='none';">
+                            <!-- Header representasi templat -->
+                            <div style="height: 24px; background-color: ${color}; display: flex; align-items: center; padding: 0 8px;">
+                                <div style="width: 50px; height: 5px; background-color: rgba(255,255,255,0.7); border-radius: 1px;"></div>
+                            </div>
+                            <!-- Mini Grid lines -->
+                            <div style="padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; opacity: 0.5;">
+                                ${Array(16).fill(0).map((_, idx) => {
+                                    const isHeader = idx < 4;
+                                    const bg = isHeader ? '#e8f5e9' : '#f1f3f4';
+                                    return `<div style="height: 8px; background-color: ${bg}; border-radius: 1px;"></div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                        <span style="font-size: 13px; font-weight: 500; color: #3c4043; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.name.replace(/^[\u2000-\u3000\ud83c-\udbff\udc00-\udfff\u2600-\u27ff]+/g, '').trim()}</span>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = blankCard + templateCards;
+        }
+
+        function toggleSidebarMenu() {
+            const drawer = document.getElementById('sidebar-menu-drawer');
+            const backdrop = document.getElementById('sidebar-menu-backdrop');
+            if (!drawer || !backdrop) return;
+            
+            if (drawer.style.left === '0px') {
+                drawer.style.left = '-280px';
+                backdrop.style.display = 'none';
+            } else {
+                drawer.style.left = '0px';
+                backdrop.style.display = 'block';
+            }
+        }
+
+        function filterDashboardFiles() {
+            const query = document.getElementById('dashboard-search').value.toLowerCase().trim();
+            const container = document.getElementById('files-list-container');
+            if (!container) return;
+            
+            const rows = container.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const titleEl = row.querySelector('td a');
+                if (titleEl) {
+                    const titleText = titleEl.textContent.toLowerCase();
+                    if (titleText.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+
+        function handleSwitchVaultClick() {
+            if (window.TMPT_License && window.TMPT_License.isPro()) {
+                if (window.TMPT_OpenVaultSwitcher) {
+                    window.TMPT_OpenVaultSwitcher();
+                } else {
+                    const switcher = document.getElementById('vault-switcher-modal');
+                    if (switcher) switcher.showModal();
+                }
+            } else {
+                showProUpgradeModal('Ganti Tmpt (Multi-Vault)');
+            }
+        }
+
+        function applyCellFormat(formatKey) {
+            if (!grid) return;
+            grid.sheet.data.setSelectedCellAttr('format', formatKey);
+            grid.reRender();
+            hasUnsavedChanges = true;
+            setSaveStatus("Ada perubahan...");
+            pushHistoryState();
+            scheduleAutosave();
+        }
+
+        function applyCellFontAttr(attrName) {
+            if (!grid) return;
+            const style = grid.sheet.data.getSelectedCellStyle();
+            let currentVal = false;
+            if (attrName === 'font-bold' && style.font && style.font.bold) currentVal = true;
+            if (attrName === 'font-italic' && style.font && style.font.italic) currentVal = true;
+            if (attrName === 'underline' && style.underline) currentVal = true;
+            if (attrName === 'strike' && style.strike) currentVal = true;
+            
+            grid.sheet.data.setSelectedCellAttr(attrName, !currentVal);
+            grid.reRender();
+            hasUnsavedChanges = true;
+            setSaveStatus("Ada perubahan...");
+            pushHistoryState();
+            scheduleAutosave();
+        }
+
+        function triggerMergeCells() {
+            if (grid && grid.sheet && grid.sheet.data) {
+                grid.sheet.data.merge();
+                recalculateSheet();
+            }
+        }
+
+        function triggerUnmergeCells() {
+            if (grid && grid.sheet && grid.sheet.data) {
+                grid.sheet.data.unmerge();
+                recalculateSheet();
+            }
+        }
+
+        async function renderFilesList() {
+            const container = document.getElementById('files-list-container');
+            if (!container) return;
+
+            const files = await HitungStorage.getFilesAsync();
+            if (files.length === 0) {
+                container.innerHTML = `<p class="secondary" style="text-align: center; padding: 2rem;">Belum ada lembar kerja yang disimpan. Buat baru atau impor berkas!</p>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <table style="width: 100%; font-size: 0.9rem;">
+                    <thead>
+                        <tr>
+                            <th>Nama Lembar Kerja</th>
+                            <th>Terakhir Diubah</th>
+                            <th style="text-align: right;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${files.map(f => `
+                            <tr>
+                                <td>
+                                    <a href="#" onclick="openSavedFile('${f.id}'); return false;" style="font-weight: 600; color: var(--hitung-primary); display: flex; align-items: center; gap: 0.5rem;">
+                                        📊 ${escapeHtml(f.title)}
+                                    </a>
+                                </td>
+                                <td class="secondary">${new Date(f.modified_at).toLocaleString('id-ID')}</td>
+                                <td style="text-align: right; display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    <button class="outline secondary" onclick="openSavedFile('${f.id}')" style="margin: 0; padding: 0.25rem 0.5rem !important; font-size: 0.8rem;">Buka</button>
+                                    <button class="outline secondary" onclick="downloadFromDashboard('${f.id}')" style="margin: 0; padding: 0.25rem 0.5rem !important; font-size: 0.8rem;">Unduh</button>
+                                    <button class="outline error" onclick="deleteSavedFile('${f.id}', '${escapeHtml(f.title)}')" style="margin: 0; padding: 0.25rem 0.5rem !important; font-size: 0.8rem; color: var(--pico-error-color);">Hapus</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function showProUpgradeModal(featureName) {
+            const featEl = document.getElementById('pro-feature-name');
+            if (featEl) featEl.textContent = featureName;
+            
+            const modal = document.getElementById('pro-upgrade-modal');
+            if (modal) modal.showModal();
+        }
+
+        async function toggleSecurityMode() {
+            // Cek jika user Pro
+            if (!window.TMPT_License || !window.TMPT_License.isPro()) {
+                showProUpgradeModal("Enkripsi Brankas TMPT");
+                return;
+            }
+
+            // Cek jika auth unlock
+            if (!window.TMPT_Auth || !window.TMPT_Auth.isUnlocked()) {
+                const wantLogin = await showPicoConfirm("Brankas Terkunci", "Mode Terenkripsi memerlukan Brankas yang terbuka. Buka kunci sekarang?");
+                if (wantLogin) {
+                    window.location.href = '/app/auth/login/?redirect=/hitung/';
+                }
+                return;
+            }
+
+            const current = HitungStorage.getSecurityMode();
+            const nextMode = current === 'standard' ? 'encrypted' : 'standard';
+
+            const confirmMsg = nextMode === 'encrypted'
+                ? "Apakah Anda ingin mengaktifkan Enkripsi Brankas? Seluruh data lembar kerja yang disimpan ke Vault akan dienkripsi dengan kunci master Brankas Anda secara lokal."
+                : "Apakah Anda ingin kembali ke Mode Standar Cepat? Lembar kerja baru akan disimpan tanpa enkripsi untuk akses cepat tanpa perlu membuka kunci Brankas.";
+
+            const confirmed = await showPicoConfirm("Mode Keamanan", confirmMsg);
+            if (!confirmed) return;
+
+            try {
+                // Konversi berkas lama jika diperlukan? Untuk keamanan, kita hanya ubah modenya.
+                HitungStorage.setSecurityMode(nextMode);
+                updateSecurityBadge();
+                await renderFilesList();
+                
+                if (window.TMPT_UI) {
+                    window.TMPT_UI.toast(nextMode === 'encrypted' ? "Mode Keamanan: Terenkripsi Brankas" : "Mode Keamanan: Standar", "success");
+                }
+            } catch (err) {
+                await showPicoAlert("Kesalahan", err.message);
+            }
+        }
+
+        function updateSecurityBadge() {
+            const toggleEl = document.getElementById('security-mode-toggle');
+            const iconEl = document.getElementById('sec-icon');
+            const textEl = document.getElementById('sec-text');
+            if (!toggleEl || !iconEl || !textEl) return;
+
+            const mode = HitungStorage.getSecurityMode();
+            if (mode === 'encrypted') {
+                toggleEl.className = 'security-badge encrypted';
+                iconEl.textContent = '🔒';
+                textEl.textContent = 'Terenkripsi Pro';
+            } else {
+                toggleEl.className = 'security-badge standard';
+                iconEl.textContent = '🔓';
+                textEl.textContent = 'Standar Cepat';
+            }
+        }
+
+        function updateLicenseStatus() {
+            const infoEl = document.getElementById('status-license-info');
+            if (!infoEl) return;
+
+            if (window.TMPT_License && window.TMPT_License.isPro()) {
+                infoEl.textContent = "🚀 Edisi Pro (Fitur Lengkap)";
+            } else {
+                infoEl.textContent = "🆓 Edisi Standar Gratis";
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 2. EDITOR LIFECYCLE
+        // ═══════════════════════════════════════════════════
+
+        function createNewBlankSheet() {
+            const emptyData = {
+                format: "hitung-v1",
+                created_at: new Date().toISOString(),
+                modified_at: new Date().toISOString(),
+                app_version: "1.0.0",
+                metadata: { title: "Lembar Kerja Tanpa Judul" },
+                settings: { locale: "id-ID", currency: "IDR", date_format: "DD/MM/YYYY" },
+                sheets: [{ id: "sheet_1", name: "Sheet1", rows: 100, cols: 26, cells: {} }]
+            };
+            openSpreadsheetEditor('sheet_' + Date.now(), emptyData);
+        }
+
+        async function loadTemplate(templateId) {
+            const templateData = HitungTemplates.getTemplateData(templateId);
+            if (templateData) {
+                openSpreadsheetEditor('template_' + Date.now(), templateData);
+            } else {
+                await showPicoAlert("Kesalahan", "Templat tidak ditemukan.");
+            }
+        }
+
+        async function openSavedFile(fileId) {
+            try {
+                const data = await HitungStorage.loadFile(fileId);
+                if (data) {
+                    openSpreadsheetEditor(fileId, data);
+                } else {
+                    await showPicoAlert("Kesalahan", "Gagal memuat berkas.");
+                }
+            } catch (err) {
+                await showPicoAlert("Kesalahan", err.message);
+            }
+        }
+
+        function openSpreadsheetEditor(fileId, hitungFile) {
+            activeFileId = fileId;
+            activeFileTitle = hitungFile.metadata?.title || "Lembar Kerja Tanpa Judul";
+            
+            document.getElementById('editor-file-title').value = activeFileTitle;
+
+            // Bersihkan chart lama
+            HitungChart.destroyAll();
+
+            // Tampilkan Editor View & Sembunyikan Header Platform
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('editor-view').style.display = 'block';
+            const globalHeader = document.querySelector('body > header');
+            if (globalHeader) globalHeader.style.display = 'none';
+
+            // Konversi native format ke x-spreadsheet format
+            const xData = HitungConverter.hitungToXSpreadsheet(hitungFile);
+
+            // Ganti atau inisialisasi grid x-spreadsheet
+            const gridEl = document.getElementById('spreadsheet-grid');
+            gridEl.innerHTML = ""; // Bersihkan kontainer sebelum inisialisasi baru
+
+            hasUnsavedChanges = false;
+
+            grid = x_spreadsheet('#spreadsheet-grid', {
+                showToolbar: true, // Tampilkan toolbar bawaan x-spreadsheet
+                showFormulaBar: true,
+                showGrid: true,
+                showContextmenu: true,
+                view: {
+                    height: () => Math.max(400, document.documentElement.clientHeight - 130),
+                    width: () => document.documentElement.clientWidth - 16
+                },
+                row: { len: hitungFile.sheets[0].rows || 100, height: 26 },
+                col: { len: hitungFile.sheets[0].cols || 26, width: 110 },
+                style: {
+                    bgcolor: '#ffffff',
+                    color: '#0a0a0a',
+                    font: {
+                        name: 'Arial',
+                        size: 10
+                    }
+                }
+            });
+
+            grid.loadData(xData);
+
+            // Terapkan kembali freeze jika ada
+            if (xData[0] && xData[0].freeze) {
+                try {
+                    const decoded = HitungConverter._decodeCell(xData[0].freeze);
+                    if (grid.sheet && typeof grid.sheet.setFreeze === 'function') {
+                        grid.sheet.setFreeze(decoded.row, decoded.col);
+                    }
+                } catch (e) {
+                    console.error("Gagal menerapkan freeze:", e);
+                }
+            } else {
+                if (grid.sheet && typeof grid.sheet.setFreeze === 'function') {
+                    grid.sheet.setFreeze(0, 0);
+                }
+            }
+
+            // Terapkan kembali autofilter jika ada
+            if (xData[0] && xData[0].autofilter) {
+                const af = xData[0].autofilter;
+                if (grid.sheet && grid.sheet.data && grid.sheet.data.autofilter && typeof grid.sheet.data.autofilter.set === 'function') {
+                    grid.sheet.data.autofilter.set(af.ref, af.filters || [], af.sort);
+                }
+            } else {
+                if (grid.sheet && grid.sheet.data && grid.sheet.data.autofilter && typeof grid.sheet.data.autofilter.clear === 'function') {
+                    grid.sheet.data.autofilter.clear();
+                }
+            }
+            
+            grid.reRender();
+
+            // Inisialisasi tumpukan riwayat (history) untuk dokumen ini
+            hitungHistory = [];
+            hitungHistoryIndex = -1;
+            pushHistoryState();
+
+            // Pasang event listener seleksi sel
+            grid.on('cell-selected', (cell, ri, ci) => {
+                const addr = HitungConverter._encodeCell(ri, ci);
+                const statusActiveCell = document.getElementById('status-active-cell');
+                if (statusActiveCell) statusActiveCell.textContent = addr;
+                
+                // Kalkulasi data statistik untuk sel terpilih
+                updateSelectionStatistics();
+            });
+
+            // Pasang change listener untuk auto-save & formula recalculation
+            grid.change((data) => {
+                hasUnsavedChanges = true;
+                setSaveStatus('Ada perubahan...');
+                if (isRecalculating) return;
+
+                // Abaikan kalkulasi dan history jika pengguna sedang mengedit sel secara aktif
+                const isEditing = document.activeElement && 
+                                 document.activeElement.tagName === 'TEXTAREA' && 
+                                 document.activeElement.closest('.x-spreadsheet');
+                if (isEditing) return;
+                
+                // Dorong state baru ke history sebelum recalculate
+                pushHistoryState();
+                
+                isRecalculating = true;
+                try {
+                    recalculateSheet();
+                    scheduleAutosave();
+                } finally {
+                    isRecalculating = false;
+                }
+            });
+
+            // Jalankan kalkulasi formula awal
+            recalculateSheet();
+
+            // Setel status simpan awal
+            setSaveStatus("Semua perubahan disimpan.");
+
+            // Start auto-save draft timer (setiap 15 detik jika ada aktivitas)
+            startAutoSaveTimer();
+        }
+
+        async function backToDashboard() {
+            stopAutoSaveTimer();
+            
+            // Simpan draf terakhir secara permanen ke storage jika ada perubahan belum disimpan
+            if (grid && hasUnsavedChanges) {
+                const xData = grid.getData();
+                const files = await HitungStorage.getFilesAsync();
+                const existing = files.find(f => f.id === activeFileId);
+                const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, {
+                    title: activeFileTitle,
+                    created_at: existing ? existing.created_at : new Date().toISOString()
+                });
+                await HitungStorage.saveFile(activeFileId, hitungFile);
+                hasUnsavedChanges = false;
+            }
+            
+            // Bersihkan draf aktif karena berkas sudah aman disimpan
+            HitungStorage.clearActiveDraft();
+
+            document.getElementById('editor-view').style.display = 'none';
+            document.getElementById('dashboard-view').style.display = 'block';
+            const globalHeader = document.querySelector('body > header');
+            if (globalHeader) globalHeader.style.display = '';
+
+            // Bersihkan chart
+            HitungChart.destroyAll();
+
+            // Muat ulang daftar berkas
+            await renderFilesList();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 3. STORAGE & FORMULA SYNC
+        // ═══════════════════════════════════════════════════
+
+        function saveActiveSheetMetadata() {
+            const inputVal = document.getElementById('editor-file-title').value.trim();
+            activeFileTitle = inputVal || "Lembar Kerja Tanpa Judul";
+            hasUnsavedChanges = true;
+            scheduleAutosave();
+        }
+
+        function setSaveStatus(text) {
+            const statusEl = document.getElementById('save-status');
+            if (statusEl) statusEl.textContent = text;
+        }
+
+        // ─── Autosave: debounce 2 detik langsung ke storage permanen ─────────────
+        let _autosaveDebounce = null;
+
+        function scheduleAutosave() {
+            clearTimeout(_autosaveDebounce);
+            setSaveStatus('Ada perubahan...');
+            _autosaveDebounce = setTimeout(async () => {
+                await commitAutosave();
+            }, 2000);
+        }
+
+        async function commitAutosave() {
+            if (!grid) return;
+            setSaveStatus('Menyimpan...');
+            try {
+                const xData = grid.getData();
+                const files = await HitungStorage.getFilesAsync();
+                const existing = files.find(f => f.id === activeFileId);
+                const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, {
+                    title: activeFileTitle,
+                    created_at: existing ? existing.created_at : new Date().toISOString()
+                });
+                await HitungStorage.saveFile(activeFileId, hitungFile);
+                HitungStorage.clearActiveDraft();
+                hasUnsavedChanges = false;
+                setSaveStatus('Tersimpan ✓');
+            } catch (err) {
+                console.error('Autosave gagal:', err);
+                setSaveStatus('Gagal menyimpan.');
+            }
+        }
+
+        function startAutoSaveTimer() { /* tidak dipakai, digantikan scheduleAutosave */ }
+        function stopAutoSaveTimer() { if (_autosaveDebounce) clearTimeout(_autosaveDebounce); }
+
+        async function triggerSaveToStorage() {
+            if (!grid) return;
+            setSaveStatus("Menyimpan ke penyimpanan lokal...");
+            
+            const xData = grid.getData();
+            // Load metadata yang lama jika ada
+            const files = await HitungStorage.getFilesAsync();
+            const existing = files.find(f => f.id === activeFileId);
+
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, {
+                title: activeFileTitle,
+                created_at: existing ? existing.created_at : new Date().toISOString()
+            });
+
+            try {
+                await HitungStorage.saveFile(activeFileId, hitungFile);
+                hasUnsavedChanges = false;
+                setSaveStatus("Semua perubahan disimpan.");
+                HitungStorage.clearActiveDraft(); // Hapus draft karena sudah commit simpan
+                
+                if (window.TMPT_UI) {
+                    window.TMPT_UI.toast("File berhasil disimpan!", "success");
+                }
+            } catch (err) {
+                await showPicoAlert("Kesalahan", "Gagal menyimpan berkas: " + err.message);
+                setSaveStatus("Gagal menyimpan berkas.");
+            }
+        }
+
+        async function deleteSavedFile(fileId, fileTitle) {
+            const confirmed = await showPicoConfirm("Hapus Berkas", `Apakah Anda yakin ingin menghapus lembar kerja "${fileTitle}"? Tindakan ini tidak bisa dibatalkan.`);
+            if (!confirmed) return;
+
+            try {
+                await HitungStorage.deleteFile(fileId);
+                await renderFilesList();
+                if (window.TMPT_UI) window.TMPT_UI.toast("File terhapus.", "info");
+            } catch (err) {
+                await showPicoAlert("Kesalahan", "Gagal menghapus file: " + err.message);
+            }
+        }
+
+        // Kalkulasi ulang seluruh sheet
+        function recalculateSheet() {
+            if (!grid) return;
+            
+            // Simpan indeks baris dan kolom yang sedang dipilih agar tidak ter-reset ke A1
+            let ri = 0, ci = 0;
+            if (grid.sheet && grid.sheet.data && grid.sheet.data.selector) {
+                ri = grid.sheet.data.selector.ri || 0;
+                ci = grid.sheet.data.selector.ci || 0;
+            }
+            
+            const xData = grid.getData();
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, { title: activeFileTitle });
+            const sheet = hitungFile.sheets[0];
+            
+            // Jalankan Formula Engine
+            const engine = new HitungFormulaEngine(sheet.cells);
+            
+            // Urutan pemrosesan sel formula
+            Object.entries(sheet.cells).forEach(([addr, cell]) => {
+                if (cell.formula) {
+                    const res = engine.evaluate(cell.formula, addr);
+                    if (res && typeof res === 'object' && res.error) {
+                        cell.display_value = res.type;
+                        cell.value = res.type;
+                    } else {
+                        cell.value = res;
+                        cell.display_value = String(res);
+                    }
+                }
+            });
+
+            // Convert balik ke x-spreadsheet dan muat
+            const updatedXData = HitungConverter.hitungToXSpreadsheet(hitungFile);
+            
+            const prevRecalculating = isRecalculating;
+            isRecalculating = true;
+            try {
+                grid.loadData(updatedXData);
+                
+                // Terapkan kembali freeze jika ada, jika tidak kosongkan
+                if (updatedXData[0] && updatedXData[0].freeze) {
+                    try {
+                        const decoded = HitungConverter._decodeCell(updatedXData[0].freeze);
+                        if (grid.sheet && typeof grid.sheet.setFreeze === 'function') {
+                            grid.sheet.setFreeze(decoded.row, decoded.col);
+                        }
+                    } catch (e) {
+                        console.error("Gagal menerapkan freeze:", e);
+                    }
+                } else {
+                    if (grid.sheet && typeof grid.sheet.setFreeze === 'function') {
+                        grid.sheet.setFreeze(0, 0);
+                    }
+                }
+
+                // Terapkan kembali autofilter jika ada, jika tidak bersihkan
+                if (updatedXData[0] && updatedXData[0].autofilter) {
+                    const af = updatedXData[0].autofilter;
+                    if (grid.sheet && grid.sheet.data && grid.sheet.data.autofilter && typeof grid.sheet.data.autofilter.set === 'function') {
+                        grid.sheet.data.autofilter.set(af.ref, af.filters || [], af.sort);
+                    }
+                } else {
+                    if (grid.sheet && grid.sheet.data && grid.sheet.data.autofilter && typeof grid.sheet.data.autofilter.clear === 'function') {
+                        grid.sheet.data.autofilter.clear();
+                    }
+                }
+                
+                // Kembalikan seleksi sel secara aman
+                if (grid.sheet && grid.sheet.selector && typeof grid.sheet.selector.set === 'function') {
+                    grid.sheet.selector.set(ri, ci);
+                }
+                grid.reRender();
+            } finally {
+                isRecalculating = prevRecalculating;
+            }
+        }
+
+        // Mengkalkulasi statistik seleksi sel (SUM, COUNT, AVERAGE) untuk Status Bar
+        function updateSelectionStatistics() {
+            if (!grid) return;
+            
+            const selectRange = grid.sheet.selector.range;
+            if (!selectRange) return;
+
+            const xData = grid.getData();
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData);
+            const sheet = hitungFile.sheets[0];
+
+            let sum = 0;
+            let count = 0;
+            let nums = [];
+
+            for (let r = selectRange.sri; r <= selectRange.eri; r++) {
+                for (let c = selectRange.sci; c <= selectRange.eci; c++) {
+                    const addr = HitungConverter._encodeCell(r, c);
+                    const cell = sheet.cells[addr];
+                    if (cell && cell.value !== undefined && cell.value !== null && cell.value !== "") {
+                        const val = parseFloat(cell.value);
+                        if (!isNaN(val)) {
+                            sum += val;
+                            nums.push(val);
+                            count++;
+                        }
+                    }
+                }
+            }
+
+            const avg = count > 0 ? (sum / count).toFixed(2) : 0;
+            document.getElementById('status-selection-stats').textContent = 
+                `Rata-rata: ${avg} | Sel Terisi: ${count} | Jumlah Total: ${sum}`;
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 5. SMART FORMULA ASSISTANT
+        // ═══════════════════════════════════════════════════
+
+        async function triggerAssistant() {
+            const inputEl = document.getElementById('assistant-input');
+            if (!inputEl) return;
+            const query = inputEl.value.trim();
+            if (!query) return;
+
+            const suggester = new HitungSmartSuggester();
+            const suggestion = suggester.suggest(query);
+
+            if (suggestion) {
+                // Pasang di sel aktif secara aman
+                let ri = 0, ci = 0;
+                if (grid && grid.sheet && grid.sheet.data && grid.sheet.data.selector) {
+                    ri = grid.sheet.data.selector.ri || 0;
+                    ci = grid.sheet.data.selector.ci || 0;
+                }
+                grid.sheet.data.setCellText(ri, ci, suggestion);
+                grid.change();
+                
+                // Update formula bar jika ada
+                const formulaBarInput = document.getElementById('formula-bar-input');
+                if (formulaBarInput) formulaBarInput.value = suggestion;
+                
+                // Recalculate
+                recalculateSheet();
+                
+                inputEl.value = ""; // Bersihkan asisten
+                if (window.TMPT_UI) window.TMPT_UI.toast(`Formula dimasukkan: ${suggestion}`, "success");
+            } else {
+                await showPicoAlert("Asisten Pintar", "Asisten tidak memahami perintah tersebut. Cobalah ketik 'total kolom B' atau 'hitung pajak A2 sebesar 11%'.");
+            }
+        }
+
+        function handleAssistantKeydown(event) {
+            if (event.key === 'Enter') {
+                triggerAssistant();
+            }
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 6. CHART BUILDING CONTROLLERS
+        // ═══════════════════════════════════════════════════
+
+        function showChartBuilderModal() {
+            if (!grid) return;
+            
+            // Isi form dengan range seleksi aktif secara otomatis
+            const range = grid.sheet.selector.range;
+            const startAddr = HitungConverter._encodeCell(range.sri, range.sci);
+            const endAddr = HitungConverter._encodeCell(range.eri, range.eci);
+            
+            document.getElementById('chart-range').value = `${startAddr}:${endAddr}`;
+            document.getElementById('chart-builder-modal').showModal();
+        }
+
+        async function buildChartFromModal() {
+            const type = document.getElementById('chart-type').value;
+            const range = document.getElementById('chart-range').value.trim();
+            const title = document.getElementById('chart-title').value.trim() || 'Grafik Data';
+
+            if (!range) {
+                await showPicoAlert("Input Tidak Valid", "Masukkan rentang sel data!");
+                return;
+            }
+
+            const xData = grid.getData();
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData);
+            const cells = hitungFile.sheets[0].cells;
+
+            const chartId = 'chart_' + Date.now();
+
+            HitungChart.createFloatingChart({
+                id: chartId,
+                type: type,
+                range: range,
+                cells: cells,
+                containerId: 'charts-overlay',
+                title: title
+            });
+
+            document.getElementById('chart-builder-modal').close();
+            scheduleAutosave();
+        }
+
+        // ═══════════════════════════════════════════════════
+        // 7. IMPORT & EXPORT CONTROLLERS
+        // ═══════════════════════════════════════════════════
+
+        function triggerImport() {
+            document.getElementById('file-uploader').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            
+            if (file.name.endsWith('.hitung')) {
+                reader.onload = async (e) => {
+                    try {
+                        const fileContent = JSON.parse(e.target.result);
+                        
+                        // Deteksi enkripsi standalone
+                        if (fileContent.format === 'hitung-v1-encrypted') {
+                            pendingImportData = fileContent;
+                            document.getElementById('decryption-prompt-modal').showModal();
+                        } else {
+                            openSpreadsheetEditor('file_' + Date.now(), fileContent);
+                        }
+                    } catch (err) {
+                        await showPicoAlert("Format Rusak", "Gagal membaca berkas .hitung: Format JSON rusak.");
+                    }
+                };
+                reader.readAsText(file);
+            } else {
+                // XLSX atau CSV
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const hitungFile = HitungConverter.importFromExcel(data, file.name);
+                        openSpreadsheetEditor('file_' + Date.now(), hitungFile);
+                    } catch (err) {
+                        await showPicoAlert("Gagal Mengimpor", "Gagal mengimpor berkas Excel/CSV: " + err.message);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+            
+            // Reset input file agar bisa di-upload ulang file yang sama
+            event.target.value = "";
+        }
+
+        async function executeDecryptionPrompt() {
+            const password = document.getElementById('decrypt-password-input').value;
+            if (!password) {
+                await showPicoAlert("Kata Sandi Kosong", "Masukkan kata sandi!");
+                return;
+            }
+
+            try {
+                const decryptedData = await HitungStorage.decryptFileWithPassword(pendingImportData, password);
+                document.getElementById('decryption-prompt-modal').close();
+                document.getElementById('decrypt-password-input').value = "";
+                
+                openSpreadsheetEditor('file_' + Date.now(), decryptedData);
+                pendingImportData = null;
+            } catch (err) {
+                await showPicoAlert("Gagal Dekripsi", err.message);
+            }
+        }
+
+        function cancelDecryptionPrompt() {
+            document.getElementById('decryption-prompt-modal').close();
+            document.getElementById('decrypt-password-input').value = "";
+            pendingImportData = null;
+        }
+
+        function showExportOptionsModal() {
+            document.getElementById('export-options-modal').showModal();
+        }
+
+        function showPasswordEncryptModal() {
+            document.getElementById('export-options-modal').close();
+            document.getElementById('password-encrypt-modal').showModal();
+        }
+
+        async function exportActiveFile(format) {
+            if (!grid) return;
+            const xData = grid.getData();
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, { title: activeFileTitle });
+
+            let blob, filename;
+
+            if (format === 'xlsx') {
+                blob = HitungConverter.exportToExcel(hitungFile);
+                filename = `${activeFileTitle}.xlsx`;
+            } else if (format === 'csv') {
+                const csvText = HitungConverter.exportToCSV(hitungFile);
+                blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
+                filename = `${activeFileTitle}.csv`;
+            } else if (format === 'hitung') {
+                const jsonText = JSON.stringify(hitungFile, null, 2);
+                blob = new Blob([jsonText], { type: "application/json" });
+                filename = `${activeFileTitle}.hitung`;
+            }
+
+            if (blob) {
+                triggerDownload(blob, filename);
+                document.getElementById('export-options-modal').close();
+            }
+        }
+
+        async function executePasswordEncryptedExport() {
+            const password = document.getElementById('custom-password-input').value;
+            if (!password) {
+                await showPicoAlert("Kata Sandi Kosong", "Password tidak boleh kosong!");
+                return;
+            }
+
+            const xData = grid.getData();
+            const hitungFile = HitungConverter.xSpreadsheetToHitung(xData, { title: activeFileTitle });
+
+            try {
+                const encryptedFileObj = await HitungStorage.encryptFileWithPassword(hitungFile, password);
+                const jsonText = JSON.stringify(encryptedFileObj, null, 2);
+                const blob = new Blob([jsonText], { type: "application/json" });
+                
+                triggerDownload(blob, `${activeFileTitle}.hitung`);
+                
+                document.getElementById('password-encrypt-modal').close();
+                document.getElementById('custom-password-input').value = "";
+                if (window.TMPT_UI) window.TMPT_UI.toast("File terenkripsi berhasil diunduh!", "success");
+            } catch (err) {
+                await showPicoAlert("Gagal Ekspor", "Gagal mengenkripsi berkas: " + err.message);
+            }
+        }
+
+        async function downloadFromDashboard(fileId) {
+            try {
+                const data = await HitungStorage.loadFile(fileId);
+                if (data) {
+                    const jsonText = JSON.stringify(data, null, 2);
+                    const blob = new Blob([jsonText], { type: "application/json" });
+                    triggerDownload(blob, `${data.metadata.title || "sheet"}.hitung`);
+                }
+            } catch (err) {
+                await showPicoAlert("Gagal Mengunduh", err.message);
+            }
+        }
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Helper escape HTML
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Intersepsi klik pada toolbar x-spreadsheet untuk memicu kalkulasi ulang & perbaikan border merge real-time
+        document.addEventListener('click', (e) => {
+            const toolbarBtn = e.target.closest('.x-spreadsheet-toolbar-btn');
+            if (toolbarBtn) {
+                setTimeout(() => {
+                    if (grid && !isRecalculating) {
+                        recalculateSheet();
+                    }
+                }, 50);
+            }
+        });
+    </script>
+<div id="toast-container" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Unit & Integrasi HITUNG — TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css">
+    <style>
+        .test-container {
+            margin-top: 2rem;
+            margin-bottom: 3rem;
+        }
+        .test-card {
+            background: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .test-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+        }
+        .test-item:last-child {
+            border-bottom: none;
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .status-pass {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        .status-fail {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        .error-log {
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            color: #e74c3c;
+            width: 100%;
+            text-align: left;
+        }
+    </style>
+    <!-- Load Dependensi Shared TMPT -->
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/db.js"></script>
+    <script src="/shared/auth.js"></script>
+
+    <!-- Load Modul HITUNG yang akan diuji -->
+    <script>
+        // Mock environment untuk module loading
+        window.module = window.module || {};
+    </script>
+    <script src="/app/kerja/hitung/hitung_formula.js"></script>
+    <script src="/app/kerja/hitung/hitung_storage.js"></script>
+</head>
+<body>
+
+    <header class="container" style="margin-top: 2rem;">
+        <nav>
+            <ul>
+                <li><strong>🧪 Uji Otomatis Aplikasi HITUNG</strong></li>
+            </ul>
+            <ul>
+                <li><a href="/app/kerja/hitung/" class="secondary">Kembali ke Hitung</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container test-container">
+        <div class="grid" style="margin-bottom: 2rem;">
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-passed" style="color: #2ecc71; margin-bottom: 0;">0</h3>
+                <small class="secondary">Lulus</small>
+            </article>
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-failed" style="color: #e74c3c; margin-bottom: 0;">0</h3>
+                <small class="secondary">Gagal</small>
+            </article>
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-total" style="margin-bottom: 0;">0</h3>
+                <small class="secondary">Total Uji</small>
+            </article>
+        </div>
+
+        <div id="test-results">
+            <!-- Hasil tes otomatis diinjeksikan di sini -->
+        </div>
+    </main>
+
+    <script>
+        const suites = [];
+        let currentSuite = null;
+
+        function describe(name, fn) {
+            currentSuite = { name, cases: [] };
+            suites.push(currentSuite);
+            fn();
+        }
+
+        function it(name, fn) {
+            currentSuite.cases.push({ name, fn });
+        }
+
+        function expect(actual) {
+            return {
+                toBe(expected, msg = "") {
+                    if (actual !== expected) {
+                        throw new Error(`${msg} | Ekspektasi: "${expected}", tetapi mendapatkan: "${actual}"`);
+                    }
+                },
+                toBeDefined(msg = "") {
+                    if (actual === undefined || actual === null) {
+                        throw new Error(`${msg} | Ekspektasi terdefinisi, tetapi bernilai: ${actual}`);
+                    }
+                },
+                toBeCloseTo(expected, precision = 2, msg = "") {
+                    const diff = Math.abs(actual - expected);
+                    const tolerance = Math.pow(10, -precision) / 2;
+                    if (diff > tolerance) {
+                        throw new Error(`${msg} | Ekspektasi mendekati ${expected} (toleransi ${tolerance}), tetapi mendapatkan: ${actual}`);
+                    }
+                }
+            };
+        }
+
+        // ==================== DEFINISI TEST SUITE ====================
+
+        describe("1. Uji Mesin Formula (HitungFormulaEngine)", () => {
+            const mockCells = {
+                'A1': { value: 10, type: 'number' },
+                'A2': { value: 20, type: 'number' },
+                'A3': { value: 30, type: 'number' },
+                'B1': { formula: '=A1+A2', type: 'formula' },
+                'B2': { formula: '=SUM(A1:A3)', type: 'formula' },
+                'C1': { value: "Hello", type: 'text' },
+                'C2': { value: "World", type: 'text' },
+                'D1': { value: 150000, type: 'number' }
+            };
+
+            const engine = new HitungFormulaEngine(mockCells);
+
+            it("Harus bisa mengevaluasi penjumlahan aritmatika dasar", () => {
+                expect(engine.evaluate('=A1+A2', 'B1')).toBe(30, "A1+A2");
+            });
+
+            it("Harus bisa mengevaluasi fungsi SUM", () => {
+                expect(engine.evaluate('=SUM(A1:A3)', 'B2')).toBe(60, "SUM(A1:A3)");
+            });
+
+            it("Harus bisa mengevaluasi fungsi AVERAGE", () => {
+                expect(engine.evaluate('=AVERAGE(A1:A3)', 'B3')).toBe(20, "AVERAGE(A1:A3)");
+            });
+
+            it("Harus bisa mengevaluasi fungsi IF logika", () => {
+                expect(engine.evaluate('=IF(A1>5, "YA", "TIDAK")', 'B4')).toBe("YA", "IF True");
+                expect(engine.evaluate('=IF(A1>15, "YA", "TIDAK")', 'B5')).toBe("TIDAK", "IF False");
+            });
+
+            it("Harus bisa mengevaluasi fungsi teks CONCATENATE", () => {
+                expect(engine.evaluate('=CONCATENATE(C1, " ", C2)', 'B6')).toBe("Hello World", "CONCATENATE");
+            });
+
+            it("Harus bisa mengevaluasi fungsi TAX khas Indonesia (11%)", () => {
+                expect(engine.evaluate('=TAX(D1, 11)', 'B7')).toBe(16500, "TAX(150000, 11)");
+            });
+
+            it("Harus bisa mengevaluasi fungsi DISCOUNT khas Indonesia (10%)", () => {
+                expect(engine.evaluate('=DISCOUNT(D1, 10)', 'B8')).toBe(15000, "DISCOUNT(150000, 10)");
+            });
+
+            it("Harus mendeteksi Circular Dependency dan mengembalikan error #REF!", () => {
+                const circularCells = {
+                    'A1': { formula: '=B1', type: 'formula' },
+                    'B1': { formula: '=A1', type: 'formula' }
+                };
+                const circularEngine = new HitungFormulaEngine(circularCells);
+                const res = circularEngine.evaluate('=B1', 'A1');
+                expect(res && res.error).toBe(true, "Harus mengembalikan objek error");
+                expect(res && res.type).toBe('#REF!', "Error type harus #REF!");
+            });
+        });
+
+        describe("2. Uji Integrasi Penyimpanan (HitungStorage)", () => {
+            it("Harus memiliki kelas HitungStorage terdefinisi", () => {
+                expect(typeof HitungStorage).toBe("function", "HitungStorage class");
+            });
+
+            it("Harus berhasil membuka IndexedDB dan melakukan inisialisasi", async () => {
+                const storage = new HitungStorage();
+                await storage.init();
+                expect(storage.db).toBeDefined("storage.db should be initialized");
+            });
+        });
+
+        // ==================== RUNNER & RENDERER ====================
+
+        async function runTests() {
+            const resultsContainer = document.getElementById('test-results');
+            let passedCount = 0;
+            let failedCount = 0;
+            let totalCount = 0;
+
+            for (const suite of suites) {
+                const suiteEl = document.createElement('div');
+                suiteEl.className = 'test-card';
+                suiteEl.innerHTML = `<h3>${suite.name}</h3><div class="suite-cases"></div>`;
+                const casesContainer = suiteEl.querySelector('.suite-cases');
+
+                for (const tc of suite.cases) {
+                    totalCount++;
+                    const caseEl = document.createElement('div');
+                    caseEl.style.display = 'flex';
+                    caseEl.style.flexDirection = 'column';
+
+                    const rowEl = document.createElement('div');
+                    rowEl.className = 'test-item';
+                    rowEl.innerHTML = `<span>${tc.name}</span>`;
+
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge';
+
+                    try {
+                        await tc.fn();
+                        badge.className += ' status-pass';
+                        badge.textContent = 'PASS';
+                        passedCount++;
+                    } catch (err) {
+                        badge.className += ' status-fail';
+                        badge.textContent = 'FAIL';
+                        failedCount++;
+                        
+                        const errLog = document.createElement('div');
+                        errLog.className = 'error-log';
+                        errLog.textContent = err.stack || err.message || err;
+                        rowEl.appendChild(badge);
+                        caseEl.appendChild(rowEl);
+                        caseEl.appendChild(errLog);
+                        casesContainer.appendChild(caseEl);
+                        continue;
+                    }
+
+                    rowEl.appendChild(badge);
+                    caseEl.appendChild(rowEl);
+                    casesContainer.appendChild(caseEl);
+                }
+
+                resultsContainer.appendChild(suiteEl);
+            }
+
+            document.getElementById('stat-passed').textContent = passedCount;
+            document.getElementById('stat-failed').textContent = failedCount;
+            document.getElementById('stat-total').textContent = totalCount;
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 100);
+        });
+    </script>
+</body>
+</html>

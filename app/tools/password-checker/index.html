@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Checker - TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/checker.js"></script>
+    <style>
+        .checker-bar-container {
+            width: 100%;
+            height: 12px;
+            background-color: var(--pico-muted-border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0;
+            display: flex;
+        }
+        .checker-bar-segment {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        /* Score 1 = Merah, Score 2 = Kuning, Score 3 = Hijau, Score 4 = Biru */
+        .strength-1 { background-color: #ef4444; width: 25%; }
+        .strength-2 { background-color: #f59e0b; width: 50%; }
+        .strength-3 { background-color: #10b981; width: 75%; }
+        .strength-4 { background-color: #3b82f6; width: 100%; }
+        
+        .score-label-1 { color: #ef4444; }
+        .score-label-2 { color: #f59e0b; }
+        .score-label-3 { color: #10b981; }
+        .score-label-4 { color: #3b82f6; }
+    </style>
+</head>
+<body>
+    <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container">
+        <article class="setup-card" style="max-width: 600px; margin: 2rem auto;">
+            <header class="text-center" style="border-bottom: none; margin-bottom: 0.5rem;">
+                <div class="setup-icon-box" style="margin: 0 auto 1rem auto; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; background: rgba(56, 189, 248, 0.1); border-radius: 50%; color: #38bdf8;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3" />
+                        <circle cx="12" cy="11" r="1" />
+                        <line x1="12" y1="12" x2="12" y2="14.5" />
+                    </svg>
+                </div>
+                <h1 style="margin-bottom: 0.25rem;">Password Checker</h1>
+                <p class="secondary" style="font-size: 0.95rem;">Uji kekuatan kata sandi Anda. 100% aman dan berjalan lokal (offline).</p>
+            </header>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div class="pwd-input-group">
+                    <input type="password" id="check-pwd" placeholder="Ketik kata sandi di sini..." style="margin-bottom: 0;">
+                    <button type="button" class="btn-toggle-eye" onclick="toggleVisibility('check-pwd', this)" title="Tampilkan/Sembunyikan">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="checker-bar-container">
+                <div id="strength-bar" class="checker-bar-segment"></div>
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1rem;">
+                <strong id="strength-text" style="font-size: 1.25rem;">-</strong>
+                <small id="entropy-score" class="secondary">Entropi: 0 bits</small>
+            </div>
+
+            <div style="background: var(--pico-background-color); border: 1px solid var(--pico-muted-border-color); border-radius: 8px; padding: 1rem; text-align: left;">
+                <div style="margin-bottom: 0.75rem;">
+                    <strong class="secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Estimasi Waktu Retas:</strong>
+                    <div id="time-to-crack" style="font-size: 1.1rem; font-weight: 600; color: var(--pico-color); margin-top: 0.25rem;">-</div>
+                </div>
+                <div>
+                    <strong class="secondary" style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">Saran:</strong>
+                    <div id="feedback-text" style="font-size: 0.95rem; color: var(--pico-color); margin-top: 0.25rem;">Mulai ketik kata sandi Anda...</div>
+                </div>
+            </div>
+
+            <!-- Shortcut: Password Generator -->
+            <div style="margin-top: 2rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(56, 189, 248, 0.05);">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <span style="font-size: 1.5rem;">🪄</span>
+                    <div>
+                        <div style="font-weight: 600; font-size: 0.95rem;">Butuh password yang kuat?</div>
+                        <small class="secondary">Gunakan Generator kami untuk membuat sandi acak super kuat.</small>
+                    </div>
+                </div>
+                <a href="/app/tools/password-gen/" class="outline" role="button" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Buka Generator →</a>
+            </div>
+
+            <footer style="text-align: center; margin-top: 2rem; padding: 0; background: transparent; border: none; box-shadow: none;">
+                <a href="/app/tools/" class="secondary" style="font-size: 0.9rem;">&larr; Kembali ke Tools</a>
+            </footer>
+        </article>
+    </main>
+
+    <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <script>
+        function toggleVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.style.opacity = "0.5";
+            } else {
+                input.type = "password";
+                btn.style.opacity = "1";
+            }
+        }
+
+        document.getElementById('check-pwd').addEventListener('input', function(e) {
+            const pwd = e.target.value;
+            const result = window.TMPT_Checker.calculateStrength(pwd);
+            
+            const bar = document.getElementById('strength-bar');
+            const text = document.getElementById('strength-text');
+            const entropy = document.getElementById('entropy-score');
+            const time = document.getElementById('time-to-crack');
+            const feedback = document.getElementById('feedback-text');
+
+            // Reset classes
+            bar.className = 'checker-bar-segment';
+            text.className = '';
+
+            if (pwd.length === 0) {
+                text.textContent = '-';
+                entropy.textContent = 'Entropi: 0 bits';
+                time.textContent = '-';
+                feedback.textContent = 'Mulai ketik kata sandi Anda...';
+                return;
+            }
+
+            bar.classList.add(`strength-${result.score}`);
+            text.classList.add(`score-label-${result.score}`);
+            
+            let labelStr = '';
+            if (result.score === 1) labelStr = 'Sangat Lemah';
+            if (result.score === 2) labelStr = 'Lemah';
+            if (result.score === 3) labelStr = 'Kuat';
+            if (result.score === 4) labelStr = 'Sangat Kuat';
+            
+            text.textContent = labelStr;
+            entropy.textContent = `Entropi: ${result.entropy} bits`;
+            time.textContent = result.timeToCrack;
+            feedback.textContent = result.feedback;
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const pwdQuery = params.get('pwd');
+            if (pwdQuery) {
+                const inputEl = document.getElementById('check-pwd');
+                inputEl.value = pwdQuery;
+                inputEl.dispatchEvent(new Event('input', { bubbles: true }));
+                
+                // Clear URL to prevent leaking the password if screen sharing
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    </script>
+<div id="toast-container" aria-live="polite"></div>
+</body>
+</html>

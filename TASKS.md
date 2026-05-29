@@ -55,3 +55,12 @@
 - [x] Integrasi n8n dengan Midtrans Webhook (Uji Coba Sandbox & Produksi)
 - [x] Implementasi Halaman Aktivasi `/pro/` dengan Snap SDK & Peningkatan UX Status Redirect
 
+## Fase 8: Migrasi Struktur Rules v2
+- [x] Migrasi pustaka CDN ke lokal (PicoCSS & HTMX)
+- [x] Restrukturisasi folder `/shared/` dan pemindahan aset JS/CSS
+- [x] Pembuatan modul bersama (`db.js`, `opfs.js`, `broadcast.js`, `app-bridge.js`)
+- [x] Restrukturisasi folder aplikasi (`/app/tools/vault/`, `/app/kerja/catatan/`, `/app/kerja/hitung/`, `/app/`, `/app/tools/`)
+- [x] Perbaikan terminologi "Master Password" menjadi "Kata Kunci Utama"
+- [x] Standardisasi template HTML (data-theme & toast-container)
+
+

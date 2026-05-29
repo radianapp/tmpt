@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Test Runner — TMPT</title>
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css">
+    <style>
+        .test-suite {
+            background: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .test-case {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--pico-muted-border-color);
+        }
+        .test-case:last-child {
+            border-bottom: none;
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+        .status-pass {
+            background-color: rgba(46, 204, 113, 0.15);
+            color: #2ecc71;
+        }
+        .status-fail {
+            background-color: rgba(231, 76, 60, 0.15);
+            color: #e74c3c;
+        }
+        .error-log {
+            font-family: monospace;
+            font-size: 0.85rem;
+            background: rgba(0, 0, 0, 0.05);
+            padding: 0.5rem;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+            color: #e74c3c;
+            width: 100%;
+            text-align: left;
+        }
+    </style>
+    <!-- Load TMPT source scripts -->
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/db.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+</head>
+<body>
+
+    <header class="container" style="margin-top: 2rem;">
+        <nav>
+            <ul>
+                <li><strong>🧪 TMPT Browser Test Runner</strong></li>
+            </ul>
+            <ul>
+                <li><a href="/app/" class="secondary">Kembali ke App</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="grid" style="margin-bottom: 2rem;">
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-passed" style="color: #2ecc71; margin-bottom: 0;">0</h3>
+                <small class="secondary">Lulus</small>
+            </article>
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-failed" style="color: #e74c3c; margin-bottom: 0;">0</h3>
+                <small class="secondary">Gagal</small>
+            </article>
+            <article style="text-align: center; padding: 1rem;">
+                <h3 id="stat-total" style="margin-bottom: 0;">0</h3>
+                <small class="secondary">Total Test</small>
+            </article>
+        </div>
+
+        <div id="test-results">
+            <!-- Test results injected here -->
+        </div>
+    </main>
+
+    <!-- Custom Mini Testing Framework -->
+    <script>
+        const suites = [];
+        let currentSuite = null;
+
+        window.describe = function(name, fn) {
+            currentSuite = { name, cases: [] };
+            suites.push(currentSuite);
+            fn();
+        };
+
+        window.it = function(name, fn) {
+            currentSuite.cases.push({ name, fn });
+        };
+
+        window.expect = function(actual) {
+            return {
+                toBe(expected) {
+                    if (actual !== expected) {
+                        throw new Error(`Ekspektasi: "${expected}", tetapi mendapatkan: "${actual}"`);
+                    }
+                },
+                toBeDefined() {
+                    if (actual === undefined || actual === null) {
+                        throw new Error(`Ekspektasi terdefinisi, tetapi bernilai: ${actual}`);
+                    }
+                },
+                toBeInstanceOf(expectedClass) {
+                    if (!(actual instanceof expectedClass)) {
+                        throw new Error(`Ekspektasi instansi dari ${expectedClass.name}`);
+                    }
+                },
+                toThrow() {
+                    // Handled inside test runner for async/sync throws
+                }
+            };
+        };
+
+        async function runTests() {
+            const resultsContainer = document.getElementById('test-results');
+            let passedCount = 0;
+            let failedCount = 0;
+            let totalCount = 0;
+
+            for (const suite of suites) {
+                const suiteEl = document.createElement('div');
+                suiteEl.className = 'test-suite';
+                suiteEl.innerHTML = `<h3>${suite.name}</h3><div class="suite-cases"></div>`;
+                const casesContainer = suiteEl.querySelector('.suite-cases');
+
+                for (const tc of suite.cases) {
+                    totalCount++;
+                    const caseEl = document.createElement('div');
+                    caseEl.style.display = 'flex';
+                    caseEl.style.flexDirection = 'column';
+                    caseEl.className = 'test-case-wrapper';
+
+                    const rowEl = document.createElement('div');
+                    rowEl.className = 'test-case';
+                    rowEl.innerHTML = `<span>${tc.name}</span>`;
+
+                    const badge = document.createElement('span');
+                    badge.className = 'status-badge';
+
+                    try {
+                        await tc.fn();
+                        badge.className += ' status-pass';
+                        badge.textContent = 'PASS';
+                        passedCount++;
+                    } catch (err) {
+                        badge.className += ' status-fail';
+                        badge.textContent = 'FAIL';
+                        failedCount++;
+                        
+                        const errLog = document.createElement('div');
+                        errLog.className = 'error-log';
+                        errLog.textContent = err.stack || err.message || err;
+                        rowEl.appendChild(badge);
+                        caseEl.appendChild(rowEl);
+                        caseEl.appendChild(errLog);
+                        casesContainer.appendChild(caseEl);
+                        continue;
+                    }
+
+                    rowEl.appendChild(badge);
+                    caseEl.appendChild(rowEl);
+                    casesContainer.appendChild(caseEl);
+                }
+
+                resultsContainer.appendChild(suiteEl);
+            }
+
+            document.getElementById('stat-passed').textContent = passedCount;
+            document.getElementById('stat-failed').textContent = failedCount;
+            document.getElementById('stat-total').textContent = totalCount;
+        }
+
+        // Trigger run on DOM load after test script executes
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 100);
+        });
+    </script>
+
+    <!-- Load the actual test cases -->
+    <script src="./crypto.test.js"></script>
+</body>
+</html>

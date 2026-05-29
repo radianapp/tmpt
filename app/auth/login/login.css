@@ -1,0 +1,157 @@
+/* Styles for TMPT Login Page */
+
+.login-header {
+    border-bottom: none;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0;
+}
+
+.login-header h1 {
+    margin-bottom: 0.25rem;
+}
+
+.login-header p.secondary {
+    margin-bottom: 1.5rem;
+}
+
+.no-vault-box {
+    display: none;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.no-vault-box p {
+    color: var(--pico-secondary);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.no-vault-box .grid {
+    gap: 1rem;
+}
+
+.no-vault-box a,
+.no-vault-box button {
+    margin-bottom: 0;
+}
+
+.no-vault-box button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-color: var(--pico-muted-border-color);
+    color: var(--pico-primary);
+}
+
+.form-group-margin {
+    margin-bottom: 1.5rem;
+}
+
+.form-label-left {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    text-align: left;
+}
+
+.hint-wrapper {
+    display: none;
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+
+.hint-summary {
+    font-weight: 500;
+    color: var(--pico-secondary);
+    cursor: pointer;
+}
+
+.hint-content {
+    padding: 0.75rem 1rem;
+    background: var(--pico-background-color);
+    border-radius: 8px;
+    border: 1px solid var(--pico-muted-border-color);
+    margin-top: 0.5rem;
+}
+
+.hint-content p {
+    font-style: italic;
+    margin: 0;
+    color: var(--pico-h1-color);
+}
+
+#submit-btn {
+    width: 100%;
+    margin-bottom: 1.5rem;
+}
+
+.recovery-trigger {
+    display: none;
+    text-align: center;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.recovery-trigger a {
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.recovery-input-code {
+    font-family: monospace;
+    text-transform: uppercase;
+    font-size: 1.1rem;
+    text-align: center;
+    border-radius: 10px;
+}
+
+.recovery-input-hint {
+    display: block;
+    text-align: left;
+    margin-top: 0.4rem;
+}
+
+.recovery-reset-box {
+    display: none;
+    border-top: 1px solid var(--pico-muted-border-color);
+    padding-top: 1.5rem;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.recovery-reset-box h4 {
+    font-weight: 700;
+    color: var(--pico-h1-color);
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.recovery-reset-box p {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 1.25rem;
+}
+
+#recovery-submit-btn {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.back-to-login-link {
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.confirm-input-wrapper {
+    display: none;
+    margin-top: 1rem;
+}
+
+.confirm-actions {
+    gap: 1rem;
+}
+
+.confirm-actions button {
+    margin-bottom: 0;
+}
