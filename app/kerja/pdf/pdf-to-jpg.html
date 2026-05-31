@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF ke JPG — TMPT PDF Tools</title>
+  <meta name="description" content="Konversi setiap halaman PDF menjadi gambar JPG. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">📸</div>
+      <h1>PDF ke JPG</h1>
+      <p>Konversi setiap halaman PDF menjadi gambar JPG atau PNG</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <div class="pdf-options">
+        <h3>Opsi Konversi</h3>
+        <div class="grid">
+          <label for="img-format">Format gambar
+            <select id="img-format" aria-label="Format gambar output">
+              <option value="jpeg">JPG (lebih kecil)</option>
+              <option value="png">PNG (kualitas lebih baik)</option>
+            </select>
+          </label>
+          <label for="img-dpi">Kualitas (DPI)
+            <select id="img-dpi" aria-label="Kualitas DPI gambar">
+              <option value="72">72 DPI — Web</option>
+              <option value="150" selected>150 DPI — Sedang</option>
+              <option value="300">300 DPI — Cetak</option>
+            </select>
+          </label>
+        </div>
+        <small style="color:var(--pico-muted-color);">Hasil akan diunduh sebagai file ZIP. File 300 DPI untuk PDF banyak halaman bisa membutuhkan waktu lebih lama.</small>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress konversi PDF ke gambar"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Merender halaman...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">📸 Konversi ke Gambar</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh ZIP Gambar</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/pdf-to-jpg.js"></script>
+</body>
+</html>

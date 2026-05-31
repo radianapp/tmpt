@@ -1,0 +1,39 @@
+# robots.txt — tmpt.my.id
+# Generated: 2026-05-30
+
+User-agent: *
+Allow: /
+
+# App pages — tidak relevan untuk search engine
+Disallow: /app/kerja/tulis/editor.html
+Disallow: /app/kerja/slide/editor.html
+Disallow: /app/kerja/slide/present.html
+Disallow: /app/kerja/forms/respond.html
+Disallow: /app/kerja/berkas/
+Disallow: /app/kerja/tugas/
+Disallow: /app/kerja/catatan/
+Disallow: /app/dev/code/editor.html
+
+# Library vendor files — bukan halaman
+Disallow: /shared/vendor/
+Disallow: /app/*/vendor/
+
+# Sitemap
+Sitemap: https://tmpt.my.id/sitemap.xml
+
+# ── AI Bot Rules — izinkan untuk AI Search citations ──────────────────────────
+# Izinkan GPTBot (ChatGPT) mengindeks konten TMPT
+User-agent: GPTBot
+Allow: /
+
+# Izinkan PerplexityBot
+User-agent: PerplexityBot
+Allow: /
+
+# Izinkan ClaudeBot (Anthropic)
+User-agent: ClaudeBot
+Allow: /
+
+# Izinkan Bingbot (Bing Copilot)
+User-agent: bingbot
+Allow: /

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watermark PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Tambahkan teks watermark ke PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">💧</div>
+      <h1>Watermark PDF</h1>
+      <p>Tambahkan teks watermark ke semua halaman PDF Anda</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <div class="pdf-options">
+        <h3>Teks Watermark</h3>
+        <label for="wm-text">Teks watermark
+          <input type="text" id="wm-text" placeholder="DRAFT" maxlength="50" aria-label="Teks watermark">
+        </label>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin:.5rem 0;">
+          <button class="preset-btn outline secondary" data-text="DRAFT" style="font-size:.78rem;">DRAFT</button>
+          <button class="preset-btn outline secondary" data-text="RAHASIA" style="font-size:.78rem;">RAHASIA</button>
+          <button class="preset-btn outline secondary" data-text="CONFIDENTIAL" style="font-size:.78rem;">CONFIDENTIAL</button>
+          <button class="preset-btn outline secondary" data-text="COPY" style="font-size:.78rem;">COPY</button>
+          <button class="preset-btn outline secondary" data-text="VOID" style="font-size:.78rem;">VOID</button>
+        </div>
+        <h3 style="margin-top:.75rem;">Tampilan</h3>
+        <div class="grid">
+          <label for="wm-position">Posisi
+            <select id="wm-position" aria-label="Posisi watermark">
+              <option value="center">Diagonal Tengah</option>
+              <option value="top-left">Pojok Kiri Atas</option>
+              <option value="top-right">Pojok Kanan Atas</option>
+              <option value="bottom-left">Pojok Kiri Bawah</option>
+              <option value="bottom-right">Pojok Kanan Bawah</option>
+            </select>
+          </label>
+          <label for="wm-size">Ukuran font
+            <input type="number" id="wm-size" value="48" min="12" max="120" aria-label="Ukuran font watermark">
+          </label>
+        </div>
+        <div class="grid">
+          <label for="wm-opacity">Opacity (%)
+            <input type="range" id="wm-opacity" min="5" max="80" value="25" aria-label="Opacity watermark">
+          </label>
+          <label for="wm-rotation">Rotasi (°)
+            <input type="number" id="wm-rotation" value="45" min="-180" max="180" aria-label="Rotasi watermark">
+          </label>
+        </div>
+        <label for="wm-color">Warna
+          <input type="color" id="wm-color" value="#888888" aria-label="Warna watermark">
+        </label>
+
+        <!-- Preview watermark -->
+        <div class="wm-preview-wrap" style="margin-top:1.25rem;">
+          <p style="font-size:.8rem;color:var(--pico-muted-color);margin-bottom:.5rem;">Pratinjau watermark</p>
+          <div class="wm-page-preview" id="wm-page-preview" aria-label="Pratinjau tampilan watermark">
+            <div class="wm-content-lines">
+              <div class="wm-line wm-line--long"></div>
+              <div class="wm-line wm-line--short"></div>
+              <div class="wm-line wm-line--long"></div>
+              <div class="wm-line wm-line--med"></div>
+              <div class="wm-line wm-line--long"></div>
+              <div class="wm-line wm-line--short"></div>
+              <div class="wm-line wm-line--long"></div>
+              <div class="wm-line wm-line--med"></div>
+            </div>
+            <span class="wm-text-preview" id="wm-text-preview" aria-live="polite">DRAFT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress tambah watermark"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Memproses...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">💧 Tambahkan Watermark</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh Hasil</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/watermark.js"></script>
+</body>
+</html>

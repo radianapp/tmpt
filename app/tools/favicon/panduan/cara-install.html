@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara Memasang Favicon di HTML dengan Benar - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Cara Memasang Favicon</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Cara Memasang Favicon di HTML dengan Benar</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Memasang favicon di website saat ini tidak sesederhana hanya meletakkan file <code>favicon.ico</code> di root folder. Karena variasi perangkat modern (iOS, Android, Windows, Mac), Anda membutuhkan beberapa baris kode HTML untuk memastikan ikon Anda termuat sempurna di semua layar.</p>
+
+        <h2>Kode HTML Favicon Standar</h2>
+        <p>Salin blok kode berikut ke bagian <code>&lt;head&gt;</code> file HTML utama website Anda:</p>
+
+        <pre><code>&lt;!-- 1. Favicon Utama untuk kompatibilitas klasik --&gt;
+&lt;link rel="icon" type="image/x-icon" href="/favicon.ico"&gt;
+
+&lt;!-- 2. Ikon Resolusi Multi untuk browser modern --&gt;
+&lt;link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"&gt;
+&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;
+&lt;link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png"&gt;
+
+&lt;!-- 3. Apple Touch Icon untuk iOS (Safari bookmark/home screen) --&gt;
+&lt;link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"&gt;
+
+&lt;!-- 4. Manifest Web App untuk integrasi PWA Android/Chrome --&gt;
+&lt;link rel="manifest" href="/site.webmanifest"&gt;</code></pre>
+
+        <h2>Contoh Isi File site.webmanifest</h2>
+        <p>Selain tag HTML, PWA membutuhkan berkas JSON bernama <code>site.webmanifest</code> untuk menetapkan informasi detail mengenai aplikasi mobile web Anda:</p>
+
+        <pre><code>{
+  "name": "Nama Lengkap Aplikasi Anda",
+  "short_name": "Singkat",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#ffffff",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}</code></pre>
+
+        <h2>Tips Tambahan</h2>
+        <ol>
+          <li><strong>Root Direktori:</strong> Tempatkan seluruh berkas favicon di root folder website Anda (misal <code>https://namadomain.com/favicon.ico</code>). Beberapa bot pencari dan peranti lama hanya akan mencari file favicon di root folder secara otomatis tanpa membaca tag HTML.</li>
+          <li><strong>Gunakan Absolute Path:</strong> Menggunakan tanda garis miring (<code>/favicon.ico</code>) memastikan ikon dapat dimuat dengan benar dari halaman subdirektori manapun.</li>
+          <li><strong>Gunakan Cache Busting:</strong> Jika Anda memperbarui favicon dan perubahan tidak langsung terlihat di browser, tambahkan parameter query versi di ujung URL (misal: <code>/favicon.ico?v=2</code>).</li>
+        </ol>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Mulai Buat Favicon</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

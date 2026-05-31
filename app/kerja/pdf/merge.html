@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Merge PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Gabungkan beberapa file PDF menjadi satu dokumen. Gratis, 100% di browser Anda.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+
+  <main id="main" class="container" style="max-width: 680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🔀</div>
+      <h1>Merge PDF</h1>
+      <p>Gabungkan beberapa file PDF menjadi satu dokumen</p>
+    </div>
+
+    <div style="text-align:center; margin-bottom: 1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <!-- Drop Zone -->
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" multiple aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB per file</p>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="merge-controls-bar" id="merge-controls-bar" hidden>
+      <button class="outline secondary sort-toggle-btn" id="btn-sort" type="button">Urutkan A-Z</button>
+      <div class="floating-add-btn-wrap">
+        <span class="file-count-badge" id="file-count-badge">0</span>
+        <button class="floating-add-btn" id="btn-floating-add" type="button" aria-label="Tambah file PDF">+</button>
+      </div>
+    </div>
+
+    <!-- Sortable Preview Grid -->
+    <div class="merge-preview-grid" id="merge-preview-grid"></div>
+
+    <!-- Options -->
+    <div class="pdf-options" id="merge-options" hidden>
+      <h3>Opsi</h3>
+      <label for="output-name">Nama file hasil
+        <input type="text" id="output-name" value="merged" placeholder="merged">
+      </label>
+    </div>
+
+    <!-- Progress -->
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100"
+        role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"
+        aria-label="Progress penggabungan PDF"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Memproses...</p>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-merge" class="primary">🔀 Gabungkan PDF</button>
+      <button id="btn-add-more" class="outline secondary">+ Tambah File</button>
+    </div>
+
+    <!-- Result -->
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh Hasil</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/merge.js"></script>
+</body>
+</html>

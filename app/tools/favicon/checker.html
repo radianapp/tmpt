@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favicon Checker - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="./index.html">Favicon Home</a></li>
+        <li>Favicon Checker</li>
+      </ul>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Favicon Checker</h1>
+      <p class="secondary">Periksa favicon yang terpasang di website manapun dan lihat skor kelengkapannya</p>
+    </header>
+
+    <!-- URL Input -->
+    <article style="max-width: 640px; margin: 0 auto 2rem;">
+      <label for="url-input">URL Website yang Ingin Diperiksa</label>
+      <div style="display: flex; gap: 0.75rem; align-items: flex-end;">
+        <div style="flex: 1;">
+          <input type="url" id="url-input" placeholder="https://contoh.com" />
+        </div>
+        <button id="btn-check" class="primary" style="white-space: nowrap; border-radius: 8px;">
+          Periksa Favicon
+        </button>
+      </div>
+      <small class="secondary">Contoh: https://google.com · https://github.com · https://tmpt.my.id</small>
+    </article>
+
+    <!-- Results -->
+    <div id="results-section" class="hidden" style="max-width: 800px; margin: 0 auto;">
+
+      <!-- Score Card -->
+      <article style="text-align: center; margin-bottom: 1.5rem;">
+        <h2 id="result-domain" style="font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem;"></h2>
+        <div style="display: flex; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div>
+            <progress id="score-bar" value="0" max="8" style="width: 200px;"></progress>
+          </div>
+          <div>
+            <strong id="score-text" style="font-size: 1.5rem;"></strong>
+            <span class="secondary" style="font-size: 0.9rem;"> / 8 ukuran terdeteksi</span>
+          </div>
+          <div>
+            <mark id="score-badge"></mark>
+          </div>
+        </div>
+      </article>
+
+      <!-- Found Favicons Grid -->
+      <h3>Favicon yang Ditemukan</h3>
+      <div id="found-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;"></div>
+
+      <!-- Not Found List -->
+      <div id="missing-section" class="hidden">
+        <h3>Favicon yang Tidak Ditemukan</h3>
+        <ul id="missing-list"></ul>
+        <blockquote id="missing-recommendation"></blockquote>
+      </div>
+
+      <!-- Quick Action -->
+      <div id="quick-action" class="hidden" style="text-align: center; margin-top: 2rem;">
+        <p>Lengkapi favicon website Anda sekarang:</p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <a href="./converter.html" role="button" class="outline" style="border-radius: 8px;">Buka Konverter</a>
+          <a href="./logo.html" role="button" class="outline" style="border-radius: 8px;">Buat Logo Baru</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error state -->
+    <div id="error-section" class="hidden" style="max-width: 640px; margin: 0 auto; text-align: center;">
+      <p id="error-message" role="alert" aria-live="assertive"></p>
+      <small class="secondary">
+        Catatan: Beberapa website memblokir permintaan lintas domain (CORS).
+        Checker ini hanya dapat mendeteksi favicon melalui URL konvensional
+        (<code>/favicon.ico</code>, <code>/apple-touch-icon.png</code>, dll.) karena keterbatasan browser.
+      </small>
+    </div>
+
+    <!-- Loading state -->
+    <div id="loading-section" class="hidden" style="text-align: center; max-width: 640px; margin: 0 auto;">
+      <p>Memeriksa favicon untuk <strong id="loading-domain"></strong>…</p>
+      <progress></progress>
+    </div>
+
+    <!-- Info panel -->
+    <article style="max-width: 800px; margin: 3rem auto 0; background: rgba(15,23,42,0.02); border: 1px solid var(--pico-border-color);">
+      <h3>Favicon yang Direkomendasikan</h3>
+      <figure>
+        <table>
+          <thead>
+            <tr>
+              <th>File</th>
+              <th>Ukuran</th>
+              <th>Digunakan Untuk</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>favicon.ico</code></td><td>16, 32, 48px</td><td>Tab browser semua browser</td></tr>
+            <tr><td><code>favicon-16x16.png</code></td><td>16 × 16px</td><td>Browser tab modern</td></tr>
+            <tr><td><code>favicon-32x32.png</code></td><td>32 × 32px</td><td>Retina / HiDPI</td></tr>
+            <tr><td><code>apple-touch-icon.png</code></td><td>180 × 180px</td><td>iOS home screen</td></tr>
+            <tr><td><code>android-chrome-192x192.png</code></td><td>192 × 192px</td><td>Android home screen</td></tr>
+            <tr><td><code>android-chrome-512x512.png</code></td><td>512 × 512px</td><td>PWA splash screen</td></tr>
+            <tr><td><code>site.webmanifest</code></td><td>—</td><td>PWA manifest (wajib)</td></tr>
+          </tbody>
+        </table>
+      </figure>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <script type="module" src="./js/checker.js"></script>
+</body>
+</html>

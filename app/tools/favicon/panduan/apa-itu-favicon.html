@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apa itu Favicon & Perannya bagi SEO - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Apa itu Favicon</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Apa itu Favicon dan Mengapa Sangat Penting untuk SEO?</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p><strong>Favicon</strong> (kependekan dari <em>favorite icon</em>), juga dikenal sebagai ikon pintasan, ikon situs web, ikon tab, ikon URL, atau ikon bookmark, adalah file kecil yang berisi satu atau lebih ikon visual yang mewakili situs web atau merek tertentu.</p>
+        
+        <h2>Mengapa Favicon Penting?</h2>
+        
+        <h3>1. Meningkatkan Pengalaman Pengguna (User Experience / UX)</h3>
+        <p>Di browser desktop modern, tab browser seringkali menumpuk saat pengguna membuka banyak halaman sekaligus. Ketika tab menyusut karena terlalu banyak, teks judul halaman akan hilang dan hanya menyisakan favicon. Tanpa favicon yang jelas, pengguna akan kesulitan menemukan tab website Anda dan cenderung menutupnya secara tidak sengaja.</p>
+
+        <h3>2. Pengenalan Merek Visual (Branding)</h3>
+        <p>Favicon membantu memperkuat visual branding merek Anda di dunia digital. Pengguna yang terbiasa melihat favicon Anda di tab, bookmark, atau riwayat pencarian akan lebih cepat mengenali situs web Anda di masa mendatang.</p>
+
+        <h3>3. Signifikansi dalam Search Engine Optimization (SEO)</h3>
+        <p>Meskipun mesin pencari seperti Google tidak memberikan nilai peringkat (ranking) langsung hanya karena situs web memiliki favicon, ia memiliki dampak tidak langsung yang signifikan:</p>
+        <ul>
+          <li><strong>Hasil Pencarian Mobile & Desktop Google:</strong> Google menampilkan favicon di samping URL halaman hasil pencarian (SERP) baik di mobile maupun desktop. Favicon yang menonjol dan relevan dapat meningkatkan rasio klik (Click-Through Rate atau CTR) secara organik.</li>
+          <li><strong>Kepercayaan Pengguna (Trust):</strong> Situs yang tidak memiliki favicon biasanya menampilkan ikon dokumen kosong default browser. Ini sering dianggap tidak profesional atau tidak terawat oleh pengguna, yang dapat memicu rasio pentalan (bounce rate) yang tinggi karena keraguan keamanan.</li>
+        </ul>
+
+        <h2>Format Berkas Favicon Modern</h2>
+        <p>Dahulu, satu-satunya format yang didukung adalah format khusus Microsoft yaitu <code>.ico</code>. Saat ini, browser mendukung berbagai format:</p>
+        <ul>
+          <li><strong>ICO:</strong> Pilihan paling aman untuk kompatibilitas ke belakang (browser jadul).</li>
+          <li><strong>PNG:</strong> Standar modern untuk ikon berkualitas tinggi dan ukuran bitmap yang bervariasi.</li>
+          <li><strong>SVG:</strong> Format vektor modern yang dapat berubah warna secara dinamis mengikuti preferensi mode gelap/terang pengguna.</li>
+        </ul>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

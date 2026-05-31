@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JPG ke PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Konversi gambar JPG/PNG menjadi PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🖼️</div>
+      <h1>JPG ke PDF</h1>
+      <p>Konversi gambar JPG, PNG, atau WEBP menjadi dokumen PDF</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload gambar">
+      <input type="file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" multiple aria-label="Pilih gambar">
+      <div class="drop-icon">🖼️</div>
+      <p class="drop-title">Seret gambar JPG/PNG ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Beberapa file sekaligus</p>
+    </div>
+
+    <ul class="pdf-file-list" id="file-list"></ul>
+
+    <div id="tool-controls" hidden>
+      <div class="pdf-options">
+        <h3>Opsi Halaman</h3>
+        <div class="grid">
+          <label for="page-size">Ukuran halaman
+            <select id="page-size" aria-label="Ukuran halaman PDF">
+              <option value="a4">A4</option>
+              <option value="letter">Letter</option>
+              <option value="fit">Sesuai gambar</option>
+            </select>
+          </label>
+          <label for="page-margin">Margin (px)
+            <input type="number" id="page-margin" value="0" min="0" max="100" aria-label="Margin halaman dalam pixel">
+          </label>
+        </div>
+        <label for="output-name">Nama file hasil
+          <input type="text" id="output-name" value="images" placeholder="images" aria-label="Nama file PDF hasil">
+        </label>
+      </div>
+
+      <div class="pdf-options" style="margin-top:.75rem;">
+        <h3>Kompresi Gambar <small style="font-weight:normal;color:var(--pico-muted-color);font-size:.8rem;">(opsional)</small></h3>
+        <label style="display:flex;align-items:center;gap:.75rem;cursor:pointer;margin-bottom:.75rem;">
+          <input type="checkbox" id="compress-enable" role="switch" aria-label="Aktifkan kompresi gambar" style="margin:0;flex-shrink:0;">
+          <span>Aktifkan kompresi untuk memperkecil ukuran PDF</span>
+        </label>
+        <div id="compress-controls" style="display:none;">
+          <label for="compress-quality">
+            Kualitas gambar: <strong id="quality-label">80%</strong>
+            <small style="display:block;color:var(--pico-muted-color);margin-bottom:.4rem;">Semakin rendah = file lebih kecil, tapi gambar kurang tajam</small>
+            <div style="display:flex;align-items:center;gap:.75rem;">
+              <span style="font-size:.8rem;color:var(--pico-muted-color);">Kecil</span>
+              <input type="range" id="compress-quality" min="10" max="100" value="80"
+                style="flex:1;" aria-label="Kualitas kompresi gambar" aria-valuemin="10" aria-valuemax="100" aria-valuenow="80">
+              <span style="font-size:.8rem;color:var(--pico-muted-color);">Tajam</span>
+            </div>
+          </label>
+          <div class="jpg-compress-presets" style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem;">
+            <button type="button" class="outline secondary compress-preset" data-q="40" aria-label="Preset kualitas 40% — Minimum" style="font-size:.8rem;padding:.3rem .7rem;">Minimum (40%)</button>
+            <button type="button" class="outline secondary compress-preset" data-q="70" aria-label="Preset kualitas 70% — Direkomendasikan" style="font-size:.8rem;padding:.3rem .7rem;">Direkomendasikan (70%)</button>
+            <button type="button" class="outline secondary compress-preset" data-q="85" aria-label="Preset kualitas 85% — Tinggi" style="font-size:.8rem;padding:.3rem .7rem;">Tinggi (85%)</button>
+          </div>
+          <small style="display:block;margin-top:.5rem;color:var(--pico-muted-color);">💡 Format PNG akan dikonversi ke JPEG saat kompresi aktif.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress konversi gambar ke PDF"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Mengonversi...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">🖼️ Konversi ke PDF</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh PDF</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/jpg-to-pdf.js"></script>
+</body>
+</html>

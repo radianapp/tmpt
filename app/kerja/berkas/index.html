@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berkas — TMPT</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./berkas.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+</head>
+<body>
+  
+
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main id="main-content" class="container-fluid berkas-container">
+    <div class="berkas-layout">
+      <!-- Sidebar -->
+      <aside class="berkas-sidebar">
+        <!-- New Button -->
+        <details class="dropdown" id="new-dropdown">
+          <summary class="button btn-navy" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">
+            ➕ Baru
+          </summary>
+          <ul class="new-menu">
+            <li><a href="#" id="new-doc-btn">📄 Dokumen Baru</a></li>
+            <li><a href="#" id="new-slide-btn">🎞 Presentasi Baru</a></li>
+            <li><a href="#" id="new-form-btn">📋 Formulir Baru</a></li>
+            <li><hr style="margin: 0.5rem 0;"></li>
+            <li><a href="#" id="new-folder-btn">📁 Folder Baru</a></li>
+            <li><a href="#" id="upload-file-btn">📤 Unggah File</a></li>
+            <input type="file" id="file-picker-input" style="display: none;" multiple>
+          </ul>
+        </details>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+          <ul>
+            <li>
+              <strong>Pintasan</strong>
+              <ul>
+                <li><a href="#" class="nav-link active" data-view="all">🕐 Semua Berkas</a></li>
+                <li><a href="#" class="nav-link" data-view="starred">⭐ Berbintang</a></li>
+                <li><a href="#" class="nav-link" data-view="trash">🗑️ Sampah</a></li>
+              </ul>
+            </li>
+            <li>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                <strong>Folder Saya</strong>
+                <button class="outline" id="sidebar-add-folder" aria-label="Tambah Folder" style="padding: 0.1rem 0.4rem; font-size: 0.8rem; margin: 0; width: auto; border-radius: 6px;">+</button>
+              </div>
+              <ul id="sidebar-folders-list" class="folder-tree">
+                <!-- Dinamis diisi JS -->
+              </ul>
+            </li>
+            <li>
+              <strong>Tag</strong>
+              <div id="sidebar-tags-list" class="tags-container">
+                <!-- Dinamis diisi JS -->
+              </div>
+            </li>
+          </ul>
+        </nav>
+
+        <!-- Storage Manager Indicator -->
+        <div class="storage-card" id="storage-indicator">
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.25rem;">
+            <strong>Penyimpanan Lokal</strong>
+            <span id="storage-percent">0%</span>
+          </div>
+          <progress id="storage-progress" value="0" max="100" style="margin-bottom: 0.5rem;"></progress>
+          <div style="font-size: 0.75rem; color: var(--pico-secondary-color);" id="storage-details">
+            0 B / Estimasi 1 GB
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+            <button class="outline" id="btn-backup-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;">Backup/Restore</button>
+            <button class="outline" id="btn-local-folder-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;">Folder Lokal</button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Panel -->
+      <section class="berkas-main">
+        <!-- Toolbar -->
+        <div class="berkas-toolbar">
+          <!-- Left: Breadcrumbs -->
+          <nav aria-label="breadcrumb" class="toolbar-breadcrumbs">
+            <ul id="breadcrumbs-list">
+              <li><a href="#" data-folder-id="root">Utama</a></li>
+            </ul>
+          </nav>
+
+          <!-- Right: Search & View Options -->
+          <div class="toolbar-actions">
+            <div class="search-box">
+              <input type="search" id="search-input" placeholder="Cari berkas..." aria-label="Cari Berkas" style="margin-bottom: 0; border-radius: 10px; padding-right: 2rem;">
+            </div>
+            <select id="filter-type" aria-label="Filter Tipe Berkas" style="margin-bottom: 0; border-radius: 10px; width: auto;">
+              <option value="all">Semua Tipe</option>
+              <option value="document">Dokumen</option>
+              <option value="slide">Presentasi</option>
+              <option value="form">Formulir</option>
+              <option value="catat_notes">Catatan</option>
+              <option value="catat_lists">Tugas</option>
+              <option value="pdf">PDF</option>
+              <option value="image">Gambar</option>
+              <option value="other">Lainnya</option>
+            </select>
+            <div class="view-toggles">
+              <button id="btn-view-grid" class="outline" aria-label="Grid View" title="Tampilan Grid" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></button>
+              <button id="btn-view-list" class="outline secondary" aria-label="List View" title="Tampilan List" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+            </div>
+            <select id="sort-by" aria-label="Urutkan" style="margin-bottom: 0; border-radius: 10px; width: auto;">
+              <option value="updated_at-desc">Terakhir Diubah (Terbaru)</option>
+              <option value="updated_at-asc">Terakhir Diubah (Terlama)</option>
+              <option value="name-asc">Nama (A-Z)</option>
+              <option value="name-desc">Nama (Z-A)</option>
+              <option value="size-desc">Ukuran (Terbesar)</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Bulk Action Bar (Hidden by default) -->
+        <div class="bulk-action-bar" id="bulk-bar" style="display: none;">
+          <span id="bulk-selected-count">0 terpilih</span>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <button class="outline" id="bulk-btn-star" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">⭐ Bintang</button>
+            <button class="outline" id="bulk-btn-tag" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">🏷️ Tag</button>
+            <button class="outline" id="bulk-btn-move" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">📁 Pindahkan</button>
+            <button class="outline secondary" id="bulk-btn-delete" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">🗑️ Hapus</button>
+            <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">Batal</button>
+          </div>
+        </div>
+
+        <!-- Drag and Drop Overlay -->
+        <div class="drag-overlay" id="drag-overlay">
+          <div class="drag-message">
+            <span>📤 Lepaskan berkas di sini untuk mengunggah</span>
+          </div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="berkas-content-area" class="berkas-content-grid">
+          <!-- Folder Section -->
+          <div class="section-container" id="folders-section" style="display: none;">
+            <h5 class="section-title">Folder</h5>
+            <div class="folder-grid" id="folders-grid"></div>
+          </div>
+
+          <!-- Files Section -->
+          <div class="section-container" id="files-section-container">
+            <h5 class="section-title" id="files-section-title">Berkas</h5>
+            <div class="files-container" id="files-view-container">
+              <!-- Grid or List Content loaded dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Dialog: Preview File -->
+  <dialog id="modal-preview">
+    <article style="max-width: 900px; width: 95%; height: 85vh; display: flex; flex-direction: column; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.5rem; border-bottom: 1px solid var(--pico-muted-border-color); margin-bottom: 1rem;">
+        <h4 id="preview-title" style="margin-bottom: 0; font-weight: 700;">Pratinjau Berkas</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-preview').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; color: var(--pico-secondary-color); width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div id="preview-content-body" style="flex-grow: 1; overflow: auto; background: var(--pico-card-sectioning-background-color); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+        <!-- Preview Content (Iframe / Img / Video) -->
+      </div>
+      <footer style="margin-top: 1rem; text-align: right; border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.75rem;">
+        <button class="outline secondary" onclick="document.getElementById('modal-preview').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
+        <button class="btn-navy" id="preview-download-btn" style="margin: 0; border-radius: 8px;">Unduh Berkas</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Backup & Restore -->
+  <dialog id="modal-backup">
+    <article style="max-width: 550px; width: 95%; border-radius: 16px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0; font-weight: 700;">Backup &amp; Pemulihan Ekosistem</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-backup').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div>
+        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;">Unduh semua data lokal Anda (termasuk Catatan, Hitung, serta berkas biner di OPFS) dalam satu paket `.tmpt` terkompresi, atau pulihkan data Anda dari backup sebelumnya.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+          <div style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; background: rgba(30, 64, 175, 0.05); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <div>
+              <strong style="color: var(--pico-primary-color); display: block;">Unduh Backup (.tmpt)</strong>
+              <span class="secondary" style="font-size: 0.75rem;">Bundel seluruh data lokal di browser Anda</span>
+            </div>
+            <button id="btn-trigger-backup" class="btn-navy" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.85rem; border-radius: 8px;">Unduh Backup</button>
+          </div>
+
+          <div style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; text-align: center;">
+            <strong style="display: block; margin-bottom: 0.5rem;">Pulihkan dari Backup</strong>
+            <p class="secondary" style="font-size: 0.75rem; margin-bottom: 1rem;">Unggah file .tmpt untuk mengembalikan data Anda.</p>
+            <input type="file" id="restore-file-input" accept=".tmpt" style="display: none;">
+            <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; margin-bottom: 1rem;">
+              <label style="font-size: 0.8rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 0.25rem;"><input type="radio" name="restore-mode" value="merge" checked style="margin:0;"> Gabungkan</label>
+              <label style="font-size: 0.8rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 0.25rem;"><input type="radio" name="restore-mode" value="overwrite" style="margin:0;"> Timpa Semua</label>
+            </div>
+            <button id="btn-trigger-restore" class="outline" style="margin: 0; border-radius: 8px; font-size: 0.85rem; padding: 0.4rem 1rem;">Pilih Berkas .tmpt</button>
+          </div>
+        </div>
+
+        <!-- Progress bar for Backup/Restore -->
+        <div id="backup-progress-container" style="display: none; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
+            <span id="backup-progress-status">Memproses...</span>
+            <span id="backup-progress-percent">0%</span>
+          </div>
+          <progress id="backup-progress-bar" value="0" max="100" style="margin:0;"></progress>
+        </div>
+      </div>
+      <footer style="text-align: right; border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.75rem;">
+        <button class="outline secondary" onclick="document.getElementById('modal-backup').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Local Folder Settings -->
+  <dialog id="modal-local-folder">
+    <article style="max-width: 500px; width: 95%; border-radius: 16px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0; font-weight: 700;">Folder Lokal (FSAA Mode)</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-local-folder').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div>
+        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;">Hubungkan TMPT ke folder di komputer Anda. Dokumen yang dibuat akan otomatis tersimpan sebagai file nyata di penyimpanan komputer Anda. (Hanya didukung di Chrome / Edge)</p>
+        
+        <div id="fsaa-status-box" style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; background: var(--pico-card-sectioning-background-color);">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Status Hubungan:</div>
+          <div id="fsaa-status-text">🔴 Tidak Terhubung</div>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+          <button class="outline secondary" id="btn-fsaa-disconnect" style="margin:0; border-radius: 8px; display: none;">Putus Hubungan</button>
+          <button class="btn-navy" id="btn-fsaa-connect" style="margin:0; border-radius: 8px;">Pilih Folder Lokal...</button>
+        </div>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Folder CRUD (Create/Rename) -->
+  <dialog id="modal-folder-crud">
+    <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 id="folder-crud-title" style="margin-bottom: 0; font-weight: 700;">Buat Folder Baru</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-folder-crud').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <form id="form-folder-crud" onsubmit="event.preventDefault();">
+        <input type="hidden" id="folder-crud-id">
+        <div style="margin-bottom: 1rem;">
+          <label for="folder-name-input">Nama Folder</label>
+          <input type="text" id="folder-name-input" placeholder="Masukkan nama folder..." required autocomplete="off">
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <label for="folder-color-input">Warna Folder</label>
+          <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="folder-color-options">
+            <span class="color-dot selected" data-color="#3b82f6" style="background:#3b82f6; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #ccc;"></span>
+            <span class="color-dot" data-color="#10b981" style="background:#10b981; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+            <span class="color-dot" data-color="#ef4444" style="background:#ef4444; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+            <span class="color-dot" data-color="#f59e0b" style="background:#f59e0b; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+            <span class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+            <span class="color-dot" data-color="#ec4899" style="background:#ec4899; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+            <span class="color-dot" data-color="#6b7280" style="background:#6b7280; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
+          </div>
+          <input type="hidden" id="folder-color-input" value="#3b82f6">
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-folder-crud').close()" style="margin:0; border-radius: 8px;">Batal</button>
+          <button type="submit" class="btn-navy" id="btn-save-folder" style="margin:0; border-radius: 8px;">Simpan</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Move File -->
+  <dialog id="modal-move-file">
+    <article style="max-width: 450px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">Pindahkan ke Folder</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-move-file').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div>
+        <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Pilih folder tujuan untuk memindahkan berkas terpilih.</p>
+        <div id="move-folders-tree" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--pico-muted-border-color); border-radius: 8px; padding: 0.5rem; margin-bottom: 1.5rem;">
+          <!-- JS dynamic hierarchy -->
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button class="outline secondary" onclick="document.getElementById('modal-move-file').close()" style="margin:0; border-radius: 8px;">Batal</button>
+          <button class="btn-navy" id="btn-confirm-move" style="margin:0; border-radius: 8px;">Pindahkan Ke Sini</button>
+        </div>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Add Tag to File -->
+  <dialog id="modal-tag-file">
+    <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">Tambahkan Tag</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-tag-file').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div>
+        <div style="margin-bottom: 1rem;">
+          <label for="tag-name-input">Nama Tag Baru (atau pilih di bawah)</label>
+          <div style="display:flex; gap: 0.5rem;">
+            <input type="text" id="tag-name-input" placeholder="Nama tag..." autocomplete="off" style="margin:0;">
+            <button class="btn-navy" id="btn-add-new-tag" style="margin:0; padding:0 1rem; border-radius: 8px;">+</button>
+          </div>
+        </div>
+        <div style="margin-bottom: 1.5rem;">
+          <label>Daftar Tag Berkas</label>
+          <div id="file-tags-select-container" style="display: flex; gap: 0.5rem; flex-wrap: wrap; max-height: 150px; overflow-y: auto; padding: 0.25rem;">
+            <!-- JS dynamic list -->
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button class="outline secondary" onclick="document.getElementById('modal-tag-file').close()" style="margin:0; border-radius: 8px;">Tutup</button>
+        </div>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Context Menu (Right Click) dropdown -->
+  <div id="berkas-context-menu" class="context-menu" style="display: none; position: absolute; z-index: 120000;">
+    <ul>
+      <li><a href="#" id="ctx-open">📂 Buka</a></li>
+      <li><a href="#" id="ctx-preview">👁️ Pratinjau</a></li>
+      <li><a href="#" id="ctx-rename">✏️ Rename</a></li>
+      <li><a href="#" id="ctx-star">⭐ Tambah Bintang</a></li>
+      <li><a href="#" id="ctx-tag">🏷️ Kelola Tag</a></li>
+      <li><a href="#" id="ctx-move">📁 Pindahkan ke Folder</a></li>
+      <li><a href="#" id="ctx-duplicate">📋 Duplikat</a></li>
+      <li><a href="#" id="ctx-download">📥 Export / Unduh</a></li>
+      <li><a href="#" id="ctx-restore" style="display: none;">🔄 Pulihkan</a></li>
+      <li><hr style="margin: 0.25rem 0;"></li>
+      <li><a href="#" id="ctx-delete" style="color: var(--pico-danger-color);">🗑️ Hapus</a></li>
+    </ul>
+  </div>
+
+  <!-- Dialog: Konfirmasi (Generic) -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Script Modules -->
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>

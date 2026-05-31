@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Kode — TMPT</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./code.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  
+  <!-- Lazy load Monaco Editor Loader script -->
+  <script src="./vendor/monaco/vs/loader.js"></script>
+  
+  <script type="module" src="/shared/seo.js" data-seo-key="code-editor"></script>
+</head>
+<body class="code-editor-active">
+
+  <!-- Header Bar -->
+  <header style="padding: 0.5rem 1rem; border-bottom: 1px solid var(--code-border-color); background-color: var(--pico-card-background-color); display: flex; justify-content: space-between; align-items: center; height: 50px;">
+    <div style="display: flex; align-items: center; gap: 0.6rem;">
+      <!-- Burger untuk show sidebar saat collapsed -->
+      <button id="btn-show-sidebar" class="icon-btn sidebar-show-btn hidden" aria-label="Tampilkan Sidebar" title="Tampilkan Sidebar">
+        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <a href="./index.html" class="icon-btn" aria-label="Kembali ke Dashboard" title="Kembali ke Dashboard">
+        <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+      </a>
+      <span class="header-filename" id="project-name-display">Memuat Proyek...</span>
+      <span class="secondary" style="font-size: 0.8rem;" id="branch-display"></span>
+
+      <!-- Separator -->
+      <span style="width: 1px; height: 20px; background: var(--code-border-color); margin: 0 0.2rem;"></span>
+
+      <!-- Tombol aksi — di kiri agar mudah dijangkau -->
+      <button id="btn-run-code" class="primary" style="margin-bottom: 0; padding: 0.3rem 0.7rem; font-size: 0.82rem; border-radius: 8px;" aria-label="Jalankan kode aktif">
+        ▶ Jalankan
+      </button>
+      <button id="btn-toggle-preview" class="outline secondary" style="margin-bottom: 0; padding: 0.3rem 0.65rem; font-size: 0.82rem; border-radius: 8px;" aria-label="Toggle panel pratinjau">
+        👁️ Preview
+      </button>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 0.75rem;">
+      <!-- Export button — hanya tampil untuk browser project, JS akan show via classList.remove('hidden') -->
+      <button id="btn-export-project" class="outline hidden"
+        style="margin-bottom:0; padding:0.3rem 0.65rem; font-size:0.82rem; border-radius:8px;"
+        aria-label="Export proyek browser" title="Export Proyek">
+        ⬇️ Export
+      </button>
+      <span id="save-status" class="save-status-saved">Tersimpan ✓</span>
+    </div>
+  </header>
+
+  <!-- Main Editor Workspace Layout -->
+  <main class="editor-layout">
+    
+    <!-- Sidebar: File Tree -->
+    <aside class="editor-sidebar" id="editor-sidebar">
+      <div class="sidebar-header">
+        <div style="display: flex; align-items: center; gap: 0.4rem;">
+          <button id="btn-toggle-sidebar" class="icon-btn sidebar-toggle-btn" aria-label="Sembunyikan Sidebar" title="Sembunyikan Sidebar">
+            <svg class="icon-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+          </button>
+          <span class="sidebar-title-label">STRUKTUR FILE</span>
+        </div>
+        <div class="sidebar-actions">
+          <button id="btn-new-file" class="outline" title="File Baru" aria-label="File Baru">📄+</button>
+          <button id="btn-new-dir" class="outline" title="Folder Baru" aria-label="Folder Baru">📁+</button>
+        </div>
+      </div>
+      <div class="sidebar-content" id="file-tree-container">
+        <!-- Diisi dinamis oleh JS -->
+      </div>
+    </aside>
+
+    <!-- Center Workspace: Tabs & Editor -->
+    <section class="workspace-center">
+      <div class="editor-tabs" id="tabs-container">
+        <!-- Diisi dinamis oleh JS -->
+      </div>
+      
+      <div class="monaco-container">
+        <div id="monaco-editor-host"></div>
+      </div>
+
+      <!-- Status Bar -->
+      <footer class="editor-statusbar">
+        <div class="statusbar-left">
+          <span id="editor-lang-indicator">Plain Text</span>
+        </div>
+        <div class="statusbar-right">
+          <span id="editor-position-indicator">Baris 1, Kolom 1</span>
+        </div>
+      </footer>
+    </section>
+
+    <!-- Right Workspace: Output & Preview -->
+    <aside class="workspace-right collapsed" id="right-panel">
+      <div class="panel-header">
+        <h4 class="panel-title">OUTPUT &amp; PRATINJAU</h4>
+        <div style="display: flex; gap: 0.25rem; align-items: center;">
+          <button id="btn-pip-modal" class="outline" style="padding: 0.2rem 0.5rem; margin: 0; font-size: 0.7rem; border-radius: 6px;" title="Install Paket Python" aria-label="Install Paket Python" onclick="document.getElementById('modal-pip-install').showModal()">🐍 pip</button>
+          <button id="btn-close-right-panel" class="close icon-btn" aria-label="Tutup Panel">✕</button>
+        </div>
+      </div>
+      <div class="panel-body">
+        <div class="panel-tabs">
+          <div class="panel-tab active" data-tab="console" id="tab-console">Konsol</div>
+          <div class="panel-tab" data-tab="preview" id="tab-preview">HTML Preview</div>
+        </div>
+        <div class="panel-content">
+          <!-- Console Panel -->
+          <div class="console-logs" id="console-logs-content">
+            <div class="console-line console-line-info">&gt; Konsol siap. Klik "Jalankan" untuk mengeksekusi kode JavaScript.</div>
+          </div>
+          
+          <!-- Live Preview HTML Panel -->
+          <div class="hidden" id="preview-iframe-content" style="width: 100%; height: 100%;">
+            <iframe id="html-preview-frame" class="preview-iframe" title="Pratinjau HTML"></iframe>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <!-- Dialog: Pip Install Paket Python -->
+  <dialog id="modal-pip-install" aria-labelledby="pip-install-title">
+    <article style="border-radius: 16px; padding: 1.5rem; max-width: 460px; width: 90vw;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 id="pip-install-title" style="margin-bottom: 0;">🐍 Install Paket Python</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-pip-install').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">
+        Install paket Python menggunakan <strong>micropip</strong> (tersedia di Pyodide). 
+        Contoh: <code>numpy</code>, <code>pandas</code>, <code>requests</code>
+      </p>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="text" id="pip-package-input" placeholder="Nama paket (pisah koma atau spasi)" style="flex: 1; margin-bottom: 0;" aria-label="Nama paket Python">
+        <button id="btn-pip-install" class="primary" style="margin-bottom: 0; white-space: nowrap;" aria-label="Install paket Python">Install</button>
+      </div>
+      <p class="secondary" style="font-size: 0.75rem; margin-top: 0.5rem;">
+        ⚠️ Paket akan hilang saat halaman di-refresh. Pyodide hanya mendukung paket pure-Python atau yang telah dikompilasi untuk WebAssembly.
+      </p>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Export Browser Project -->
+  <dialog id="modal-export" aria-labelledby="export-title">
+    <article style="border-radius: 16px; padding: 1.75rem; max-width: 420px; width: 90vw; text-align: center;">
+      <h4 id="export-title" style="margin-bottom: 0.5rem;">&#8659; Export Proyek</h4>
+      <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1.5rem;">
+        Pilih format ekspor untuk proyek virtual browser Anda.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button id="btn-do-export-zip" class="primary" style="margin:0; border-radius:10px; padding:0.75rem;" aria-label="Download sebagai ZIP">
+          📦 Download sebagai .zip
+        </button>
+        <button id="btn-do-push-github" class="outline" style="margin:0; border-radius:10px; padding:0.75rem;" aria-label="Push ke GitHub">
+          🔗 Push ke Repositori GitHub Baru
+        </button>
+        <button class="outline secondary" onclick="document.getElementById('modal-export').close()" style="margin:0; border-radius:10px;" aria-label="Batal">
+          Batal
+        </button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="./js/editor-init.js"></script>
+</body>
+</html>

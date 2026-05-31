@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daftar Ukuran Favicon Standar Terlengkap - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Ukuran Favicon</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Daftar Ukuran Favicon Standar Terlengkap</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Agar website Anda tampil sempurna di berbagai layar perangkat cerdas dan platform browser, berikut adalah daftar ukuran (resolusi) favicon standar industri yang perlu Anda sediakan:</p>
+
+        <figure>
+          <table>
+            <thead>
+              <tr>
+                <th>Ukuran (Piksel)</th>
+                <th>Nama Berkas</th>
+                <th>Tipe/Format</th>
+                <th>Perangkat & Kegunaan</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>16 × 16</strong></td>
+                <td><code>favicon-16x16.png</code></td>
+                <td>PNG</td>
+                <td>Ukuran terkecil untuk tab browser desktop konvensional.</td>
+              </tr>
+              <tr>
+                <td><strong>32 × 32</strong></td>
+                <td><code>favicon-32x32.png</code></td>
+                <td>PNG</td>
+                <td>Ikon tab browser modern, layar Retina/HiDPI, dan bookmark.</td>
+              </tr>
+              <tr>
+                <td><strong>48 × 48</strong></td>
+                <td><code>favicon-48x48.png</code></td>
+                <td>PNG</td>
+                <td>Pintasan desktop (shortcut screen) dan taskbar sistem operasi.</td>
+              </tr>
+              <tr>
+                <td><strong>180 × 180</strong></td>
+                <td><code>apple-touch-icon.png</code></td>
+                <td>PNG</td>
+                <td>Digunakan oleh iOS Safari saat pengguna menambahkan website ke Home Screen iPhone/iPad.</td>
+              </tr>
+              <tr>
+                <td><strong>192 × 192</strong></td>
+                <td><code>android-chrome-192x192.png</code></td>
+                <td>PNG</td>
+                <td>Digunakan oleh Google Chrome di perangkat Android untuk antarmuka PWA.</td>
+              </tr>
+              <tr>
+                <td><strong>512 × 512</strong></td>
+                <td><code>android-chrome-512x512.png</code></td>
+                <td>PNG</td>
+                <td>Digunakan sebagai splash screen saat aplikasi PWA dimuat pertama kali di Android/iOS.</td>
+              </tr>
+              <tr>
+                <td><strong>Multi (16/32/48)</strong></td>
+                <td><code>favicon.ico</code></td>
+                <td>ICO</td>
+                <td>Format kontainer berisi beberapa ukuran gambar bitmap di atas untuk cadangan browser lama.</td>
+              </tr>
+            </tbody>
+          </table>
+        </figure>
+
+        <h2>Mengapa format ICO masih digunakan?</h2>
+        <p>Meskipun PNG jauh lebih fleksibel dan berukuran kecil, format <code>.ico</code> adalah satu-satunya file yang diakui secara default oleh peranti lunak lawas seperti Internet Explorer atau sistem server jadul. ICO bertindak sebagai "kontainer" yang mengemas beberapa ukuran sekaligus (16px, 32px, dan 48px) dalam satu file tunggal.</p>
+
+        <h2>Bagaimana cara membuat semua ukuran di atas?</h2>
+        <p>Anda tidak perlu mendesain atau mengekspor satu per satu di aplikasi desain grafis. Anda cukup mengunggah satu file gambar logo beresolusi tinggi (min. 512x512px) ke tool <a href="../converter.html">Konverter Favicon TMPT</a>. Sistem kami akan memproses, melakukan kompresi, dan membundel seluruh ukuran standar tersebut beserta file manifes dalam satu unduhan file ZIP secara instan.</p>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

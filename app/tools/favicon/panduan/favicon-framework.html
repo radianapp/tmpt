@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cara Memasang Favicon di React, Next.js, & Framework Lain - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Framework Favicon</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Memasang Favicon di Next.js, React, & Modern Frameworks</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Framework JavaScript modern sering kali memiliki sistem routing dan build aset mereka sendiri. Berikut adalah cara tercepat memasang favicon di framework terpopuler.</p>
+
+        <h2>1. Next.js (App Router)</h2>
+        <p>Next.js versi 13 ke atas (App Router) mempermudah manajemen metadata. Anda cukup meletakkan berkas favicon Anda langsung di folder <code>app/</code> dengan nama berkas khusus berikut:</p>
+        <ul>
+          <li><code>app/favicon.ico</code> (akan disajikan otomatis sebagai <code>/favicon.ico</code>)</li>
+          <li><code>app/icon.png</code> (untuk favicon umum)</li>
+          <li><code>app/apple-icon.png</code> (untuk ikon Apple touch)</li>
+        </ul>
+        <p>Next.js akan memproses berkas tersebut dan menghasilkan tag HTML <code>&lt;link&gt;</code> secara otomatis saat proses build.</p>
+
+        <h2>2. React / Vue / Vite (Single Page Application)</h2>
+        <p>Untuk proyek yang dibangun dengan bundler Vite (seperti template React atau Vue default):</p>
+        <ol>
+          <li>Tempatkan seluruh berkas favicon Anda di folder <code>public/</code> proyek Anda (misalnya <code>public/favicon.ico</code>, <code>public/favicon-32x32.png</code>).</li>
+          <li>Akses ikon tersebut di <code>index.html</code> utama di root proyek Anda secara langsung (tanpa perlu menyertakan kata <code>public</code> di path URL):</li>
+        </ol>
+        <pre><code>&lt;link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"&gt;</code></pre>
+
+        <h2>3. WordPress</h2>
+        <p>Bagi Anda yang menggunakan CMS WordPress:</p>
+        <ol>
+          <li>Masuk ke Dashboard WordPress &rarr; Tampilan (Appearance) &rarr; Sesuaikan (Customize).</li>
+          <li>Pilih tab <strong>Identitas Situs (Site Identity)</strong>.</li>
+          <li>Unggah gambar logo berukuran minimal 512x512 piksel di bagian <strong>Ikon Situs (Site Icon)</strong>.</li>
+          <li>WordPress akan memproses dan menyajikan tag favicon secara otomatis di seluruh halaman.</li>
+        </ol>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

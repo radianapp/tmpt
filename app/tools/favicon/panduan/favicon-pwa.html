@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panduan Favicon untuk PWA (Progressive Web Apps) - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Favicon PWA</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Panduan Favicon untuk PWA (Progressive Web Apps)</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Aplikasi Web Progresif (PWA) memerlukan definisi ikon khusus agar dapat diinstal di smartphone pengguna layaknya aplikasi native. Konfigurasi ini diatur melalui berkas manifest web app.</p>
+
+        <h2>Apa itu Webmanifest?</h2>
+        <p><code>site.webmanifest</code> atau <code>manifest.json</code> adalah file konfigurasi berbasis JSON sederhana yang memberi tahu browser cara menampilkan aplikasi web Anda di perangkat seluler atau desktop pengguna.</p>
+
+        <h2>Ikon Wajib untuk PWA</h2>
+        <p>Ada dua ukuran ikon minimal yang harus dimasukkan ke dalam manifes:</p>
+        <ol>
+          <li><strong>192x192 piksel:</strong> Digunakan untuk ikon di layar utama (home screen) perangkat mobile.</li>
+          <li><strong>512x512 piksel:</strong> Digunakan untuk splash screen (layar pemuatan awal) saat aplikasi dibuka.</li>
+        </ol>
+
+        <h2>Ikon Maskable (Opsional tapi Sangat Direkomendasikan)</h2>
+        <p>Android memiliki bentuk ikon home screen yang dinamis (bulat, kotak, squircle). Agar ikon Anda tidak memiliki margin putih yang aneh di Android, Anda harus menyertakan properti maskable. Caranya adalah dengan memisahkan area utama gambar (safe zone) sebesar 80% di tengah gambar ikon.</p>
+
+        <pre><code>{
+  "src": "/android-chrome-192x192.png",
+  "sizes": "192x192",
+  "type": "image/png",
+  "purpose": "any maskable"
+}</code></pre>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nomor Halaman PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Tambahkan nomor halaman ke PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🔢</div>
+      <h1>Nomor Halaman</h1>
+      <p>Tambahkan nomor halaman ke header atau footer PDF Anda</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <div class="pdf-options">
+        <h3>Opsi Penomoran</h3>
+        <div class="grid">
+          <label for="position">Posisi
+            <select id="position" aria-label="Posisi nomor halaman">
+              <option value="footer-center">Footer — Tengah</option>
+              <option value="footer-left">Footer — Kiri</option>
+              <option value="footer-right">Footer — Kanan</option>
+              <option value="header-center">Header — Tengah</option>
+              <option value="header-left">Header — Kiri</option>
+              <option value="header-right">Header — Kanan</option>
+            </select>
+          </label>
+          <label for="format">Format
+            <select id="format" aria-label="Format nomor halaman">
+              <option value="number">1, 2, 3...</option>
+              <option value="page-of">1 dari 10</option>
+              <option value="dash">- 1 -</option>
+              <option value="label">Halaman 1</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid">
+          <label for="start-num">Mulai dari nomor
+            <input type="number" id="start-num" value="1" min="1" aria-label="Nomor halaman pertama">
+          </label>
+          <label for="font-size">Ukuran font (pt)
+            <select id="font-size" aria-label="Ukuran font nomor halaman">
+              <option value="8">8pt</option>
+              <option value="10" selected>10pt</option>
+              <option value="12">12pt</option>
+            </select>
+          </label>
+        </div>
+        <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin-top:.5rem;">
+          <input type="checkbox" id="skip-first" role="checkbox">
+          <span>Lewati halaman pertama (misal: halaman sampul)</span>
+        </label>
+
+        <!-- Preview lokasi nomor halaman -->
+        <div class="pn-preview-wrap" id="pn-preview-wrap" style="margin-top:1.25rem;">
+          <p style="font-size:.8rem;color:var(--pico-muted-color);margin-bottom:.5rem;">Pratinjau posisi nomor</p>
+          <div class="pn-page-preview" id="pn-page-preview" aria-label="Pratinjau posisi nomor halaman">
+            <!-- Garis-garis konten -->
+            <div class="pn-content-lines">
+              <div class="pn-line pn-line--long"></div>
+              <div class="pn-line pn-line--short"></div>
+              <div class="pn-line pn-line--long"></div>
+              <div class="pn-line pn-line--med"></div>
+              <div class="pn-line pn-line--long"></div>
+              <div class="pn-line pn-line--short"></div>
+            </div>
+            <!-- Badge nomor halaman -->
+            <div class="pn-badge" id="pn-badge" aria-live="polite">1</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress tambah nomor halaman"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Memproses...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">🔢 Tambahkan Nomor Halaman</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh Hasil</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/page-numbers.js"></script>
+</body>
+</html>

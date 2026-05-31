@@ -125,6 +125,101 @@ const BackupModule = {
             };
             reader.readAsText(file);
         });
+    },
+
+    /**
+     * Export only the encrypted vault to a .brankas file
+     */
+    async exportBrankas() {
+        try {
+            const vaultDataStr = localStorage.getItem('tmpt_vault_v1');
+            if (!vaultDataStr) {
+                window.TMPT_UI.toast("Brankas tidak ditemukan untuk di-backup.", "error");
+                return;
+            }
+
+            const blob = new Blob([vaultDataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const date = new Date().toISOString().split('T')[0];
+            const fileName = `Brankas-Backup-${date}.brankas`;
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            window.TMPT_UI.toast("Cadangan Brankas (.brankas) berhasil diunduh!", "success");
+        } catch (err) {
+            console.error("Brankas export failed:", err);
+            window.TMPT_UI.toast("Gagal mengekspor Cadangan Brankas.", "error");
+        }
+    },
+
+    /**
+     * Import vault from a .brankas file
+     */
+    async importBrankas(fileInput) {
+        return new Promise((resolve, reject) => {
+            let file = fileInput;
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                file = fileInput.files[0];
+            }
+            if (!file) {
+                return reject("Tidak ada file dipilih.");
+            }
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const content = e.target.result;
+                    const parsed = JSON.parse(content);
+                    
+                    if (!parsed.salt_enc || !parsed.payload) {
+                        throw new Error("Format file .brankas tidak valid.");
+                    }
+
+                    // Tanyakan Kata Kunci (Password) berkas cadangan untuk verifikasi dekripsi
+                    const password = await window.TMPT_UI.prompt("Masukkan Kata Kunci (Password) berkas .brankas ini untuk memverifikasi dekripsi:", "Masukkan password berkas...", true);
+                    if (password === null || password === '') {
+                        window.TMPT_UI.toast("Pemulihan dibatalkan.", "info");
+                        return resolve(false);
+                    }
+
+                    // Coba dekripsi payload berkas cadangan untuk membuktikan password benar
+                    try {
+                        const saltEnc = window.TMPT_Crypto.base64ToBuffer(parsed.salt_enc);
+                        const key = await window.TMPT_Crypto.deriveKey(password, saltEnc, parsed.iterations || 100000);
+                        const testPayload = parsed.payload_verify || parsed.payload;
+                        await window.TMPT_Crypto.decrypt(testPayload, key);
+                    } catch (decErr) {
+                        throw new Error("Kata Kunci (Password) berkas cadangan salah. Pemulihan dibatalkan.");
+                    }
+
+                    const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Pemulihan data akan MENIMPA dan MENGHAPUS seluruh isi Brankas saat ini. Apakah Anda yakin?", "KONFIRMASI PEMULIHAN");
+                    if (!confirmed) {
+                        return resolve(false);
+                    }
+
+                    localStorage.setItem('tmpt_vault_v1', content);
+                    window.TMPT_UI.toast("Brankas berhasil dipulihkan!", "success");
+                    
+                    setTimeout(() => {
+                        window.TMPT_Auth.lock();
+                    }, 1500);
+
+                    resolve(true);
+                } catch (err) {
+                    console.error("[BACKUP] Brankas import failed:", err);
+                    window.TMPT_UI.toast("Gagal memulihkan Brankas: " + err.message, "error");
+                    reject(err);
+                }
+            };
+            reader.readAsText(file);
+        });
     }
 };
 

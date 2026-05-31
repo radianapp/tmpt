@@ -3,12 +3,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CATAT — TMPT</title>
+    <title>CATATAN — TMPT</title>
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
     <link rel="stylesheet" href="/shared/pico.min.css">
     <link rel="stylesheet" href="/shared/app.css?v=2">
     <link rel="stylesheet" href="/assets/css/catat.css?v=1">
+    <style>
+        /* Header Full Width */
+        header.container {
+            max-width: 100% !important;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+        .color-option {
+            width: 22px !important;
+            height: 22px !important;
+            flex-shrink: 0;
+        }
+        .color-picker-grid {
+            gap: 0.4rem !important;
+            margin-bottom: 0 !important;
+        }
+        /* Layout Sidebar Catatan */
+        .catat-layout-wrapper {
+            display: flex;
+            min-height: calc(100vh - 120px);
+            margin-top: 1rem;
+            gap: 2rem;
+        }
+        .catat-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: transparent;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        @media (min-width: 769px) {
+            .catat-sidebar.collapsed {
+                width: 0;
+                opacity: 0;
+                pointer-events: none;
+                margin-right: -2rem;
+            }
+        }
+        @media (max-width: 768px) {
+            .catat-sidebar {
+                position: fixed;
+                top: 70px;
+                left: 0;
+                bottom: 0;
+                width: 260px;
+                z-index: 1000;
+                background: var(--pico-background-color) !important;
+                border-right: 1px solid var(--pico-muted-border-color);
+                padding: 1.5rem;
+                transform: translateX(-100%);
+                box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            }
+            .catat-sidebar.show {
+                transform: translateX(0);
+            }
+        }
+        .catat-main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .sidebar-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 1rem;
+            color: var(--pico-color);
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            justify-content: flex-start;
+            margin-bottom: 0;
+        }
+        .sidebar-menu-item:hover, .sidebar-menu-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--pico-color) !important;
+        }
+        .sidebar-menu-item.active-primary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--pico-color) !important;
+        }
+        .sidebar-section-header {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--pico-muted-color);
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .sidebar-submenu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            padding-left: 0.5rem;
+        }
+        .sidebar-submenu .sidebar-menu-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        /* Action Header */
+        .catat-action-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .catat-action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        /* Tombol Buat Catatan (Biru) */
+        .btn-custom-blue {
+            background: #0284c7 !important;
+            border-color: #0284c7 !important;
+            color: white !important;
+            font-weight: 700 !important;
+            border-radius: 12px !important;
+            padding: 0.6rem 1.25rem !important;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            line-height: 1;
+        }
+        .btn-custom-blue:hover {
+            background: #0369a1 !important;
+            border-color: #0369a1 !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Tombol Daftar Tugas (Oranye) */
+        .btn-custom-yellow {
+            background: #f59e0b !important;
+            border-color: #f59e0b !important;
+            color: white !important;
+            font-weight: 700 !important;
+            border-radius: 12px !important;
+            padding: 0.6rem 1.25rem !important;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            line-height: 1;
+        }
+        .btn-custom-yellow:hover {
+            background: #d97706 !important;
+            border-color: #d97706 !important;
+            transform: translateY(-1px);
+        }
+        
+        /* Pinned Card Styling */
+        .note-card {
+            border-radius: 12px;
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 1.25rem;
+            transition: all 0.2s ease;
+        }
+        .note-card:hover {
+            border-color: var(--catat-amber);
+            transform: translateY(-2px);
+        }
+        .btn-pin {
+            background: #0284c7 !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 !important;
+            cursor: pointer;
+        }
+        
+        /* Banner Enkripsi */
+        .encrypt-banner {
+            margin-top: auto;
+            padding: 1.25rem 1.5rem;
+            border: 1px solid rgba(168, 85, 247, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            background: rgba(168, 85, 247, 0.05);
+        }
+        .encrypt-banner-btn {
+            background: transparent !important;
+            border: 1px solid #3b82f6 !important;
+            color: #3b82f6 !important;
+            padding: 0.5rem 1.25rem !important;
+            border-radius: 10px !important;
+            font-size: 0.9rem !important;
+            font-weight: 600 !important;
+            margin: 0;
+        }
+        .encrypt-banner-btn:hover {
+            background: rgba(59, 130, 246, 0.1) !important;
+        }
+        
+        /* Grid Layout */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.5rem;
+        }
+    </style>
     <script src="/shared/htmx.min.js"></script>
     <script src="/shared/pwa.js"></script>
     <script src="/shared/crypto.js"></script>
@@ -21,90 +250,113 @@
 
     <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
-    <main class="container">
-        <!-- Header Judul Catat -->
-        <header style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1.5rem;">
-            <div style="display: flex; align-items: center; gap: 1.25rem;">
-                <div style="width: 54px; height: 54px; border-radius: 16px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px -5px rgba(245, 158, 11, 0.4);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3Z"/><path d="M15 3v6h6"/><path d="m10 16 3-3 3 3"/></svg>
-                </div>
-                <div>
-                    <h1 style="margin-bottom: 0; font-weight: 800; font-size: 2.25rem; letter-spacing: -0.03em; line-height: 1.1;">Catat</h1>
-                    <p class="secondary" style="margin-bottom: 0; font-size: 0.95rem;">Catatan privat & daftar tugas di peramban lokal.</p>
-                </div>
-            </div>
-            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-                <button id="security-mode-toggle" onclick="toggleSecurityMode()" class="security-badge standard" style="margin: 0; padding: 0.75rem 1rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem;" title="Beralih Mode Keamanan">
-                    <span id="sec-icon">🔓</span>
-                    <span id="sec-text">Standar</span>
-                </button>
-                <button onclick="openExportModal()" class="outline secondary" style="margin: 0; font-size: 0.95rem; padding: 0.75rem 1.25rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem; background: var(--pico-card-bg);">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                    Ekspor / Impor
-                </button>
-                <button id="main-add-btn" onclick="openAddModal()" class="btn-amber" style="margin: 0;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                    <span id="add-btn-text">Buat Catatan</span>
-                </button>
-            </div>
-        </header>
+    <main class="container-fluid" style="padding: 0 2rem; max-width: 100%;">
+        <!-- Hidden dropdowns for backward compatibility with JS code -->
+        <select id="filter-notes" onchange="renderCurrentMode()" style="display: none;">
+            <option value="all" selected>all</option>
+            <option value="pinned">pinned</option>
+            <option value="archive">archive</option>
+            <option value="trash">trash</option>
+        </select>
+        <select id="filter-tags" onchange="renderCurrentMode()" style="display: none;">
+            <option value="all" selected>all</option>
+        </select>
 
-        <!-- Sub-Navigasi (Tab Switcher) -->
-        <nav class="app-subnav">
-            <button id="tab-notes" class="subnav-btn active" onclick="switchMode('notes')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
-                Catatan
-            </button>
-            <button id="tab-lists" class="subnav-btn" onclick="switchMode('lists')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-                Daftar Tugas
-            </button>
-        </nav>
+        <div class="catat-layout-wrapper">
+            <!-- Sidebar Kiri -->
+            <aside class="catat-sidebar">
+                <nav class="sidebar-menu">
+                    <button class="sidebar-menu-item active" id="sidebar-menu-notes" onclick="setSidebarMode('notes')">
+                        <span style="font-size: 1.25rem;">📓</span>
+                        <span>Catatan</span>
+                    </button>
+                    <button class="sidebar-menu-item" id="sidebar-menu-lists" onclick="setSidebarMode('lists')">
+                        <span style="font-size: 1.25rem;">☑️</span>
+                        <span>Daftar Tugas</span>
+                    </button>
+                    
+                    <div class="sidebar-section">
+                        <div class="sidebar-section-header" onclick="toggleSidebarSection('labels')">
+                            <span>Label</span>
+                            <span id="labels-arrow" style="font-size: 0.85rem; opacity: 0.7;">▲</span>
+                        </div>
+                        <div class="sidebar-submenu" id="sidebar-labels-menu">
+                            <button class="sidebar-menu-item" id="sidebar-submenu-all" onclick="setSidebarFilter('all')">
+                                <span style="font-size: 1.15rem; color: #f59e0b;">📁</span>
+                                <span>Semua Catatan</span>
+                            </button>
+                            <button class="sidebar-menu-item" id="sidebar-submenu-labels" onclick="toggleLabelsDropdown(event)">
+                                <span style="font-size: 1.15rem; color: #f59e0b;">🏷️</span>
+                                <span>Semua Label</span>
+                                <span id="submenu-arrow" style="font-size: 0.75rem; margin-left: auto; opacity: 0.7;">▼</span>
+                            </button>
+                            <div id="dynamic-labels-sidebar-list" style="display: none; padding-left: 1rem; flex-direction: column; gap: 0.25rem;">
+                                <!-- Dynamic tags listed here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="sidebar-menu-item" id="sidebar-menu-archive" onclick="setSidebarFilter('archive')">
+                        <span style="font-size: 1.25rem;">📦</span>
+                        <span>Arsip</span>
+                    </button>
 
-        <!-- Filter & Search Bar -->
-        <div class="filter-bar">
-            <div class="search-wrapper" style="position: relative; display: flex; align-items: center;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; pointer-events: none;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input type="text" id="search-input" placeholder="Cari judul, konten, atau label..." oninput="renderCurrentMode(); document.getElementById('clear-search-btn').style.display = this.value ? 'block' : 'none';" style="padding-left: 2.5rem; padding-right: 2.5rem; margin-bottom: 0; width: 100%;">
-                <button type="button" id="clear-search-btn" onclick="document.getElementById('search-input').value=''; renderCurrentMode(); this.style.display='none';" style="position: absolute; right: 8px; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem; display: none; cursor: pointer; font-size: 1.25rem; line-height: 1;">✕</button>
-            </div>
-            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-                <div id="filter-notes-container">
-                    <select id="filter-notes" onchange="renderCurrentMode()" style="margin: 0; border-radius: 12px; font-size: 0.95rem;">
-                        <option value="all">📁 Semua Catatan</option>
-                        <option value="pinned">📌 Dipatok</option>
-                        <option value="archive">📦 Arsip</option>
-                        <option value="trash">🗑️ Sampah</option>
-                    </select>
+                    <button class="sidebar-menu-item" id="sidebar-menu-trash" onclick="setSidebarFilter('trash')">
+                        <span style="font-size: 1.25rem;">🗑️</span>
+                        <span>Sampah</span>
+                    </button>
+                </nav>
+                
+                <!-- Notes Encryptor Card in Sidebar -->
+                <div class="encrypt-sidebar-card" style="margin-top: auto; padding: 1rem; border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 14px; background: rgba(168, 85, 247, 0.05); display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.85rem; line-height: 1.4;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--pico-heading-color);">
+                        <span style="font-size: 1.25rem;">🔐</span>
+                        <span>Bagi Catatan Rahasia</span>
+                    </div>
+                    <p style="color: var(--pico-muted-color); margin-bottom: 0;">Enkripsi pesan dengan sandi dan bagikan ciphertext secara aman.</p>
+                    <a href="/app/tools/notes-encryptor/" class="outline" role="button" style="text-decoration: none; font-size: 0.8rem; padding: 0.4rem 0.75rem; text-align: center; border-radius: 8px; margin: 0; width: 100%; border-color: #a855f7; color: #a855f7; font-weight: 600; background: transparent;">Buka Encryptor →</a>
                 </div>
-                <div id="filter-tags-container">
-                    <select id="filter-tags" onchange="renderCurrentMode()" style="margin: 0; border-radius: 12px; font-size: 0.95rem;">
-                        <option value="all">🏷️ Semua Label</option>
-                        <!-- Dynamic Tags -->
-                    </select>
+            </aside>
+
+            <!-- Panel Kanan -->
+            <section class="catat-main-content">
+                <!-- Action Header Row -->
+                <div class="catat-action-header">
+                    <h2 id="current-filter-title" style="margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em;">Semua Catatan</h2>
+                    <div class="catat-action-buttons">
+                        <button id="security-mode-toggle" onclick="toggleSecurityMode()" class="security-badge standard" style="margin: 0; padding: 0.5rem 1rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem;" title="Beralih Mode Keamanan">
+                            <span id="sec-icon">🔓</span>
+                            <span id="sec-text">Standar</span>
+                        </button>
+                        <button onclick="openExportModal()" class="outline secondary" style="margin: 0; font-size: 0.95rem; padding: 0.5rem 1.25rem !important; border-radius: 12px !important; display: flex; align-items: center; gap: 0.5rem; background: var(--pico-card-bg);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            Ekspor / Import
+                        </button>
+                        <div class="view-toggles" style="display: flex; gap: 0.35rem; align-items: center;">
+                            <button id="btn-view-grid" onclick="setViewMode('grid')" class="outline" aria-label="Grid View" title="Tampilan Grid" style="margin: 0; padding: 0.5rem 0.75rem !important; border-radius: 12px !important; display: flex; align-items: center; justify-content: center; background: var(--pico-card-bg); height: 100%;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg>
+                            </button>
+                            <button id="btn-view-list" onclick="setViewMode('list')" class="outline secondary" aria-label="List View" title="Tampilan List" style="margin: 0; padding: 0.5rem 0.75rem !important; border-radius: 12px !important; display: flex; align-items: center; justify-content: center; background: var(--pico-card-bg); height: 100%;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                        </div>
+                        <button onclick="triggerAddNote()" class="btn-custom-blue">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            <span>Buat Catatan</span>
+                        </button>
+                        <button onclick="triggerAddTask()" class="btn-custom-yellow">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                            <span>Daftar Tugas</span>
+                        </button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Container Utama Konten -->
-        <div id="app-content-container">
-            <!-- Dirender secara dinamis oleh JavaScript -->
-        </div>
-
-        <!-- Shortcut: Notes Encryptor -->
-        <div style="margin-top: 2.5rem; padding: 1rem 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 12px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; background: rgba(168, 85, 247, 0.05);">
-            <div style="display: flex; align-items: center; gap: 0.75rem;">
-                <span style="font-size: 1.5rem;">🔐</span>
-                <div>
-                    <div style="font-weight: 600; font-size: 0.95rem;">Perlu berbagi catatan rahasia?</div>
-                    <small class="secondary">Enkripsi pesan dengan sandi dan bagikan ciphertext-nya dengan aman.</small>
+                <!-- Container Utama Konten -->
+                <div id="app-content-container" style="flex-grow: 1;">
+                    <!-- Dirender secara dinamis oleh JavaScript -->
                 </div>
-            </div>
-            <a href="/app/tools/notes-encryptor/" class="outline" role="button" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.9rem; font-weight: 600; white-space: nowrap;">Buka Encryptor →</a>
-        </div>
 
-        <div style="text-align: center; margin-top: 1.5rem; margin-bottom: 1rem;">
-            <span class="secondary tmpt-version" style="font-size: 0.85rem; opacity: 0.7;">v1.0.0-rc1</span>
+            </section>
         </div>
     </main>
 
@@ -277,6 +529,7 @@
         let notesData = [];
         let listsData = [];
         let isEncryptedMode = localStorage.getItem('catat_security_mode') === 'encrypted';
+        let currentViewMode = localStorage.getItem('catat_view_mode') || 'grid';
         const ICON_OPTIONS = ["📝","🛒","🎯","💼","🏠","✈️","🚀","💡","🔑","📦","🎉","🔥","❤️","🌟","🍔","☕","⚽","🎮","📚","💰","⏰","🛠️"];
 
         // Inisialisasi & Muat Data
@@ -299,9 +552,54 @@
             }
 
             updateSecurityBadge();
+            updateViewToggleButtons();
             await loadStorageData();
             renderCurrentMode();
             renderIconPicker();
+
+            // Cek parameter import_opfs dari Berkas
+            const params = new URLSearchParams(window.location.search);
+            const importOpfs = params.get('import_opfs');
+            const importName = params.get('name') || 'Impor Catatan';
+            if (importOpfs) {
+                if (window.TMPT_UI && typeof window.TMPT_UI.showLoader === 'function') {
+                    window.TMPT_UI.showLoader("Memuat berkas...");
+                }
+                try {
+                    const root = await navigator.storage.getDirectory();
+                    const fileHandle = await root.getFileHandle(importOpfs);
+                    const file = await fileHandle.getFile();
+                    const text = await file.text();
+
+                    // Bersihkan nama ekstensi
+                    const cleanTitle = importName.replace(/\.[^/.]+$/, "");
+
+                    // Tambahkan catatan baru
+                    notesData.unshift({
+                        id: 'note_' + Date.now(),
+                        title: cleanTitle,
+                        body: text,
+                        tags: ['impor'],
+                        color: 'white',
+                        pinned: false,
+                        archived: false,
+                        trashed: false,
+                        updated_at: new Date().toISOString()
+                    });
+
+                    await saveNotesToStorage();
+                    renderCurrentMode();
+                    if (window.TMPT_UI) window.TMPT_UI.toast(`Catatan "${cleanTitle}" berhasil diimpor!`, "success");
+                } catch (err) {
+                    console.error("Gagal mengimpor file di Catat:", err);
+                    alert("Gagal memuat berkas catatan dari penyimpanan lokal: " + err.message);
+                } finally {
+                    if (window.TMPT_UI && typeof window.TMPT_UI.hideLoader === 'function') {
+                        window.TMPT_UI.hideLoader();
+                    }
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
         });
 
         function updateSecurityBadge() {
@@ -516,24 +814,33 @@
         // ── TAB SWITCHER (MODE) ───────────────────────────────────
         function switchMode(mode) {
             currentMode = mode;
-            document.getElementById('tab-notes').classList.toggle('active', mode === 'notes');
-            document.getElementById('tab-lists').classList.toggle('active', mode === 'lists');
+            const tabNotes = document.getElementById('tab-notes');
+            if (tabNotes) tabNotes.classList.toggle('active', mode === 'notes');
+            const tabLists = document.getElementById('tab-lists');
+            if (tabLists) tabLists.classList.toggle('active', mode === 'lists');
 
             const addBtnText = document.getElementById('add-btn-text');
             const filterNotesCont = document.getElementById('filter-notes-container');
             const filterTagsCont = document.getElementById('filter-tags-container');
 
             if (mode === 'notes') {
-                addBtnText.textContent = "Buat Catatan";
-                filterNotesCont.style.display = 'block';
-                filterTagsCont.style.display = 'block';
+                if (addBtnText) addBtnText.textContent = "Buat Catatan";
+                if (filterNotesCont) filterNotesCont.style.display = 'block';
+                if (filterTagsCont) filterTagsCont.style.display = 'block';
             } else {
-                addBtnText.textContent = "Buat Daftar Tugas";
-                filterNotesCont.style.display = 'none';
-                filterTagsCont.style.display = 'none';
+                if (addBtnText) addBtnText.textContent = "Buat Daftar Tugas";
+                if (filterNotesCont) filterNotesCont.style.display = 'none';
+                if (filterTagsCont) filterTagsCont.style.display = 'none';
             }
 
-            document.getElementById('search-input').value = '';
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            
+            const viewToggles = document.querySelector('.view-toggles');
+            if (viewToggles) {
+                viewToggles.style.display = (mode === 'notes') ? 'flex' : 'none';
+            }
+            
             renderCurrentMode();
         }
 
@@ -557,12 +864,142 @@
         }
 
         // ── RENDER UMUM ───────────────────────────────────────────
+        function getActiveFilterTitle() {
+            if (currentMode === 'lists') return "Daftar Tugas";
+            
+            const filterNotes = document.getElementById('filter-notes');
+            const filterTags = document.getElementById('filter-tags');
+            
+            const notesVal = filterNotes ? filterNotes.value : 'all';
+            const tagsVal = filterTags ? filterTags.value : 'all';
+            
+            if (notesVal === 'archive') return "Arsip";
+            if (notesVal === 'trash') return "Sampah";
+            if (tagsVal !== 'all') return `Tag: #${tagsVal}`;
+            return "Semua Catatan";
+        }
+
         function renderCurrentMode() {
-            if (currentMode === 'notes') {
-                renderNotes();
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            if (query) {
+                renderGlobalSearch(query);
             } else {
-                renderLists();
+                const titleEl = document.getElementById('current-filter-title');
+                if (titleEl) titleEl.textContent = getActiveFilterTitle();
+                
+                if (currentMode === 'notes') {
+                    renderNotes();
+                } else {
+                    renderLists();
+                }
             }
+        }
+
+        function renderGlobalSearch(query) {
+            const container = document.getElementById('app-content-container');
+            const titleEl = document.getElementById('current-filter-title');
+            if (titleEl) titleEl.textContent = `Hasil Pencarian: "${query}"`;
+            
+            // 1. Catatan Aktif
+            const matchingNotes = notesData.filter(note => {
+                if (note.trashed || note.archived) return false;
+                const matchesTitle = note.title && note.title.toLowerCase().includes(query);
+                const matchesBody = note.body && note.body.toLowerCase().includes(query);
+                const matchesTag = note.tags && note.tags.some(t => t.toLowerCase().includes(query));
+                return matchesTitle || matchesBody || matchesTag;
+            });
+
+            // 2. Daftar Tugas
+            const matchingLists = listsData.filter(l => {
+                const matchesName = l.name && l.name.toLowerCase().includes(query);
+                const matchesItem = l.items && l.items.some(i => i.text.toLowerCase().includes(query));
+                return matchesName || matchesItem;
+            });
+
+            // 3. Arsip
+            const matchingArchived = notesData.filter(note => {
+                if (!note.archived || note.trashed) return false;
+                const matchesTitle = note.title && note.title.toLowerCase().includes(query);
+                const matchesBody = note.body && note.body.toLowerCase().includes(query);
+                const matchesTag = note.tags && note.tags.some(t => t.toLowerCase().includes(query));
+                return matchesTitle || matchesBody || matchesTag;
+            });
+
+            // 4. Sampah
+            const matchingTrashed = notesData.filter(note => {
+                if (!note.trashed) return false;
+                const matchesTitle = note.title && note.title.toLowerCase().includes(query);
+                const matchesBody = note.body && note.body.toLowerCase().includes(query);
+                const matchesTag = note.tags && note.tags.some(t => t.toLowerCase().includes(query));
+                return matchesTitle || matchesBody || matchesTag;
+            });
+
+            const totalResults = matchingNotes.length + matchingLists.length + matchingArchived.length + matchingTrashed.length;
+
+            if (totalResults === 0) {
+                container.innerHTML = `
+                    <div class="empty-catat">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <h3>Tidak Ada Hasil</h3>
+                        <p class="secondary">Tidak ditemukan catatan, daftar tugas, arsip, atau sampah yang cocok dengan kata kunci tersebut.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            // Section: Catatan
+            if (matchingNotes.length > 0) {
+                html += `
+                    <h5 class="secondary" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px dashed var(--pico-muted-border-color); padding-bottom: 0.5rem;">
+                        <span>📓 Catatan Aktif (${matchingNotes.length})</span>
+                    </h5>
+                    <div class="${currentViewMode === 'grid' ? 'notes-grid' : 'notes-list'}" style="margin-bottom: 2.5rem;">
+                        ${matchingNotes.map(n => getNoteCardHtml(n)).join('')}
+                    </div>
+                `;
+            }
+
+            // Section: Daftar Tugas
+            if (matchingLists.length > 0) {
+                html += `
+                    <h5 class="secondary" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px dashed var(--pico-muted-border-color); padding-bottom: 0.5rem;">
+                        <span>☑️ Daftar Tugas (${matchingLists.length})</span>
+                    </h5>
+                    <div class="lists-grid" style="margin-bottom: 2.5rem;">
+                        ${matchingLists.map(l => getListCardHtml(l)).join('')}
+                    </div>
+                `;
+            }
+
+            // Section: Arsip
+            if (matchingArchived.length > 0) {
+                html += `
+                    <h5 class="secondary" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px dashed var(--pico-muted-border-color); padding-bottom: 0.5rem;">
+                        <span>📦 Arsip (${matchingArchived.length})</span>
+                    </h5>
+                    <div class="${currentViewMode === 'grid' ? 'notes-grid' : 'notes-list'}" style="margin-bottom: 2.5rem;">
+                        ${matchingArchived.map(n => getNoteCardHtml(n)).join('')}
+                    </div>
+                `;
+            }
+
+            // Section: Sampah
+            if (matchingTrashed.length > 0) {
+                html += `
+                    <h5 class="secondary" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px dashed var(--pico-muted-border-color); padding-bottom: 0.5rem;">
+                        <span>🗑️ Sampah (${matchingTrashed.length})</span>
+                    </h5>
+                    <div class="${currentViewMode === 'grid' ? 'notes-grid' : 'notes-list'}" style="margin-bottom: 2.5rem;">
+                        ${matchingTrashed.map(n => getNoteCardHtml(n)).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
         }
 
         function updateTagFilters() {
@@ -586,6 +1023,11 @@
             });
 
             selectEl.innerHTML = optionsHtml.join('');
+            
+            // Perbarui list label sidebar jika fungsi sudah terdefinisi
+            if (typeof updateSidebarLabelsList === 'function') {
+                updateSidebarLabelsList();
+            }
         }
 
         // ── ICON PICKER & CONFIRM MODAL ───────────────────────────
@@ -625,22 +1067,32 @@
         // ── RENDER CATATAN (NOTES) ────────────────────────────────
         function renderNotes() {
             const container = document.getElementById('app-content-container');
-            const query = document.getElementById('search-input').value.toLowerCase();
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
             const filterType = document.getElementById('filter-notes').value;
             const tagFilter = document.getElementById('filter-tags').value;
 
             let filtered = notesData.filter(note => {
-                if (filterType === 'trash') return note.trashed;
-                if (note.trashed) return false;
-                
-                if (filterType === 'archive') return note.archived;
-                if (filterType === 'pinned') return note.pinned && !note.archived;
-                if (filterType === 'all') if (note.archived) return false;
+                // 1. Saring berdasarkan status Sampah / Arsip / Normal
+                if (filterType === 'trash') {
+                    if (!note.trashed) return false;
+                } else {
+                    if (note.trashed) return false;
+                    
+                    if (filterType === 'archive') {
+                        if (!note.archived) return false;
+                    } else { // 'all' atau 'pinned'
+                        if (note.archived) return false;
+                        if (filterType === 'pinned' && !note.pinned) return false;
+                    }
+                }
 
+                // 2. Saring berdasarkan Tag
                 if (tagFilter !== 'all') {
                     if (!note.tags || !note.tags.some(t => t.trim().toLowerCase() === tagFilter)) return false;
                 }
 
+                // 3. Saring berdasarkan kata kunci pencarian
                 if (query) {
                     const matchesTitle = note.title && note.title.toLowerCase().includes(query);
                     const matchesBody = note.body && note.body.toLowerCase().includes(query);
@@ -680,12 +1132,20 @@
 
             let html = '';
 
+            if (filterType === 'trash') {
+                html += `
+                    <div style="display: flex; justify-content: flex-end; margin-bottom: 1.5rem; width: 100%;">
+                        <button class="outline" style="margin: 0; padding: 0.5rem 1.25rem !important; border-color: #ef4444; color: #ef4444; font-weight: 700; border-radius: 12px; font-size: 0.9rem; background: transparent; width: auto;" onclick="emptyTrashNotes()">🗑️ Kosongkan Sampah</button>
+                    </div>
+                `;
+            }
+
             if (pinnedNotes.length > 0) {
                 html += `
                     <h5 class="secondary" style="margin-bottom: 1rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
                         <span>📌 Dipatok</span>
                     </h5>
-                    <div class="notes-grid" style="margin-bottom: 2.5rem;">
+                    <div class="${currentViewMode === 'grid' ? 'notes-grid' : 'notes-list'}" style="margin-bottom: 2.5rem;">
                         ${pinnedNotes.map(n => getNoteCardHtml(n)).join('')}
                     </div>
                     ${otherNotes.length > 0 ? `<h5 class="secondary" style="margin-bottom: 1rem; font-weight: 700;">Lainnya</h5>` : ''}
@@ -694,7 +1154,7 @@
 
             if (otherNotes.length > 0) {
                 html += `
-                    <div class="notes-grid">
+                    <div class="${currentViewMode === 'grid' ? 'notes-grid' : 'notes-list'}">
                         ${otherNotes.map(n => getNoteCardHtml(n)).join('')}
                     </div>
                 `;
@@ -708,6 +1168,24 @@
             const pinClass = note.pinned ? ' pinned' : '';
             const pinTitle = note.pinned ? 'Lepas Patok' : 'Patok Catatan';
             const colorAttr = note.color || 'white';
+
+            if (note.trashed) {
+                return `
+                    <article class="note-card note-card-trashed" data-color="${colorAttr}" style="cursor: default;">
+                        <div class="note-header">
+                            <h3 class="note-title">${note.title || '(Tanpa Judul)'}</h3>
+                        </div>
+                        <div class="note-body">${escapeHtml(note.body || '')}</div>
+                        <div class="note-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <div class="note-tags">${tagsHtml}</div>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" class="outline" style="margin: 0; padding: 0.25rem 0.5rem !important; font-size: 0.75rem !important; border-radius: 8px !important; border-color: #10b981; color: #10b981; font-weight: 600; background: transparent; width: auto; line-height: 1.2;" onclick="restoreNoteFromTrash('${note.id}')">Pulihkan</button>
+                                <button type="button" class="outline" style="margin: 0; padding: 0.25rem 0.5rem !important; font-size: 0.75rem !important; border-radius: 8px !important; border-color: #ef4444; color: #ef4444; font-weight: 600; background: transparent; width: auto; line-height: 1.2;" onclick="deleteNotePermanently('${note.id}')">Hapus</button>
+                            </div>
+                        </div>
+                    </article>
+                `;
+            }
 
             return `
                 <article class="note-card" data-color="${colorAttr}" onclick="if(!event.target.closest('button')) editNote('${note.id}')">
@@ -732,7 +1210,8 @@
         // ── RENDER DAFTAR (LISTS) ─────────────────────────────────
         function renderLists() {
             const container = document.getElementById('app-content-container');
-            const query = document.getElementById('search-input').value.toLowerCase();
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.toLowerCase() : '';
 
             let filtered = listsData;
             if (query) {
@@ -1107,6 +1586,284 @@
             reader.readAsText(file);
             e.target.value = ''; // Reset input
         }
+
+        // --- Redesign Sidebar & Layout Logic ---
+        window.setSidebarMode = function(mode) {
+            currentMode = mode;
+            
+            // Set active state on sidebar menus
+            document.querySelectorAll('.catat-sidebar .sidebar-menu-item').forEach(el => el.classList.remove('active'));
+            if (mode === 'notes') {
+                const notesMenu = document.getElementById('sidebar-menu-notes');
+                if (notesMenu) notesMenu.classList.add('active');
+                document.getElementById('current-filter-title').textContent = "Catatan";
+            } else {
+                const listsMenu = document.getElementById('sidebar-menu-lists');
+                if (listsMenu) listsMenu.classList.add('active');
+                document.getElementById('current-filter-title').textContent = "Daftar Tugas";
+            }
+            
+            // Re-sync with hidden selects
+            const filterNotes = document.getElementById('filter-notes');
+            if (filterNotes) {
+                filterNotes.value = 'all';
+            }
+            const filterTags = document.getElementById('filter-tags');
+            if (filterTags) {
+                filterTags.value = 'all';
+            }
+            
+            // Reset search input in header
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.value = '';
+            
+            switchMode(mode);
+        };
+
+        window.setSidebarFilter = function(filter) {
+            currentMode = 'notes';
+            
+            // Reset active styles
+            document.querySelectorAll('.catat-sidebar .sidebar-menu-item').forEach(el => el.classList.remove('active'));
+            
+            const filterNotes = document.getElementById('filter-notes');
+            const filterTags = document.getElementById('filter-tags');
+            
+            if (filter === 'all') {
+                const allSubmenu = document.getElementById('sidebar-submenu-all');
+                if (allSubmenu) allSubmenu.classList.add('active');
+                document.getElementById('current-filter-title').textContent = "Semua Catatan";
+                if (filterNotes) filterNotes.value = 'all';
+                if (filterTags) filterTags.value = 'all';
+            } else if (filter === 'archive') {
+                const archiveMenu = document.getElementById('sidebar-menu-archive');
+                if (archiveMenu) archiveMenu.classList.add('active');
+                document.getElementById('current-filter-title').textContent = "Arsip";
+                if (filterNotes) filterNotes.value = 'archive';
+                if (filterTags) filterTags.value = 'all';
+            } else if (filter === 'trash') {
+                const trashMenu = document.getElementById('sidebar-menu-trash');
+                if (trashMenu) trashMenu.classList.add('active');
+                document.getElementById('current-filter-title').textContent = "Sampah";
+                if (filterNotes) filterNotes.value = 'trash';
+                if (filterTags) filterTags.value = 'all';
+            }
+            
+            renderCurrentMode();
+        };
+        
+        window.setSidebarTagFilter = function(tagName) {
+            currentMode = 'notes';
+            document.querySelectorAll('.catat-sidebar .sidebar-menu-item').forEach(el => el.classList.remove('active'));
+            
+            const filterNotes = document.getElementById('filter-notes');
+            const filterTags = document.getElementById('filter-tags');
+            
+            if (filterNotes) filterNotes.value = 'all';
+            if (filterTags) filterTags.value = tagName;
+            
+            document.getElementById('current-filter-title').textContent = `Tag: #${tagName}`;
+            
+            // Set active tag btn
+            const activeTagBtn = document.querySelector(`.sidebar-menu-item[data-tag-name="${tagName}"]`);
+            if (activeTagBtn) activeTagBtn.classList.add('active');
+            
+            renderCurrentMode();
+        };
+
+        window.toggleSidebarSection = function(sectionId) {
+            if (sectionId === 'labels') {
+                const menu = document.getElementById('sidebar-labels-menu');
+                const arrow = document.getElementById('labels-arrow');
+                if (menu.style.display === 'none') {
+                    menu.style.display = 'flex';
+                    arrow.textContent = '▲';
+                } else {
+                    menu.style.display = 'none';
+                    arrow.textContent = '▼';
+                }
+            }
+        };
+
+        window.toggleLabelsDropdown = function(event) {
+            event.stopPropagation();
+            const list = document.getElementById('dynamic-labels-sidebar-list');
+            const arrow = document.getElementById('submenu-arrow');
+            if (list.style.display === 'none') {
+                list.style.display = 'flex';
+                arrow.textContent = '▲';
+                updateSidebarLabelsList();
+            } else {
+                list.style.display = 'none';
+                arrow.textContent = '▼';
+            }
+        };
+        
+        window.updateSidebarLabelsList = function() {
+            const listContainer = document.getElementById('dynamic-labels-sidebar-list');
+            if (!listContainer) return;
+            
+            const allTags = new Set();
+            notesData.forEach(note => {
+                if (!note.trashed && note.tags) {
+                    note.tags.forEach(t => allTags.add(t.trim().toLowerCase()));
+                }
+            });
+            
+            const activeTagsSelect = document.getElementById('filter-tags');
+            const currentActiveTag = activeTagsSelect ? activeTagsSelect.value : 'all';
+            
+            let html = '';
+            Array.from(allTags).sort().forEach(tag => {
+                if (tag) {
+                    const isActive = (tag === currentActiveTag) ? 'active' : '';
+                    html += `
+                        <button class="sidebar-menu-item ${isActive}" data-tag-name="${tag}" onclick="setSidebarTagFilter('${tag}')" style="padding: 0.4rem 0.75rem; font-size: 0.85rem;">
+                            <span>#</span>
+                            <span>${tag}</span>
+                        </button>
+                    `;
+                }
+            });
+            
+            if (html === '') {
+                html = '<span style="font-size:0.8rem; color:var(--pico-muted-color); padding: 0.5rem 0.75rem;">Belum ada label</span>';
+            }
+            
+            listContainer.innerHTML = html;
+        };
+
+        window.triggerAddNote = function() {
+            switchMode('notes');
+            document.querySelectorAll('.sidebar-menu-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('sidebar-menu-notes').classList.add('active');
+            document.getElementById('current-filter-title').textContent = "Catatan";
+            openAddModal();
+        };
+
+        window.setViewMode = function(mode) {
+            currentViewMode = mode;
+            localStorage.setItem('catat_view_mode', mode);
+            updateViewToggleButtons();
+            renderCurrentMode();
+        };
+
+        window.updateViewToggleButtons = function() {
+            const btnGrid = document.getElementById('btn-view-grid');
+            const btnList = document.getElementById('btn-view-list');
+            if (!btnGrid || !btnList) return;
+            
+            if (currentViewMode === 'grid') {
+                btnGrid.classList.remove('secondary');
+                btnList.classList.add('secondary');
+            } else {
+                btnGrid.classList.add('secondary');
+                btnList.classList.remove('secondary');
+            }
+        };
+
+        window.triggerAddTask = function() {
+            switchMode('lists');
+            document.querySelectorAll('.sidebar-menu-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('sidebar-menu-notes').classList.remove('active');
+            document.getElementById('current-filter-title').textContent = "Daftar Tugas";
+            openAddModal();
+        };
+
+        window.restoreNoteFromTrash = function(id) {
+            const index = notesData.findIndex(n => n.id === id);
+            if (index !== -1) {
+                notesData[index].trashed = false;
+                saveNotesToStorage();
+                renderNotes();
+                if (window.TMPT_UI) window.TMPT_UI.toast("Catatan dipulihkan", "success");
+            }
+        };
+
+        window.deleteNotePermanently = async function(id) {
+            const confirmed = await window.TMPT_UI.confirm("Apakah Anda yakin ingin menghapus catatan ini secara permanen? Tindakan ini tidak dapat dibatalkan.");
+            if (!confirmed) return;
+            
+            notesData = notesData.filter(n => n.id !== id);
+            saveNotesToStorage();
+            renderNotes();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Catatan dihapus permanen", "success");
+        };
+
+        window.emptyTrashNotes = async function() {
+            const confirmed = await window.TMPT_UI.confirm("Apakah Anda yakin ingin menghapus semua catatan di keranjang sampah secara permanen?");
+            if (!confirmed) return;
+            
+            notesData = notesData.filter(n => !n.trashed);
+            saveNotesToStorage();
+            renderNotes();
+            if (window.TMPT_UI) window.TMPT_UI.toast("Keranjang sampah dikosongkan", "success");
+        };
+
+        window.setupHeaderSearchBar = function() {
+            const nav = document.querySelector('header nav');
+            if (!nav) return;
+            
+            let middleUl = nav.querySelector('ul.header-search-ul');
+            if (!middleUl) {
+                middleUl = document.createElement('ul');
+                middleUl.className = 'header-search-ul';
+                middleUl.style.flexGrow = '1';
+                middleUl.style.justifyContent = 'center';
+                middleUl.style.margin = '0 2rem';
+                middleUl.style.maxWidth = '600px';
+                
+                middleUl.innerHTML = `
+                    <li style="width: 100%; list-style: none;">
+                        <div class="search-wrapper" style="position: relative; display: flex; align-items: center; width: 100%;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 12px; pointer-events: none; color: var(--pico-muted-color);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                            <input type="text" id="search-input" placeholder="Cari judul, konten, atau label..." oninput="renderCurrentMode(); document.getElementById('clear-search-btn-header').style.display = this.value ? 'block' : 'none';" style="padding-left: 2.5rem; padding-right: 2.5rem; margin-bottom: 0; width: 100%; border-radius: 9999px; background: rgba(255,255,255,0.05); border: 1px solid var(--pico-muted-border-color);">
+                            <button type="button" id="clear-search-btn-header" onclick="document.getElementById('search-input').value=''; renderCurrentMode(); this.style.display='none';" style="position: absolute; right: 12px; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem; display: none; cursor: pointer; font-size: 1.25rem; line-height: 1; width: auto;">✕</button>
+                        </div>
+                    </li>
+                `;
+                
+                const logoUl = nav.querySelector('ul');
+                if (logoUl) {
+                    logoUl.after(middleUl);
+                }
+            }
+            
+            const firstUl = nav.querySelector('ul');
+            if (firstUl && !nav.querySelector('.sidebar-toggle-btn')) {
+                const toggleLi = document.createElement('li');
+                toggleLi.style.display = 'flex';
+                toggleLi.style.alignItems = 'center';
+                
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'sidebar-toggle-btn';
+                toggleBtn.innerHTML = '☰';
+                toggleBtn.onclick = () => window.toggleSidebar();
+                toggleBtn.style.cssText = "background: transparent; border: none; color: var(--pico-heading-color); font-size: 1.5rem; padding: 0 0.5rem; cursor: pointer; margin: 0; width: auto; line-height: 1; display: flex; align-items: center;";
+                
+                toggleLi.appendChild(toggleBtn);
+                firstUl.prepend(toggleLi);
+            }
+        };
+
+        window.toggleSidebar = function() {
+            const sidebar = document.querySelector('.catat-sidebar');
+            if (!sidebar) return;
+            
+            if (window.innerWidth > 768) {
+                sidebar.classList.toggle('collapsed');
+            } else {
+                sidebar.classList.toggle('show');
+            }
+        };
+
+        // Listen to HTMX after swap to setup search bar
+        document.body.addEventListener('htmx:afterSwap', (e) => {
+            setupHeaderSearchBar();
+        });
+        
+        // Also call it on load
+        setTimeout(setupHeaderSearchBar, 100);
 
         // Helpers
         function escapeHtml(str) {

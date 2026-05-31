@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menggunakan SVG sebagai Favicon Modern - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>SVG Favicon</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Menggunakan SVG sebagai Favicon Modern</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Hampir semua browser modern saat ini telah mendukung file format vektor <strong>SVG (Scalable Vector Graphics)</strong> sebagai favicon. Dibandingkan file bitmap PNG atau ICO, SVG menawarkan fleksibilitas yang luar biasa.</p>
+
+        <h2>Kelebihan Menggunakan SVG</h2>
+        <ul>
+          <li><strong>Ketajaman Sempurna:</strong> Karena berbasis vektor matematika, SVG akan selalu tampak tajam di layar apa pun, tanpa peduli seberapa tinggi tingkat kerapatan piksel layar (Retina, 4K, 8K).</li>
+          <li><strong>Ukuran Sangat Kecil:</strong> File SVG biasanya berukuran di bawah 2KB, jauh lebih ringan dibanding file bitmap PNG berkualitas tinggi yang berukuran puluhan KB.</li>
+          <li><strong>Mendukung Mode Gelap/Terang (Dynamic Theme):</strong> Anda bisa memasukkan kode CSS di dalam file SVG agar warna favicon otomatis menyesuaikan dengan preferensi browser pengguna.</li>
+        </ul>
+
+        <h2>Cara Memasang SVG Favicon</h2>
+        <p>Tambahkan kode berikut ke bagian <code>&lt;head&gt;</code> HTML:</p>
+        <pre><code>&lt;link rel="icon" type="image/svg+xml" href="/favicon.svg"&gt;</code></pre>
+
+        <h2>Membuat SVG Responsif Tema Gelap/Terang</h2>
+        <p>Di dalam file <code>favicon.svg</code>, gunakan tag <code>&lt;style&gt;</code> yang menyertakan media query untuk mendeteksi preferensi tema pengguna:</p>
+        <pre><code>&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"&gt;
+  &lt;style&gt;
+    /* Warna default untuk mode terang */
+    circle { fill: #0f172a; }
+    
+    /* Warna berubah otomatis di mode gelap */
+    @media (prefers-color-scheme: dark) {
+      circle { fill: #38bdf8; }
+    }
+  &lt;/style&gt;
+  &lt;circle cx="50" cy="50" r="40" /&gt;
+&lt;/svg&gt;</code></pre>
+
+        <h2>Bagaimana dengan Browser Lama?</h2>
+        <p>Selalu sediakan file <code>favicon.ico</code> cadangan di baris kode paling atas. Browser lama yang tidak mengenali format SVG akan mengabaikannya dan memuat file ICO tersebut.</p>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

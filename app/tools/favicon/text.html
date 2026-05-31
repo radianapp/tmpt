@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Ke Favicon Generator - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <!-- Load Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Montserrat:wght@700&family=Playfair+Display:wght@700&family=Poppins:wght@700&family=Roboto:wght@700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="./index.html">Favicon Home</a></li>
+        <li>Text Generator</li>
+      </ul>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Text Ke Favicon Generator</h1>
+      <p class="secondary">Buat favicon inisial teks website Anda secara instan</p>
+    </header>
+
+    <div class="favicon-editor-layout">
+      <!-- Sisi Kiri: Controls -->
+      <section>
+        <article>
+          <!-- 1. Text & Font -->
+          <label for="text-input">Teks Favicon (Inisial)</label>
+          <input type="text" id="text-input" value="A" maxlength="3" placeholder="Contoh: T" />
+
+          <div class="grid">
+            <div>
+              <label for="font-select">Pilih Font</label>
+              <select id="font-select">
+                <option value="Inter">Inter (Modern & Bersih)</option>
+                <option value="Poppins">Poppins (Geometris / Bulat)</option>
+                <option value="Roboto">Roboto (Familiar & Netral)</option>
+                <option value="Montserrat">Montserrat (Tebal & Tegas)</option>
+                <option value="'Playfair Display'">Playfair (Anggun & Klasik)</option>
+                <option value="'Space Mono'">Space Mono (Developer / Retro)</option>
+              </select>
+            </div>
+            <div>
+              <label for="font-size">Ukuran Huruf</label>
+              <input type="range" id="font-size" min="30" max="95" value="65" />
+            </div>
+          </div>
+
+          <!-- 2. Text Color -->
+          <label>Warna Teks</label>
+          <div class="grid" style="grid-template-columns: 1fr 4fr; align-items: center; gap: 1rem;">
+            <input type="color" id="text-color" value="#ffffff" style="height: 44px; padding: 4px;" />
+            <div class="color-presets-grid" id="text-color-presets"></div>
+          </div>
+
+          <!-- 3. Background -->
+          <label for="bg-style-select">Gaya Bingkai Latar</label>
+          <select id="bg-style-select">
+            <option value="circle">Circle (Lingkaran)</option>
+            <option value="rounded">Rounded Corners (Kotak Tumpul)</option>
+            <option value="square">Square (Kotak Siku)</option>
+            <option value="transparent">Transparent (Hanya Teks)</option>
+          </select>
+
+          <div id="bg-color-controls">
+            <label for="bg-type-select">Tipe Latar Belakang</label>
+            <select id="bg-type-select">
+              <option value="solid">Solid (Satu Warna)</option>
+              <option value="gradient">Gradien Gradasi</option>
+            </select>
+
+            <!-- Solid controls -->
+            <div id="solid-controls">
+              <label>Warna Latar Belakang</label>
+              <div class="grid" style="grid-template-columns: 1fr 4fr; align-items: center; gap: 1rem;">
+                <input type="color" id="bg-color-solid" value="#2563eb" style="height: 44px; padding: 4px;" />
+                <div class="color-presets-grid" id="bg-color-presets"></div>
+              </div>
+            </div>
+
+            <!-- Gradient controls -->
+            <div id="gradient-controls" class="hidden">
+              <div class="grid">
+                <div>
+                  <label for="gradient-color-1">Warna Awal</label>
+                  <input type="color" id="gradient-color-1" value="#3b82f6" style="height: 44px; padding: 4px;" />
+                </div>
+                <div>
+                  <label for="gradient-color-2">Warna Akhir</label>
+                  <input type="color" id="gradient-color-2" value="#1d4ed8" style="height: 44px; padding: 4px;" />
+                </div>
+              </div>
+              <label for="gradient-angle">Sudut Gradasi (Derajat)</label>
+              <input type="range" id="gradient-angle" min="0" max="360" value="45" />
+            </div>
+          </div>
+
+          <!-- 4. Corner Radius (Hanya untuk rounded) -->
+          <div id="corner-radius-container" class="hidden" style="margin-top: 1rem;">
+            <label for="corner-radius">Radius Sudut (%)</label>
+            <input type="range" id="corner-radius" min="5" max="45" value="20" />
+          </div>
+
+          <!-- 5. Manifest Settings -->
+          <div class="grid" style="margin-top: 1.5rem;">
+            <div>
+              <label for="app-name">Nama Aplikasi</label>
+              <input type="text" id="app-name" value="TMPT App" />
+            </div>
+            <div>
+              <label for="app-short-name">Nama Singkat</label>
+              <input type="text" id="app-short-name" value="TMPT" />
+            </div>
+          </div>
+
+          <button id="btn-generate" class="primary" style="width: 100%; border-radius: 8px; font-weight: 600; margin-top: 1rem;">
+            Buat Paket Favicon
+          </button>
+        </article>
+      </section>
+
+      <!-- Sisi Kanan: Previews & Download -->
+      <section>
+        <div class="preview-container">
+          <h3 style="margin-bottom: 0.5rem;">Pratinjau Asli & Mockup</h3>
+
+          <!-- Canvas kerja tersembunyi yang bertindak sebagai sumber kualitas tinggi (512x512) -->
+          <canvas id="source-canvas" width="512" height="512" class="hidden"></canvas>
+
+          <!-- Browser Tab Mockup -->
+          <div class="browser-tab-mockup">
+            <div class="browser-tab-header">
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-tabs">
+                <div class="browser-tab">
+                  <canvas id="tab-canvas-preview" width="16" height="16"></canvas>
+                  <span id="tab-title-preview">Pratinjau Tab</span>
+                </div>
+              </div>
+            </div>
+            <div class="browser-tab-content"></div>
+          </div>
+
+          <!-- Smartphone Screen Mockup -->
+          <div class="smartphone-mockup">
+            <div class="smartphone-screen">
+              <div class="smartphone-app">
+                <div class="smartphone-app-icon">
+                  <canvas id="phone-canvas-preview" width="180" height="180"></canvas>
+                </div>
+                <div class="smartphone-app-label" id="phone-label-preview">TMPT</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- List Previews -->
+          <div id="output-section" class="hidden">
+            <hr>
+            <h4>Daftar Ukuran Output</h4>
+            <div class="output-sizes-grid">
+              <div class="output-size-item">
+                <strong>16x16px</strong>
+                <div class="output-size-preview" style="width: 32px; height: 32px;">
+                  <canvas id="canvas-16" width="16" height="16" style="width: 16px; height: 16px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">favicon.ico</span>
+              </div>
+              <div class="output-size-item">
+                <strong>32x32px</strong>
+                <div class="output-size-preview" style="width: 44px; height: 44px;">
+                  <canvas id="canvas-32" width="32" height="32" style="width: 32px; height: 32px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">retina</span>
+              </div>
+              <div class="output-size-item">
+                <strong>180x180px</strong>
+                <div class="output-size-preview" style="width: 72px; height: 72px;">
+                  <canvas id="canvas-180" width="180" height="180" style="width: 50px; height: 50px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">apple-touch</span>
+              </div>
+              <div class="output-size-item">
+                <strong>192x192px</strong>
+                <div class="output-size-preview" style="width: 72px; height: 72px;">
+                  <canvas id="canvas-192" width="192" height="192" style="width: 50px; height: 50px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">android-chrome</span>
+              </div>
+            </div>
+
+            <button id="btn-download-zip" class="btn-success" style="width: 100%; border-radius: 8px; font-weight: 600; margin-top: 1.5rem;">
+              Unduh Bundel ZIP
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Code Snippet Display -->
+    <section id="snippet-section" class="hidden" style="margin-top: 3rem; margin-bottom: 3rem;">
+      <h3>Cara Pemasangan</h3>
+      <p>Salin potongan kode HTML berikut ke dalam tag <code>&lt;head&gt;</code> semua halaman web Anda:</p>
+      <pre><code id="snippet-code"></code></pre>
+      <button class="outline" id="btn-copy-snippet" style="width: auto; font-size: 0.85rem;">Salin Kode</button>
+    </section>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <!-- Shared vendor loading JSZip -->
+  <script src="/shared/vendor/jszip.min.js"></script>
+  <!-- Text Generator module -->
+  <script type="module" src="./js/text-gen.js"></script>
+</body>
+</html>

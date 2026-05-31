@@ -176,6 +176,59 @@ const UIModule = {
         });
     },
 
+    /**
+     * Generic Dynamic Prompt Dialog (Promise based, styled with PicoCSS)
+     */
+    async prompt(message, placeholder = '', isPassword = false) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('dialog');
+            dialog.style.borderRadius = '20px';
+            dialog.style.padding = '2rem';
+            dialog.style.maxWidth = '450px';
+            dialog.style.width = '95%';
+
+            const type = isPassword ? 'password' : 'text';
+            dialog.innerHTML = `
+                <article style="border: none; margin: 0; padding: 0; background: transparent; box-shadow: none;">
+                    <h3 style="font-weight: 700; margin-bottom: 0.75rem; font-size: 1.5rem;">Masukan Diperlukan</h3>
+                    <p style="margin-bottom: 1.25rem; font-size: 0.95rem; line-height: 1.5; text-align: left;">${message}</p>
+                    <input type="${type}" id="ui-prompt-input" placeholder="${placeholder}" autocomplete="off" style="border-radius: 10px; margin-bottom: 1.5rem; width: 100%;">
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="outline secondary" id="ui-prompt-cancel" style="margin: 0; border-radius: 8px; padding: 0.4rem 1.25rem;">Batal</button>
+                        <button type="button" class="btn-navy" id="ui-prompt-ok" style="margin: 0; border-radius: 8px; padding: 0.4rem 1.5rem;">Lanjutkan</button>
+                    </div>
+                </article>
+            `;
+
+            document.body.appendChild(dialog);
+            dialog.showModal();
+
+            const input = dialog.querySelector('#ui-prompt-input');
+            input.focus();
+
+            dialog.querySelector('#ui-prompt-cancel').onclick = () => {
+                dialog.close();
+                dialog.remove();
+                resolve(null);
+            };
+
+            dialog.querySelector('#ui-prompt-ok').onclick = () => {
+                const val = input.value;
+                dialog.close();
+                dialog.remove();
+                resolve(val);
+            };
+
+            // Support Enter key
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    dialog.querySelector('#ui-prompt-ok').click();
+                }
+            };
+        });
+    },
+
     toggleAppLauncher(btnOrEvent, event) {
         let btn, ev;
         if (btnOrEvent && btnOrEvent.stopPropagation) {
@@ -391,12 +444,22 @@ const UIModule = {
             if (!items) return '';
             // Urutkan alfabetis
             const sorted = [...items].sort((a, b) => a.name.localeCompare(b.name));
-            return sorted.map(app => `
-                <a href="${app.url}" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.15rem; text-decoration: none; color: var(--pico-color); font-size: 0.7rem; font-weight: 600; padding: 0.35rem 0; border-radius: 8px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
-                    <span style="font-size: 1.3rem;">${app.icon}</span>
-                    <span style="display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 95%;">${app.name}</span>
-                </a>
-            `).join('');
+            return sorted.map(app => {
+                const isEnabled = app.isEnabled !== false;
+                const style = isEnabled 
+                    ? `display: flex; flex-direction: column; align-items: center; gap: 0.15rem; text-decoration: none; color: var(--pico-color); font-size: 0.7rem; font-weight: 600; padding: 0.35rem 0; border-radius: 8px; transition: background-color 0.2s;`
+                    : `display: flex; flex-direction: column; align-items: center; gap: 0.15rem; text-decoration: none; color: var(--pico-muted-color); font-size: 0.7rem; font-weight: 600; padding: 0.35rem 0; border-radius: 8px; opacity: 0.4; cursor: not-allowed; pointer-events: none;`;
+                const hoverAttr = isEnabled 
+                    ? `onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'"`
+                    : '';
+                const url = isEnabled ? app.url : '#';
+                return `
+                    <a href="${url}" class="app-launcher-item" style="${style}" ${hoverAttr}>
+                        <span style="font-size: 1.3rem; filter: ${isEnabled ? 'none' : 'grayscale(1)'}">${app.icon}</span>
+                        <span style="display: block; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 95%;">${app.name}</span>
+                    </a>
+                `;
+            }).join('');
         };
 
         const menus = document.querySelectorAll('.tmpt-app-launcher-menu-class, #tmpt-app-launcher-menu');
@@ -495,6 +558,8 @@ const UIModule = {
             `;
 
             sorted.forEach(app => {
+                const isEnabled = app.isEnabled !== false;
+                
                 // Warna tombol per nama app
                 const btnColorMap = {
                     "Hitung":           "background-color: #10b981; border-color: #10b981;",
@@ -511,7 +576,8 @@ const UIModule = {
                     "QR Tools":         "background-color: #4b5563; border-color: #4b5563;",
                     "QR":               "background-color: #4b5563; border-color: #4b5563;",
                     "Pomodoro":         "background-color: #ef4444; border-color: #ef4444;",
-                    "Konversi":         "background-color: #f59e0b; border-color: #f59e0b;"
+                    "Konversi":         "background-color: #f59e0b; border-color: #f59e0b;",
+                    "Favicon Generator":"background-color: #06b6d4; border-color: #06b6d4;"
                 };
 
                 // Gradien latar ikon per nama app
@@ -531,24 +597,40 @@ const UIModule = {
                     "QR Tools":         "linear-gradient(135deg, rgba(75, 85, 99, 0.1) 0%, rgba(55, 65, 81, 0.1) 100%)",
                     "QR":               "linear-gradient(135deg, rgba(75, 85, 99, 0.1) 0%, rgba(55, 65, 81, 0.1) 100%)",
                     "Pomodoro":         "linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(185, 28, 28, 0.1) 100%)",
-                    "Konversi":         "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)"
+                    "Konversi":         "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)",
+                    "Favicon Generator":"linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%)"
                 };
 
                 const cardBtnStyle = btnColorMap[app.name] || styles.btnStyle;
                 const bgGrad = gradMap[app.name] || styles.grad;
 
-                htmlContent += `
-                    <article class="app-selector-card">
-                        <div class="icon-wrapper" style="background: ${bgGrad}; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; height: 80px; width: 80px; margin: 0 auto 1rem; border-radius: 20px;">
-                            ${app.icon}
-                        </div>
-                        <h3>${app.name}</h3>
-                        <p style="font-size: 0.85rem; margin-bottom: 1rem;" class="secondary">${app.desc || ''}</p>
-                        <div class="card-action">
-                            <a href="${app.url}" role="button" class="${styles.btnClass}" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600; padding: 0.6rem 1rem; ${cardBtnStyle}">Buka Aplikasi</a>
-                        </div>
-                    </article>
-                `;
+                if (isEnabled) {
+                    htmlContent += `
+                        <article class="app-selector-card">
+                            <div class="icon-wrapper" style="background: ${bgGrad}; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; height: 80px; width: 80px; margin: 0 auto 1rem; border-radius: 20px;">
+                                ${app.icon}
+                            </div>
+                            <h3>${app.name}</h3>
+                            <p style="font-size: 0.85rem; margin-bottom: 1rem;" class="secondary">${app.desc || ''}</p>
+                            <div class="card-action">
+                                <a href="${app.url}" role="button" class="${styles.btnClass}" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600; padding: 0.6rem 1rem; ${cardBtnStyle}">Buka Aplikasi</a>
+                            </div>
+                        </article>
+                    `;
+                } else {
+                    htmlContent += `
+                        <article class="app-selector-card" style="opacity: 0.55; position: relative;">
+                            <div class="icon-wrapper" style="background: ${bgGrad}; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; height: 80px; width: 80px; margin: 0 auto 1rem; border-radius: 20px; filter: grayscale(1);">
+                                ${app.icon}
+                            </div>
+                            <h3>${app.name}</h3>
+                            <p style="font-size: 0.85rem; margin-bottom: 1rem;" class="secondary">${app.desc || ''}</p>
+                            <div class="card-action">
+                                <button class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600; padding: 0.6rem 1rem; cursor: not-allowed; pointer-events: none;" disabled>Segera Hadir</button>
+                            </div>
+                        </article>
+                    `;
+                }
             });
 
             // Tutup grid dan section

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panduan Favicon - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li>Panduan</li>
+      </ul>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 3rem;">
+      <h1 style="font-weight: 800; font-size: 2.5rem; margin-bottom: 0.5rem;">Panduan & Dokumentasi Favicon</h1>
+      <p class="secondary" style="font-size: 1.15rem;">Pelajari semua hal tentang implementasi, standar ukuran, format berkas, dan tips SEO untuk favicon website Anda.</p>
+    </header>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+      <!-- Artikel List -->
+      <div>
+        <article style="margin-bottom: 1.5rem; padding: 1.5rem;">
+          <h3 style="margin-top: 0;"><a href="./apa-itu-favicon.html">Apa Itu Favicon dan Mengapa Penting untuk SEO?</a></h3>
+          <p class="secondary" style="font-size: 0.95rem;">Favicon adalah gambar kecil yang muncul di tab browser, riwayat pencarian, dan bookmark. Temukan mengapa ikon kecil ini memiliki pengaruh besar pada user experience (UX) dan branding SEO Anda.</p>
+          <a href="./apa-itu-favicon.html" style="font-size: 0.9rem; font-weight: 600;">Baca Selengkapnya &rarr;</a>
+        </article>
+
+        <article style="margin-bottom: 1.5rem; padding: 1.5rem;">
+          <h3 style="margin-top: 0;"><a href="./cara-install.html">Cara Memasang Favicon di HTML dengan Benar</a></h3>
+          <p class="secondary" style="font-size: 0.95rem;">Panduan lengkap tag-tag HTML yang diperlukan untuk menautkan favicon bitmap (.ico dan .png) serta file webmanifest agar website Anda siap untuk desktop, mobile, dan PWA.</p>
+          <a href="./cara-install.html" style="font-size: 0.9rem; font-weight: 600;">Baca Selengkapnya &rarr;</a>
+        </article>
+
+        <article style="margin-bottom: 1.5rem; padding: 1.5rem;">
+          <h3 style="margin-top: 0;"><a href="./ukuran-favicon.html">Daftar Ukuran Favicon Standar Terlengkap</a></h3>
+          <p class="secondary" style="font-size: 0.95rem;">Tabel ringkasan ukuran resolusi piksel favicon yang dibutuhkan oleh berbagai browser dan sistem operasi (16px, 32px, 48px, 180px, hingga 512px).</p>
+          <a href="./ukuran-favicon.html" style="font-size: 0.9rem; font-weight: 600;">Baca Selengkapnya &rarr;</a>
+        </article>
+
+        <article style="margin-bottom: 1.5rem; padding: 1.5rem;">
+          <h3 style="margin-top: 0;"><a href="./favicon-pwa.html">Panduan Favicon untuk PWA (Progressive Web Apps)</a></h3>
+          <p class="secondary" style="font-size: 0.95rem;">Cara mengonfigurasi berkas <code>site.webmanifest</code> untuk mendefinisikan ikon aplikasi, splash screen, dan warna tema agar situs web Anda dapat diinstal di smartphone.</p>
+          <a href="./favicon-pwa.html" style="font-size: 0.9rem; font-weight: 600;">Baca Selengkapnya &rarr;</a>
+        </article>
+
+        <article style="margin-bottom: 1.5rem; padding: 1.5rem;">
+          <h3 style="margin-top: 0;"><a href="./svg-favicon.html">Menggunakan SVG sebagai Favicon Modern</a></h3>
+          <p class="secondary" style="font-size: 0.95rem;">Favicon dengan format vektor SVG memiliki ukuran yang sangat kecil dan ketajaman tak terbatas. Pelajari dukungannya pada browser modern dan cara merancang SVG responsif.</p>
+          <a href="./svg-favicon.html" style="font-size: 0.9rem; font-weight: 600;">Baca Selengkapnya &rarr;</a>
+        </article>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <aside>
+          <div style="background: rgba(15,23,42,0.02); border: 1px solid var(--pico-border-color); padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;">
+            <h4 style="margin-top: 0; font-size: 1.1rem; font-weight: 700;">Alat Pembuat Favicon</h4>
+            <ul style="padding-left: 1.2rem; margin-bottom: 0; font-size: 0.9rem;">
+              <li><a href="../converter.html">Konverter Gambar</a></li>
+              <li><a href="../text.html">Text Generator</a></li>
+              <li><a href="../emoji.html">Emoji Generator</a></li>
+              <li><a href="../logo.html">Logo Maker</a></li>
+              <li><a href="../checker.html">Favicon Checker</a></li>
+            </ul>
+          </div>
+
+          <div style="background: rgba(15,23,42,0.02); border: 1px solid var(--pico-border-color); padding: 1.25rem; border-radius: 8px;">
+            <h4 style="margin-top: 0; font-size: 1.1rem; font-weight: 700;">Topik Lainnya</h4>
+            <ul style="padding-left: 1.2rem; margin-bottom: 0; font-size: 0.9rem;">
+              <li><a href="./favicon-framework.html">Favicon di Next.js & React</a></li>
+              <li><a href="./troubleshooting.html">Solusi Favicon Tidak Muncul</a></li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

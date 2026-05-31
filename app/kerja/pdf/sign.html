@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tanda Tangan PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Tambahkan tanda tangan ke PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">✍️</div>
+      <h1>Tanda Tangan PDF</h1>
+      <p>Tambahkan tanda tangan ke dokumen PDF Anda</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <!-- Step 1: Upload PDF -->
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Langkah 1: Upload PDF yang akan ditandatangani</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+
+      <!-- Step 2: Create Signature -->
+      <div class="pdf-options">
+        <h3>Langkah 2: Buat Tanda Tangan</h3>
+        <!-- Tabs -->
+        <div style="display:flex;gap:.5rem;margin-bottom:1rem;border-bottom:1px solid var(--pico-muted-border-color);padding-bottom:.5rem;">
+          <button class="sig-tab active outline secondary" data-tab="draw" style="font-size:.8rem;">✏️ Tanda tangan</button>
+          <button class="sig-tab outline secondary" data-tab="type" style="font-size:.8rem;">⌨️ Ketik</button>
+          <button class="sig-tab outline secondary" data-tab="upload" style="font-size:.8rem;">📁 Upload</button>
+        </div>
+
+        <!-- Draw Panel -->
+        <div id="sig-panel-draw" class="sig-panel">
+          <p style="font-size:.8rem;color:var(--pico-muted-color);margin:.25rem 0 .5rem;">Gambar tanda tangan di area bawah ini:</p>
+          <canvas id="sig-canvas" class="pdf-sig-canvas" width="480" height="150" aria-label="Area menggambar tanda tangan"></canvas>
+          <button id="btn-clear-sig" class="outline secondary" style="font-size:.78rem;margin-top:.5rem;" aria-label="Hapus gambar tanda tangan">Hapus</button>
+        </div>
+
+        <!-- Type Panel -->
+        <div id="sig-panel-type" class="sig-panel" hidden>
+          <label for="sig-typed-input">Ketik nama Anda
+            <input type="text" id="sig-typed-input" placeholder="Nama Anda..." maxlength="50" aria-label="Nama untuk tanda tangan ketik">
+          </label>
+          <div id="sig-typed-preview" style="font-family:Georgia,serif;font-style:italic;font-size:2rem;padding:.75rem;border:1px dashed var(--pico-muted-border-color);border-radius:var(--pico-border-radius);min-height:60px;color:#333;margin-top:.5rem;">Pratinjau tanda tangan</div>
+        </div>
+
+        <!-- Upload Panel -->
+        <div id="sig-panel-upload" class="sig-panel" hidden>
+          <label for="sig-upload-input">Upload gambar tanda tangan (PNG transparan lebih baik)
+            <input type="file" id="sig-upload-input" accept="image/png,image/jpeg" aria-label="Upload gambar tanda tangan">
+          </label>
+          <img id="sig-upload-preview" src="" alt="Pratinjau tanda tangan yang diupload" hidden style="max-width:100%;max-height:100px;margin-top:.5rem;border:1px solid var(--pico-muted-border-color);border-radius:var(--pico-border-radius);">
+        </div>
+      </div>
+
+      <!-- Step 3: Position -->
+      <div class="pdf-options" style="margin-top:.75rem;">
+        <h3>Langkah 3: Posisi &amp; Ukuran</h3>
+        <div class="grid">
+          <label for="sig-page">Halaman
+            <select id="sig-page" aria-label="Halaman penempatan tanda tangan">
+              <option value="last">Halaman terakhir</option>
+              <option value="1">Halaman 1</option>
+            </select>
+          </label>
+        </div>
+        <div class="grid">
+          <label for="sig-width">Lebar (pt)
+            <input type="number" id="sig-width" value="150" min="50" max="400" aria-label="Lebar tanda tangan">
+          </label>
+          <label for="sig-height">Tinggi (pt)
+            <input type="number" id="sig-height" value="60" min="20" max="200" aria-label="Tinggi tanda tangan">
+          </label>
+        </div>
+        <div class="grid">
+          <label for="sig-x">Posisi X dari kiri (pt)
+            <input type="number" id="sig-x" value="400" min="0" aria-label="Posisi horizontal tanda tangan">
+          </label>
+          <label for="sig-y">Posisi Y dari bawah (pt)
+            <input type="number" id="sig-y" value="30" min="0" aria-label="Posisi vertikal tanda tangan">
+          </label>
+        </div>
+        <small style="color:var(--pico-muted-color);">Koordinat dalam satuan pt (1 inci = 72 pt). Halaman A4 = 595×842 pt.</small>
+
+        <!-- Preview lokasi tanda tangan -->
+        <div class="sig-preview-wrap" id="sig-preview-wrap" style="margin-top:1.25rem;">
+          <p style="font-size:.8rem;color:var(--pico-muted-color);margin-bottom:.5rem;">Pratinjau posisi tanda tangan</p>
+          <div class="sig-page-preview" id="sig-page-preview" aria-label="Pratinjau posisi tanda tangan" style="position:relative;width:180px;height:240px;margin:0 auto;background:var(--pico-card-background-color);border:1.5px solid var(--pico-muted-border-color);border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,0.08);overflow:hidden;padding:18px 14px;box-sizing:border-box;">
+            <!-- Garis-garis konten -->
+            <div class="sig-content-lines" style="display:flex;flex-direction:column;gap:8px;padding-top:10px;">
+              <div class="sig-line sig-line--long" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:100%;"></div>
+              <div class="sig-line sig-line--short" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:50%;"></div>
+              <div class="sig-line sig-line--long" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:100%;"></div>
+              <div class="sig-line sig-line--med" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:75%;"></div>
+              <div class="sig-line sig-line--long" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:100%;"></div>
+              <div class="sig-line sig-line--short" style="height:6px;border-radius:3px;background:var(--pico-muted-border-color);opacity:0.6;width:50%;"></div>
+            </div>
+            <!-- Badge tanda tangan -->
+            <div class="sig-badge" id="sig-badge" style="position:absolute;font-size:0.5rem;font-weight:600;color:var(--pico-primary);background:color-mix(in srgb, var(--pico-primary) 12%, transparent);border:1px dashed color-mix(in srgb, var(--pico-primary) 60%, transparent);border-radius:3px;padding:2px 4px;white-space:nowrap;transition:all 0.15s ease;display:flex;align-items:center;justify-content:center;box-sizing:border-box;">
+              ✍️ Sign
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress menambah tanda tangan"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Memproses...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">✍️ Tambahkan Tanda Tangan</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh PDF Bertandatangan</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/sign.js"></script>
+</body>
+</html>

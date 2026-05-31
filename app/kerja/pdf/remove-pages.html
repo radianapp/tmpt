@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hapus Halaman PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Hapus halaman tertentu dari PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:760px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🗑️</div>
+      <h1>Hapus Halaman</h1>
+      <p>Hapus halaman tertentu dari dokumen PDF Anda</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <div class="pdf-options">
+        <h3>Pilih Halaman yang Akan Dihapus</h3>
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;">
+          <button id="btn-select-all" class="outline secondary" style="font-size:.8rem;">Pilih Semua</button>
+          <button id="btn-deselect"   class="outline secondary" style="font-size:.8rem;">Batalkan Pilihan</button>
+        </div>
+        <p id="selection-label" style="font-size:.8rem;color:#e74c3c;font-weight:600;margin:0;"></p>
+        <p style="font-size:.78rem;color:var(--pico-muted-color);margin:.35rem 0 0;">Klik thumbnail untuk memilih/membatalkan halaman yang dihapus.</p>
+      </div>
+      <div class="pdf-pages-grid" id="pages-grid" role="list" aria-label="Halaman PDF"></div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress hapus halaman"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Memproses...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">🗑️ Hapus Halaman Terpilih</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh Hasil</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/remove-pages.js"></script>
+</body>
+</html>

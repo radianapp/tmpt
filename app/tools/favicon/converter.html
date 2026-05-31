@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Konverter Gambar Ke Favicon - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="./index.html">Favicon Home</a></li>
+        <li>Konverter Gambar</li>
+      </ul>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Konverter Gambar Favicon</h1>
+      <p class="secondary">Unggah gambar PNG, JPG, WebP, atau SVG Anda untuk menghasilkan paket favicon lengkap</p>
+    </header>
+
+    <div class="favicon-editor-layout">
+      <!-- Sisi Kiri: Controls & Upload -->
+      <section>
+        <article>
+          <!-- Drag & Drop Zone -->
+          <div id="dropzone" class="favicon-dropzone" aria-label="Dropzone area">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <p style="font-weight: 600; margin-bottom: 0.2rem;">Tarik & lepaskan berkas logo Anda ke sini</p>
+            <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Mendukung PNG, JPG, WebP, atau SVG (Maksimal 50MB)</p>
+            <button class="outline" id="btn-select-file" style="margin: 0 auto; width: auto; font-size: 0.9rem;">Pilih Berkas</button>
+            <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp, image/svg+xml" style="display: none;" />
+          </div>
+
+          <!-- Opsi Konfigurasi -->
+          <div style="margin-top: 1.5rem;">
+            <div class="grid">
+              <div>
+                <label for="fit-mode">Gaya Muat (Fit Mode)</label>
+                <select id="fit-mode">
+                  <option value="contain">Contain (Proporsional / Aman)</option>
+                  <option value="cover">Cover (Memenuhi Bingkai / Crop)</option>
+                  <option value="fill">Fill (Regang / Stretch)</option>
+                </select>
+              </div>
+              <div>
+                <label for="bg-type">Warna Latar Belakang</label>
+                <select id="bg-type">
+                  <option value="transparent">Transparan (Sangat Disarankan)</option>
+                  <option value="white">Putih</option>
+                  <option value="black">Hitam</option>
+                  <option value="custom">Warna Kustom</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="custom-color-container" class="hidden">
+              <label for="custom-bg-color">Pilih Warna Latar Kustom</label>
+              <input type="color" id="custom-bg-color" value="#ffffff" style="height: 48px; padding: 4px;" />
+            </div>
+
+            <div class="grid" style="margin-top: 1rem;">
+              <div>
+                <label for="app-name">Nama Aplikasi (Manifest)</label>
+                <input type="text" id="app-name" value="TMPT App" placeholder="Contoh: Toko Kopi Kita" />
+              </div>
+              <div>
+                <label for="app-short-name">Nama Singkat Aplikasi</label>
+                <input type="text" id="app-short-name" value="TMPT" placeholder="Contoh: KopiKita" />
+              </div>
+            </div>
+
+            <button id="btn-generate" class="primary" style="width: 100%; border-radius: 8px; font-weight: 600; margin-top: 1rem;" disabled>
+              Buat Paket Favicon
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <!-- Sisi Kanan: Previews & Download -->
+      <section>
+        <div class="preview-container">
+          <h3 style="margin-bottom: 0.5rem;">Pratinjau Asli & Mockup</h3>
+          
+          <!-- Browser Tab Mockup -->
+          <div class="browser-tab-mockup">
+            <div class="browser-tab-header">
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-tabs">
+                <div class="browser-tab">
+                  <canvas id="tab-canvas-preview" width="16" height="16"></canvas>
+                  <span id="tab-title-preview">Pratinjau Tab</span>
+                </div>
+              </div>
+            </div>
+            <div class="browser-tab-content"></div>
+          </div>
+
+          <!-- Smartphone Screen Mockup -->
+          <div class="smartphone-mockup">
+            <div class="smartphone-screen">
+              <div class="smartphone-app">
+                <div class="smartphone-app-icon">
+                  <canvas id="phone-canvas-preview" width="180" height="180"></canvas>
+                </div>
+                <div class="smartphone-app-label" id="phone-label-preview">TMPT</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- List Previews -->
+          <div id="output-section" class="hidden">
+            <hr>
+            <h4>Daftar Ukuran Output</h4>
+            <div class="output-sizes-grid">
+              <div class="output-size-item">
+                <strong>16x16px</strong>
+                <div class="output-size-preview" style="width: 32px; height: 32px;">
+                  <canvas id="canvas-16" width="16" height="16" style="width: 16px; height: 16px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">favicon.ico</span>
+              </div>
+              <div class="output-size-item">
+                <strong>32x32px</strong>
+                <div class="output-size-preview" style="width: 44px; height: 44px;">
+                  <canvas id="canvas-32" width="32" height="32" style="width: 32px; height: 32px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">retina</span>
+              </div>
+              <div class="output-size-item">
+                <strong>180x180px</strong>
+                <div class="output-size-preview" style="width: 72px; height: 72px;">
+                  <canvas id="canvas-180" width="180" height="180" style="width: 50px; height: 50px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">apple-touch</span>
+              </div>
+              <div class="output-size-item">
+                <strong>192x192px</strong>
+                <div class="output-size-preview" style="width: 72px; height: 72px;">
+                  <canvas id="canvas-192" width="192" height="192" style="width: 50px; height: 50px;"></canvas>
+                </div>
+                <span class="secondary" style="font-size: 0.75rem;">android-chrome</span>
+              </div>
+            </div>
+
+            <button id="btn-download-zip" class="btn-success" style="width: 100%; border-radius: 8px; font-weight: 600; margin-top: 1.5rem;">
+              Unduh Bundel ZIP
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Code Snippet Display -->
+    <section id="snippet-section" class="hidden" style="margin-top: 3rem; margin-bottom: 3rem;">
+      <h3>Cara Pemasangan</h3>
+      <p>Salin potongan kode HTML berikut ke dalam tag <code>&lt;head&gt;</code> semua halaman web Anda:</p>
+      <pre><code id="snippet-code"></code></pre>
+      <button class="outline" id="btn-copy-snippet" style="width: auto; font-size: 0.85rem;">Salin Kode</button>
+    </section>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <!-- Shared vendor loading JSZip -->
+  <script src="/shared/vendor/jszip.min.js"></script>
+  <!-- Converter Logic module -->
+  <script type="module" src="./js/converter.js"></script>
+</body>
+</html>

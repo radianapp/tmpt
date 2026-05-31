@@ -983,6 +983,53 @@
                     HitungStorage.clearActiveDraft();
                 }
             }
+
+            // Cek parameter import_opfs dari Berkas
+            const params = new URLSearchParams(window.location.search);
+            const importOpfs = params.get('import_opfs');
+            const importName = params.get('name') || 'Impor Berkas';
+            if (importOpfs) {
+                if (window.TMPT_UI && typeof window.TMPT_UI.showLoader === 'function') {
+                    window.TMPT_UI.showLoader("Memuat berkas...");
+                }
+                try {
+                    const root = await navigator.storage.getDirectory();
+                    const fileHandle = await root.getFileHandle(importOpfs);
+                    const file = await fileHandle.getFile();
+                    const reader = new FileReader();
+
+                    if (importName.endsWith('.hitung')) {
+                        reader.onload = async (e) => {
+                            try {
+                                const fileContent = JSON.parse(e.target.result);
+                                openSpreadsheetEditor('file_' + Date.now(), fileContent);
+                            } catch (err) {
+                                await showPicoAlert("Format Rusak", "Gagal membaca berkas .hitung: Format JSON rusak.");
+                            }
+                        };
+                        reader.readAsText(file);
+                    } else {
+                        reader.onload = async (e) => {
+                            try {
+                                const data = new Uint8Array(e.target.result);
+                                const hitungFile = HitungConverter.importFromExcel(data, importName);
+                                openSpreadsheetEditor('file_' + Date.now(), hitungFile);
+                            } catch (err) {
+                                await showPicoAlert("Gagal Mengimpor", "Gagal mengimpor berkas Excel/CSV: " + err.message);
+                            }
+                        };
+                        reader.readAsArrayBuffer(file);
+                    }
+                } catch (err) {
+                    console.error("Gagal membuka OPFS file di Hitung:", err);
+                    await showPicoAlert("Gagal Memuat Berkas", "Gagal memuat berkas dari penyimpanan lokal: " + err.message);
+                } finally {
+                    if (window.TMPT_UI && typeof window.TMPT_UI.hideLoader === 'function') {
+                        window.TMPT_UI.hideLoader();
+                    }
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+            }
         });
 
         // ═══════════════════════════════════════════════════

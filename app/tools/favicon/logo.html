@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logo Maker - TMPT Favicon</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&family=Montserrat:wght@700&family=Playfair+Display:wght@700&family=Poppins:wght@700&family=Roboto:wght@700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="./index.html">Favicon Home</a></li>
+        <li>Logo Maker</li>
+      </ul>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 2rem;">
+      <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Logo Maker</h1>
+      <p class="secondary">Buat logo minimalis profesional — inisial, bentuk, dan warna — tanpa perlu software desain</p>
+    </header>
+
+    <div class="favicon-editor-layout">
+      <!-- Sisi Kiri: Controls -->
+      <section>
+        <article>
+          <!-- 1. Text -->
+          <div class="grid">
+            <div>
+              <label for="text-input">Inisial / Teks</label>
+              <input type="text" id="text-input" value="TM" maxlength="3" placeholder="1–3 karakter" />
+            </div>
+            <div>
+              <label for="font-select">Font</label>
+              <select id="font-select">
+                <option value="Inter">Inter</option>
+                <option value="Poppins">Poppins</option>
+                <option value="Roboto">Roboto</option>
+                <option value="Montserrat">Montserrat</option>
+                <option value="'Playfair Display'">Playfair</option>
+                <option value="'Space Mono'">Space Mono</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 2. Shape -->
+          <label>Bentuk Bingkai</label>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+            <button class="shape-btn active" data-shape="square" aria-label="Kotak Siku">⬛ Kotak</button>
+            <button class="shape-btn" data-shape="rounded" aria-label="Kotak Tumpul">▪️ Rounded</button>
+            <button class="shape-btn" data-shape="circle" aria-label="Lingkaran">⚫ Circle</button>
+            <button class="shape-btn" data-shape="shield" aria-label="Tameng">🛡️ Shield</button>
+            <button class="shape-btn" data-shape="diamond" aria-label="Berlian">💠 Diamond</button>
+            <button class="shape-btn" data-shape="hexagon" aria-label="Heksagon">⬡ Hexagon</button>
+          </div>
+
+          <!-- 3. Text Color -->
+          <label>Warna Teks</label>
+          <div class="grid" style="grid-template-columns: 1fr 4fr; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+            <input type="color" id="text-color" value="#ffffff" style="height: 44px; padding: 4px;" />
+            <div class="color-presets-grid" id="text-color-presets"></div>
+          </div>
+
+          <!-- 4. Background -->
+          <label for="bg-type-select">Warna Latar</label>
+          <select id="bg-type-select">
+            <option value="gradient">Gradien (Disarankan)</option>
+            <option value="solid">Solid Satu Warna</option>
+          </select>
+
+          <!-- Gradient -->
+          <div id="gradient-controls">
+            <label>Palet Warna Gradien</label>
+            <div class="color-presets-grid" id="palette-presets" style="margin-bottom: 1rem;"></div>
+            <div class="grid">
+              <div>
+                <label for="gradient-color-1">Warna Awal</label>
+                <input type="color" id="gradient-color-1" value="#3b82f6" style="height: 44px; padding: 4px;" />
+              </div>
+              <div>
+                <label for="gradient-color-2">Warna Akhir</label>
+                <input type="color" id="gradient-color-2" value="#1d4ed8" style="height: 44px; padding: 4px;" />
+              </div>
+            </div>
+            <label for="gradient-angle">Sudut Gradasi</label>
+            <input type="range" id="gradient-angle" min="0" max="360" value="135" />
+          </div>
+
+          <!-- Solid -->
+          <div id="solid-controls" class="hidden">
+            <label>Warna Latar Belakang</label>
+            <div class="grid" style="grid-template-columns: 1fr 4fr; align-items: center; gap: 1rem;">
+              <input type="color" id="bg-color-solid" value="#1d4ed8" style="height: 44px; padding: 4px;" />
+              <div class="color-presets-grid" id="solid-color-presets"></div>
+            </div>
+          </div>
+
+          <!-- 5. Drop Shadow -->
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem;">
+            <input type="checkbox" id="shadow-toggle" role="switch" style="width: auto; margin: 0;" />
+            <label for="shadow-toggle" style="margin: 0; cursor: pointer;">Aktifkan Drop Shadow</label>
+          </div>
+
+          <div id="shadow-controls" class="hidden" style="margin-top: 0.75rem;">
+            <label for="shadow-intensity">Intensitas Bayangan</label>
+            <input type="range" id="shadow-intensity" min="5" max="40" value="20" />
+          </div>
+
+          <!-- 6. Border -->
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 1rem;">
+            <input type="checkbox" id="border-toggle" role="switch" style="width: auto; margin: 0;" />
+            <label for="border-toggle" style="margin: 0; cursor: pointer;">Aktifkan Border</label>
+          </div>
+
+          <div id="border-controls" class="hidden" style="margin-top: 0.75rem;">
+            <div class="grid">
+              <div>
+                <label for="border-color">Warna Border</label>
+                <input type="color" id="border-color" value="#ffffff" style="height: 44px; padding: 4px;" />
+              </div>
+              <div>
+                <label for="border-width">Ketebalan (%)</label>
+                <input type="range" id="border-width" min="1" max="8" value="3" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. Manifest -->
+          <div class="grid" style="margin-top: 1.5rem;">
+            <div>
+              <label for="app-name">Nama Aplikasi</label>
+              <input type="text" id="app-name" value="TMPT App" />
+            </div>
+            <div>
+              <label for="app-short-name">Nama Singkat</label>
+              <input type="text" id="app-short-name" value="TMPT" />
+            </div>
+          </div>
+
+          <button id="btn-generate" class="primary" style="width: 100%; border-radius: 8px; font-weight: 600; margin-top: 1rem;">
+            Buat Logo & Paket Favicon
+          </button>
+        </article>
+      </section>
+
+      <!-- Sisi Kanan: Previews -->
+      <section>
+        <div class="preview-container">
+          <h3 style="margin-bottom: 0.5rem;">Pratinjau Logo</h3>
+
+          <!-- Large preview canvas (512x512) displayed as 200x200 -->
+          <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+            <canvas id="source-canvas" width="512" height="512" style="width: 160px; height: 160px; border-radius: 8px;"></canvas>
+          </div>
+
+          <!-- Browser Tab Mockup -->
+          <div class="browser-tab-mockup">
+            <div class="browser-tab-header">
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-dot"></div>
+              <div class="browser-tabs">
+                <div class="browser-tab">
+                  <canvas id="tab-canvas-preview" width="16" height="16"></canvas>
+                  <span id="tab-title-preview">Pratinjau Tab</span>
+                </div>
+              </div>
+            </div>
+            <div class="browser-tab-content"></div>
+          </div>
+
+          <!-- Smartphone Screen Mockup -->
+          <div class="smartphone-mockup">
+            <div class="smartphone-screen">
+              <div class="smartphone-app">
+                <div class="smartphone-app-icon">
+                  <canvas id="phone-canvas-preview" width="180" height="180"></canvas>
+                </div>
+                <div class="smartphone-app-label" id="phone-label-preview">TMPT</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Download buttons shown after generate -->
+          <div id="output-section" class="hidden">
+            <hr>
+            <button id="btn-download-zip" class="btn-success" style="width: 100%; border-radius: 8px; font-weight: 600; margin-bottom: 0.75rem;">
+              Unduh Bundel Favicon ZIP
+            </button>
+            <button id="btn-download-logo" class="outline" style="width: 100%; border-radius: 8px; font-weight: 600;">
+              Unduh Logo 1024×1024 PNG
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <script src="/shared/vendor/jszip.min.js"></script>
+  <script type="module" src="./js/logo-gen.js"></script>
+
+  <style>
+    .shape-btn {
+      padding: 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      background: var(--pico-card-background-color);
+      border: 2px solid var(--pico-border-color);
+      font-size: 0.8rem;
+      text-align: center;
+      transition: border-color 0.15s ease;
+      width: 100%;
+    }
+    .shape-btn.active {
+      border-color: var(--pico-primary);
+      background: rgba(15, 23, 42, 0.06);
+    }
+    [data-theme="dark"] .shape-btn.active {
+      background: rgba(255, 255, 255, 0.08);
+    }
+  </style>
+</body>
+</html>

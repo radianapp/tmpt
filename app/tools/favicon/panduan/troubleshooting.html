@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solusi Favicon Tidak Muncul (Troubleshooting) - TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="../css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <nav aria-label="breadcrumb">
+      <ul>
+        <li><a href="../index.html">Favicon Home</a></li>
+        <li><a href="./index.html">Panduan</a></li>
+        <li>Troubleshooting</li>
+      </ul>
+    </nav>
+
+    <article style="max-width: 800px; margin: 0 auto; padding: 2rem;">
+      <header>
+        <h1 style="font-weight: 800; font-size: 2.2rem; margin-bottom: 0.5rem;">Mengapa Favicon Tidak Muncul? Cara Mengatasinya</h1>
+        <p class="secondary" style="font-size: 0.95rem;">Dipublikasikan pada TMPT Panduan · 100% Offline-capable</p>
+      </header>
+
+      <section>
+        <p>Anda sudah mendesain favicon, mengunduhnya, menaruh file di hosting, dan memasang tag HTML, tetapi ikon tetap tidak muncul di tab browser? Ini adalah masalah umum. Berikut adalah langkah-langkah solusinya:</p>
+
+        <h2>1. Masalah Cache Browser (Penyebab Terbanyak)</h2>
+        <p>Browser cenderung menyimpan (cache) file favicon dengan sangat kuat agar tidak perlu mengunduhnya ulang di setiap muatan halaman. Bahkan jika Anda menekan tombol refresh, favicon lama mungkin tetap tampil.</p>
+        <ul>
+          <li><strong>Cara Mengatasi:</strong> Buka situs Anda di tab <strong>Mode Penyamaran (Incognito / Private Window)</strong>. Jika ikon baru muncul di sana, berarti masalahnya murni cache browser lokal Anda.</li>
+          <li><strong>Cara Paksa Refresh Cache:</strong> Buka URL favicon Anda secara langsung di address bar browser Anda (misalnya: <code>https://domainanda.com/favicon.ico</code>) lalu tekan <code>Ctrl + F5</code> (Windows) atau <code>Cmd + Shift + R</code> (Mac) beberapa kali.</li>
+        </ul>
+
+        <h2>2. Penulisan Path File Salah</h2>
+        <p>Gunakan relative path yang benar dengan mengawali tanda garis miring (<code>/</code>). Tanda ini memastikan browser memuat berkas dari root direktori domain Anda, bukan secara relatif dari folder halaman saat ini.</p>
+        <ul>
+          <li><strong>Salah:</strong> <code>&lt;link rel="icon" href="images/favicon.ico"&gt;</code> (akan error saat diakses dari halaman sub-folder seperti <code>/blog/artikel-1</code>)</li>
+          <li><strong>Benar:</strong> <code>&lt;link rel="icon" href="/favicon.ico"&gt;</code></li>
+        </ul>
+
+        <h2>3. Format Berkas Asli Tidak Sesuai</h2>
+        <p>Mengubah ekstensi file secara manual (misalnya mengubah nama file <code>logo.png</code> menjadi <code>logo.ico</code> secara langsung di file explorer) tidak akan merubah struktur binary file tersebut. Browser akan mendeteksinya sebagai file korup.</p>
+        <ul>
+          <li><strong>Solusi:</strong> Selalu gunakan pemroses gambar khusus seperti <a href="../converter.html">Konverter TMPT</a> untuk mengubah format gambar PNG/JPG menjadi ICO secara benar.</li>
+        </ul>
+
+        <h2>4. Gunakan Favicon Checker TMPT</h2>
+        <p>Jika Anda masih ragu apakah file Anda sudah dapat diakses oleh publik, gunakan tool <a href="../checker.html">Favicon Checker</a> kami untuk melakukan diagnosis otomatis pada URL website Anda.</p>
+      </section>
+
+      <footer style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--pico-border-color); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <a href="./index.html" role="button" class="outline">Kembali ke Panduan</a>
+        <a href="../converter.html" role="button">Buat Favicon Sekarang</a>
+      </footer>
+    </article>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

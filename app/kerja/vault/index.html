@@ -30,23 +30,21 @@
                 </div>
                 <div style="flex: 1; min-width: 280px;">
                     <h4>Penting: Data Anda Tersimpan Lokal / Browser</h4>
-                    <p>TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun.</p>
+                    <p>TMPT bekerja sepenuhnya di browser Anda demi privasi total. Kami tidak memiliki salinan data Anda di server manapun. Jika ingin mem-backup seluruh ekosistem TMPT Anda, silakan buka Halaman Berkas > Backup/Restore.</p>
                     <div class="alert-strip">
                         <span style="font-size: 1.25rem; color: #dc2626;">⚠️</span>
                         <span>Kehilangan perangkat = Kehilangan data. Selalu simpan file backup Anda di tempat aman.</span>
                     </div>
-                    <div class="btn-group">
-                        <button onclick="window.TMPT_Backup.exportVault()" class="btn-navy">
+                    <div class="btn-group" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <button onclick="window.TMPT_Backup.exportBrankas()" class="btn-navy" style="margin: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Unduh Backup (.tmpt)
+                            Unduh Cadangan Brankas (.brankas)
                         </button>
-
-                        <!-- <button onclick="document.getElementById('import-file-backup').click()" class="btn-navy">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>
-                            Pulihkan Data
+                        <button onclick="document.getElementById('import-file-brankas').click()" class="outline secondary" style="margin: 0; background: var(--pico-card-bg);">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                            Pulihkan Brankas (.brankas)
                         </button>
-                        <input type="file" id="import-file-backup" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
-                         -->
+                        <input type="file" id="import-file-brankas" style="display: none;" accept=".brankas" onchange="window.TMPT_Backup.importBrankas(this)">
                     </div>
                 </div>
                 <button onclick="this.closest('article').remove()" style="position: absolute; top: 1.25rem; right: 1.25rem; border: none; background: transparent; color: var(--pico-secondary); padding: 0.25rem 0.5rem; font-size: 1.25rem; cursor: pointer;">✕</button>
@@ -561,6 +559,10 @@
                 window.TMPT_Auth.setupIdleListeners();
                 console.log("[BRANKAS] Auth OK. Memuat data...");
                 await loadData();
+
+                // Sinkronkan class active tombol mode tampilan
+                document.getElementById('btn-mode-grid').classList.toggle('active', currentViewMode === 'grid');
+                document.getElementById('btn-mode-list').classList.toggle('active', currentViewMode === 'list');
 
             } catch (err) {
                 console.error("[BRANKAS] Fatal error saat init:", err);

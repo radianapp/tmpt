@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Tools — TMPT</title>
+  <meta name="description" content="14 alat PDF gratis, 100% di browser Anda. Merge, split, rotate, compress, dan lebih banyak lagi — tanpa upload ke server.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+
+  <main id="main" class="container">
+
+    <div style="margin: 1.5rem 0 0.5rem;">
+      <a href="/app/" class="pdf-back-link" aria-label="Kembali ke App Launcher">
+        ← Beranda
+      </a>
+    </div>
+
+    <div style="margin-bottom: 0.75rem;">
+      <span class="pdf-privacy-badge">
+        🔒 100% di browser Anda — file tidak dikirim ke manapun
+      </span>
+    </div>
+
+    <hgroup style="margin-bottom: 1.5rem;">
+      <h1 style="font-size: 1.5rem; margin-bottom: 0.25rem;">PDF Tools</h1>
+      <p style="margin: 0; color: var(--pico-muted-color); font-size: 0.9rem;">Semua yang Anda butuhkan untuk mengelola file PDF, gratis dan privat.</p>
+    </hgroup>
+
+    <!-- Filter Tabs -->
+    <div class="pdf-filter-tabs" role="tablist" aria-label="Filter kategori alat PDF">
+      <button class="active" data-filter="semua" role="tab" aria-selected="true">Semua</button>
+      <button data-filter="atur"     role="tab" aria-selected="false">Atur</button>
+      <button data-filter="optimasi" role="tab" aria-selected="false">Optimasi</button>
+      <button data-filter="konversi" role="tab" aria-selected="false">Konversi</button>
+      <button data-filter="edit"     role="tab" aria-selected="false">Edit</button>
+      <button data-filter="keamanan" role="tab" aria-selected="false">Keamanan</button>
+    </div>
+
+    <!-- Tool Grid -->
+    <div class="pdf-tool-grid" id="tool-grid" role="list">
+
+      <!-- T01 Merge -->
+      <a href="./merge.html" class="pdf-tool-card" data-cat="atur" role="listitem" aria-label="Merge PDF — Gabungkan beberapa PDF menjadi satu">
+        <span class="tool-icon">🔀</span>
+        <span class="tool-name">Merge PDF</span>
+        <span class="tool-desc">Gabungkan beberapa PDF menjadi satu</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T02 Split -->
+      <a href="./split.html" class="pdf-tool-card" data-cat="atur" role="listitem" aria-label="Split PDF — Pisahkan PDF menjadi beberapa file">
+        <span class="tool-icon">✂️</span>
+        <span class="tool-name">Split PDF</span>
+        <span class="tool-desc">Pisahkan PDF menjadi beberapa file</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T03 Compress -->
+      <a href="./compress.html" class="pdf-tool-card" data-cat="optimasi" role="listitem" aria-label="Kompres PDF — Kurangi ukuran file PDF">
+        <span class="tool-icon">🗜️</span>
+        <span class="tool-name">Kompres PDF</span>
+        <span class="tool-desc">Kurangi ukuran file PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T04 Rotate -->
+      <a href="./rotate.html" class="pdf-tool-card" data-cat="edit" role="listitem" aria-label="Rotate PDF — Putar orientasi halaman PDF">
+        <span class="tool-icon">🔄</span>
+        <span class="tool-name">Rotate PDF</span>
+        <span class="tool-desc">Putar orientasi halaman PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T05 Remove Pages -->
+      <a href="./remove-pages.html" class="pdf-tool-card" data-cat="atur" role="listitem" aria-label="Hapus Halaman — Hapus halaman tertentu dari PDF">
+        <span class="tool-icon">🗑️</span>
+        <span class="tool-name">Hapus Halaman</span>
+        <span class="tool-desc">Hapus halaman tertentu dari PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T06 Extract Pages -->
+      <a href="./extract-pages.html" class="pdf-tool-card" data-cat="atur" role="listitem" aria-label="Ekstrak Halaman — Ambil subset halaman menjadi PDF baru">
+        <span class="tool-icon">📤</span>
+        <span class="tool-name">Ekstrak Halaman</span>
+        <span class="tool-desc">Ambil subset halaman menjadi PDF baru</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T07 Organize -->
+      <a href="./organize.html" class="pdf-tool-card" data-cat="atur" role="listitem" aria-label="Atur Halaman — Urutkan ulang halaman PDF">
+        <span class="tool-icon">📋</span>
+        <span class="tool-name">Atur Halaman</span>
+        <span class="tool-desc">Urutkan ulang halaman PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T08 Page Numbers -->
+      <a href="./page-numbers.html" class="pdf-tool-card" data-cat="edit" role="listitem" aria-label="Nomor Halaman — Tambahkan nomor halaman ke PDF">
+        <span class="tool-icon">🔢</span>
+        <span class="tool-name">Nomor Halaman</span>
+        <span class="tool-desc">Tambahkan nomor halaman ke PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T09 Watermark -->
+      <a href="./watermark.html" class="pdf-tool-card" data-cat="edit" role="listitem" aria-label="Watermark — Tambahkan teks watermark ke PDF">
+        <span class="tool-icon">💧</span>
+        <span class="tool-name">Watermark</span>
+        <span class="tool-desc">Tambahkan teks watermark ke PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T10 Protect -->
+      <a href="./protect.html" class="pdf-tool-card" data-cat="keamanan" role="listitem" aria-label="Protect PDF — Enkripsi PDF dengan kata kunci">
+        <span class="tool-icon">🔒</span>
+        <span class="tool-name">Protect PDF</span>
+        <span class="tool-desc">Enkripsi PDF dengan kata kunci</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T11 Unlock -->
+      <a href="./unlock.html" class="pdf-tool-card" data-cat="keamanan" role="listitem" aria-label="Unlock PDF — Hapus kata kunci dari PDF">
+        <span class="tool-icon">🔓</span>
+        <span class="tool-name">Unlock PDF</span>
+        <span class="tool-desc">Hapus kata kunci dari PDF yang terproteksi</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T12 JPG to PDF -->
+      <a href="./jpg-to-pdf.html" class="pdf-tool-card" data-cat="konversi" role="listitem" aria-label="JPG ke PDF — Konversi gambar menjadi PDF">
+        <span class="tool-icon">🖼️</span>
+        <span class="tool-name">JPG ke PDF</span>
+        <span class="tool-desc">Konversi gambar JPG/PNG menjadi PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T13 PDF to JPG -->
+      <a href="./pdf-to-jpg.html" class="pdf-tool-card" data-cat="konversi" role="listitem" aria-label="PDF ke JPG — Konversi setiap halaman PDF menjadi gambar">
+        <span class="tool-icon">📸</span>
+        <span class="tool-name">PDF ke JPG</span>
+        <span class="tool-desc">Konversi setiap halaman PDF menjadi gambar</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+      <!-- T14 Sign -->
+      <a href="./sign.html" class="pdf-tool-card" data-cat="edit" role="listitem" aria-label="Tanda Tangan — Tambahkan tanda tangan ke PDF">
+        <span class="tool-icon">✍️</span>
+        <span class="tool-name">Tanda Tangan</span>
+        <span class="tool-desc">Tambahkan tanda tangan ke PDF</span>
+        <span class="tool-badge">OFFLINE</span>
+      </a>
+
+    </div><!-- /tool-grid -->
+
+  </main>
+
+  <div id="toast-container" aria-live="polite" aria-atomic="false"></div>
+
+  <script type="module">
+    import { applyTheme, loadAppHeader } from './js/pdf-core.js';
+
+    applyTheme();
+    loadAppHeader();
+
+    // Filter tabs
+    const filterBtns = document.querySelectorAll('.pdf-filter-tabs button');
+    const cards      = document.querySelectorAll('.pdf-tool-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        const filter = btn.dataset.filter;
+        cards.forEach(card => {
+          const show = filter === 'semua' || card.dataset.cat === filter;
+          card.style.display = show ? '' : 'none';
+        });
+      });
+    });
+  </script>
+</body>
+</html>

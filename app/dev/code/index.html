@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Code — Editor Kode & IDE Offline-First Gratis</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./code.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  <script type="module" src="/shared/seo.js" data-seo-key="code-dashboard"></script>
+</head>
+<body>
+  
+  <!-- include shared app header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main id="main-content" class="container code-dashboard">
+    <div class="code-app-toolbar">
+      <div>
+        <h1>💻 TMPT Code</h1>
+        <p class="secondary" style="margin-bottom: 0;">IDE &amp; Editor Kode client-side, local-first, privacy-first.</p>
+      </div>
+      <div class="code-toolbar-actions">
+        <input type="search" id="search-projects" placeholder="Cari proyek..." aria-label="Cari Proyek">
+        
+        <details class="dropdown" id="new-project-dropdown">
+          <summary class="button primary" style="margin-bottom: 0;">
+            ➕ Proyek Baru
+          </summary>
+          <ul dir="rtl" style="text-align: left; right: 0; left: auto;">
+            <li><a href="#" id="btn-new-local">📁 Hubungkan Folder Lokal (FSAA)</a></li>
+            <li><a href="#" id="btn-new-github">🔌 Hubungkan Repo GitHub</a></li>
+            <li><a href="#" id="btn-new-browser">🌐 Proyek Virtual (Simpan di Browser)</a></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="tmpt-empty-state hidden" id="empty-state">
+      <div class="tmpt-empty-state-icon">💻</div>
+      <h3>Belum ada Proyek</h3>
+      <p>Hubungkan folder komputer lokal Anda, repositori GitHub, atau buat proyek virtual di browser untuk mulai coding.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1rem; flex-wrap: wrap;">
+        <button id="btn-empty-local" class="primary">📁 Buka Folder Lokal</button>
+        <button id="btn-empty-browser" class="primary">🌐 Proyek Virtual Browser</button>
+        <button id="btn-empty-github" class="secondary">🔌 Hubungkan GitHub</button>
+      </div>
+    </div>
+
+    <!-- Projects Section -->
+    <div id="projects-section">
+      <h5 style="border-bottom: 1px solid var(--code-border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Proyek Anda</h5>
+      <div class="code-projects-grid" id="projects-container">
+        <!-- Diisi secara dinamis oleh JS -->
+      </div>
+    </div>
+  </main>
+
+  <!-- Dialog: Hubungkan Repo GitHub via PAT -->
+  <dialog id="modal-github-project" class="dialog-new-project">
+    <article style="border-radius: 16px; padding: 2rem; max-width: 520px; width: 95vw;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div>
+          <h3 style="margin-bottom: 0.1rem; font-weight: 700;">Hubungkan Repositori GitHub</h3>
+          <p class="secondary" style="font-size: 0.8rem; margin: 0;">Menggunakan Personal Access Token (PAT)</p>
+        </div>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-github-project').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+
+      <!-- Step 1: PAT Input -->
+      <div id="github-auth-section">
+        <details style="margin-bottom: 1rem; background: var(--pico-card-sectioning-background-color); border-radius: 8px; padding: 0.75rem;">
+          <summary style="cursor: pointer; font-weight: 600; font-size: 0.85rem;">📖 Cara membuat Personal Access Token (PAT)</summary>
+          <ol style="font-size: 0.82rem; margin: 0.75rem 0 0 1rem; line-height: 1.8;">
+            <li>Buka <a href="https://github.com/settings/tokens/new" target="_blank" rel="noopener">github.com/settings/tokens/new</a></li>
+            <li>Beri nama token, contoh: <code>TMPT Code</code></li>
+            <li>Pilih expiration sesuai kebutuhan</li>
+            <li>Centang scope: <strong>repo</strong> (full control of private repositories)</li>
+            <li>Klik <strong>Generate token</strong> → salin tokennya</li>
+          </ol>
+          <p style="font-size: 0.78rem; margin: 0.5rem 0 0;" class="secondary">
+            ℹ️ Token disimpan hanya di <code>localStorage</code> browser Anda. Tidak pernah dikirim ke server TMPT.
+          </p>
+        </details>
+
+        <label for="github-pat-input" style="font-weight: 600; font-size: 0.9rem;">Personal Access Token</label>
+        <input type="password" id="github-pat-input"
+          placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+          autocomplete="off"
+          style="font-family: monospace; letter-spacing: 0.05em;"
+          aria-label="GitHub Personal Access Token">
+        <p id="github-pat-error" class="secondary" style="color: var(--pico-del-color); font-size: 0.8rem; display: none; margin-top: 0.25rem;"></p>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-github-project').close()" style="margin:0; flex:1; border-radius: 8px;">Batal</button>
+          <button id="btn-github-auth" class="primary" style="margin:0; flex:2; border-radius: 8px;" aria-label="Verifikasi token dan lanjut">
+            🔗 Verifikasi &amp; Lanjut
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Pilih Repo & Branch -->
+      <div id="github-repo-section" class="hidden">
+        <!-- Token aktif indicator -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding: 0.5rem 0.75rem; background: rgba(16,185,129,0.1); border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);">
+          <span style="font-size: 0.82rem; color: #10b981;">✅ Terhubung sebagai: <strong id="github-user-display">—</strong></span>
+          <button id="btn-github-disconnect" class="outline secondary" style="margin:0; padding: 0.15rem 0.5rem; font-size: 0.75rem; border-radius: 6px;" aria-label="Putuskan koneksi GitHub">Ganti Token</button>
+        </div>
+
+        <form id="form-github-project" onsubmit="event.preventDefault();">
+          <div style="margin-bottom: 1rem;">
+            <label for="github-repo-select">Repositori</label>
+            <select id="github-repo-select" required>
+              <option value="">Memuat repositori...</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom: 1rem;">
+            <label for="github-branch-select">Branch</label>
+            <select id="github-branch-select" required>
+              <option value="main">main</option>
+              <option value="master">master</option>
+            </select>
+          </div>
+
+          <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <button type="button" class="outline secondary" onclick="document.getElementById('modal-github-project').close()" style="margin:0; border-radius: 8px;">Batal</button>
+            <button type="submit" class="primary" style="margin:0; border-radius: 8px;" aria-label="Buka proyek GitHub">Buka Proyek</button>
+          </div>
+        </form>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog Konfirmasi Generic -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border: none; background: #e5e7eb; color: #374151;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border: none; background: var(--pico-primary); color: white;">Hapus</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="./code.js"></script>
+</body>
+</html>

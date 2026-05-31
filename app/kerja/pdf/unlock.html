@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlock PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Hapus kata kunci dari PDF yang terproteksi. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🔓</div>
+      <h1>Unlock PDF</h1>
+      <p>Hapus kata kunci dari PDF yang terproteksi (hanya jika Anda mengetahui kata kuncinya)</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF terproteksi">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF terproteksi">
+      <div class="drop-icon">🔐</div>
+      <p class="drop-title">Seret file PDF terproteksi ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <div class="pdf-options">
+        <h3>Kata Kunci</h3>
+        <label for="password">Masukkan kata kunci PDF
+          <div style="display:flex;gap:.5rem;">
+            <input type="password" id="password" placeholder="Kata kunci PDF..." autocomplete="current-password" style="flex:1;" aria-label="Kata kunci PDF">
+            <button id="toggle-pw" class="outline secondary" type="button" aria-label="Tampilkan/sembunyikan kata kunci" style="width:44px;padding:0;flex-shrink:0;">👁</button>
+          </div>
+        </label>
+        <small style="color:var(--pico-muted-color);">Kosongkan jika PDF tidak terproteksi kata kunci (hanya izin editing).</small>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress membuka kunci PDF"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Membuka kunci...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">🔓 Buka Kunci PDF</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh PDF Tanpa Kata Kunci</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/unlock.js"></script>
+</body>
+</html>

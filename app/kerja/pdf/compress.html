@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kompres PDF — TMPT PDF Tools</title>
+  <meta name="description" content="Kurangi ukuran file PDF. Gratis, 100% di browser.">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./pdf.css">
+</head>
+<body>
+  <div id="tmpt-header-placeholder"></div>
+  <main id="main" class="container" style="max-width:680px;">
+    <a href="/app/kerja/pdf/" class="pdf-back-link">← PDF Tools</a>
+    <div class="pdf-tool-header">
+      <div class="tool-hero-icon">🗜️</div>
+      <h1>Kompres PDF</h1>
+      <p>Kurangi ukuran file PDF agar lebih mudah dibagikan</p>
+    </div>
+    <div style="text-align:center;margin-bottom:1.5rem;">
+      <span class="pdf-privacy-badge">🔒 File tidak dikirim ke server</span>
+    </div>
+
+    <div class="pdf-drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Area upload file PDF">
+      <input type="file" accept=".pdf" aria-label="Pilih file PDF">
+      <div class="drop-icon">📄</div>
+      <p class="drop-title">Seret file PDF ke sini</p>
+      <p class="drop-sub">atau klik untuk memilih • Maks 100MB</p>
+    </div>
+
+    <div id="tool-controls" hidden>
+      <p id="file-info" style="font-size:.85rem;color:var(--pico-muted-color);margin:.75rem 0;"></p>
+      <p>Ukuran asli: <strong id="orig-size">—</strong></p>
+      <div class="pdf-options">
+        <div style="background-color: var(--pico-card-sectioning-background-color); border: 1px solid var(--pico-muted-border-color); border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; font-size: 0.85rem; line-height: 1.5; color: var(--pico-color);">
+          💡 <strong>Mengapa kompresi lokal terbatas?</strong><br>
+          Layanan online seperti <em>Adobe Acrobat</em> mengirim file Anda ke server cloud eksternal mereka untuk memperkecil resolusi gambar hingga 90%.<br><br>
+          Sebagai aplikasi yang mengutamakan <strong>privasi penuh (100% di browser Anda)</strong>, TMPT PDF hanya melakukan kompresi melalui optimalisasi struktur dokumen. Hal ini menjamin file Anda tidak pernah bocor dan teks di dalam PDF tetap bersih &amp; dapat disalin (searchable).
+        </div>
+
+        <h3>Level Kompresi</h3>
+        <fieldset>
+          <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer;padding:.5rem 0;">
+            <input type="radio" name="compress-level" id="cl-light" value="light" checked>
+            <span><strong>Optimasi Struktur (Rekomendasi)</strong> — Tulis ulang struktur data, hapus metadata sampah, dan kompresi objek stream (5–15% lebih kecil).</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:not-allowed;padding:.5rem 0;opacity:0.6;">
+            <input type="radio" name="compress-level" id="cl-medium" value="medium" disabled>
+            <span><strong>Kompresi Gambar Sedang</strong> — (Memerlukan pemrosesan cloud / Tidak tersedia secara lokal)</span>
+          </label>
+          <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:not-allowed;padding:.5rem 0;opacity:0.6;">
+            <input type="radio" name="compress-level" id="cl-aggressive" value="aggressive" disabled>
+            <span><strong>Kompresi Gambar Agresif</strong> — (Memerlukan pemrosesan cloud / Tidak tersedia secara lokal)</span>
+          </label>
+        </fieldset>
+      </div>
+    </div>
+
+    <div class="pdf-progress-wrap" id="pdf-progress-wrap" hidden>
+      <progress id="pdf-progress-bar" value="0" max="100" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Progress kompresi PDF"></progress>
+      <p class="pdf-progress-label" id="pdf-progress-label">Mengompres...</p>
+    </div>
+
+    <div class="pdf-action-bar" id="action-bar" hidden>
+      <button id="btn-apply" class="primary">🗜️ Kompres PDF</button>
+    </div>
+
+    <div class="pdf-result-panel" id="pdf-result-panel" hidden>
+      <div class="result-icon"></div>
+      <h3 class="result-title"></h3>
+      <p class="result-meta"></p>
+      <div class="result-btns">
+        <button id="btn-result-download" class="primary">⬇️ Unduh Hasil</button>
+        <button id="btn-result-reset" class="outline secondary">🔄 Proses Lagi</button>
+      </div>
+    </div>
+  </main>
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/tools/compress.js"></script>
+</body>
+</html>

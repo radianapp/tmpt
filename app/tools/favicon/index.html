@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Favicon - Favicon & Icon Suite</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/favicon.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <!-- Header Container -->
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <header style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+      <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color);">TMPT Favicon</h1>
+      <p class="secondary" style="font-size: 1.15rem;">
+        Suite pembuatan & konversi favicon 100% lokal di browser Anda. Aman, cepat, dan menjaga privasi penuh logo Anda.
+      </p>
+    </header>
+
+    <!-- Grid Tools -->
+    <section class="favicon-dashboard-grid">
+      <!-- 1. Converter -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Konverter Gambar</h3>
+          <p>Konversi berkas gambar PNG, JPG, WebP, atau SVG Anda menjadi berkas favicon.ico dan ukuran bitmap lengkap dalam hitungan detik.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./converter.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Buka Konverter</a>
+        </div>
+      </article>
+
+      <!-- 2. Text Generator -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Text Generator</h3>
+          <p>Buat favicon cantik menggunakan inisial huruf nama website Anda. Kustomisasi font, warna, bentuk bingkai, dan gradien latar belakang.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./text.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Buka Generator</a>
+        </div>
+      </article>
+
+      <!-- 3. Emoji Generator -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Emoji Generator</h3>
+          <p>Gunakan emoji unicode ekspresif sebagai ikon tab browser Anda. Cepat, unik, dan langsung terintegrasi dengan ribuan karakter emoji.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./emoji.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Mulai dengan Emoji</a>
+        </div>
+      </article>
+
+      <!-- 4. Logo Generator -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Logo Maker</h3>
+          <p>Buat logo minimalis dan profesional dari kombinasi bentuk tameng, heksagon, bayangan drop shadow, warna modern, dan inisial.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./logo.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Buat Logo</a>
+        </div>
+      </article>
+
+      <!-- 5. Favicon Checker -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Favicon Checker</h3>
+          <p>Periksa dan audit status favicon yang terpasang di situs web Anda. Tinjau kelengkapan ukuran standar PWA dan Apple touch icon.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./checker.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Periksa Situs</a>
+        </div>
+      </article>
+
+      <!-- 6. Panduan Lengkap -->
+      <article class="favicon-card">
+        <div class="favicon-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5v-15z"/></svg>
+        </div>
+        <div class="favicon-card-body">
+          <h3>Panduan & Resources</h3>
+          <p>Pelajari tentang ukuran favicon yang benar, cara memasang file webmanifest, kegunaan format ICO, dan tips pengoptimalan SEO.</p>
+        </div>
+        <div class="favicon-card-footer">
+          <a href="./panduan/index.html" role="button" class="btn-navy" style="width: 100%; text-align: center; display: block; border-radius: 8px;">Baca Panduan</a>
+        </div>
+      </article>
+    </section>
+
+    <!-- Artikel Terbaru Section -->
+    <hr>
+    <section style="margin-top: 3rem; margin-bottom: 3rem;">
+      <h2 style="font-weight: 700; text-align: center;">Panduan Favicon Terpopuler</h2>
+      <div class="grid" style="margin-top: 2rem;">
+        <div>
+          <h4><a href="./panduan/cara-install.html">Cara Memasang Favicon yang Benar di HTML</a></h4>
+          <p class="secondary" style="font-size: 0.9rem;">Pelajari struktur tag HTML yang optimal untuk memastikan favicon Anda tampil di semua peranti dan mesin pencari.</p>
+        </div>
+        <div>
+          <h4><a href="./panduan/ukuran-favicon.html">Ukuran Favicon Standar Terlengkap</a></h4>
+          <p class="secondary" style="font-size: 0.9rem;">Tabel acuan ukuran favicon dari 16x16px hingga ukuran splash screen PWA, dan kapan waktu penggunaannya.</p>
+        </div>
+        <div>
+          <h4><a href="./panduan/svg-favicon.html">Menggunakan SVG sebagai Favicon</a></h4>
+          <p class="secondary" style="font-size: 0.9rem;">Kelebihan format vektor SVG, kompatibilitas browser modern, dan cara mengaktifkan responsivitas tema gelap/terang.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer Container -->
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+</body>
+</html>

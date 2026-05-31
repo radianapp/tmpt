@@ -1,0 +1,328 @@
+/* Favicon App Custom CSS Overrides */
+
+/* Core colors & theme variables */
+:root {
+  --favicon-primary: var(--pico-primary, #0f172a);
+  --favicon-success: var(--pico-color-green, #10b981);
+  --favicon-warning: var(--pico-color-amber, #f59e0b);
+  --favicon-danger: var(--pico-color-red, #ef4444);
+  
+  --mockup-bg-light: #f1f5f9;
+  --mockup-bg-dark: #0f172a;
+  --mockup-border: #cbd5e1;
+}
+
+[data-theme="dark"] {
+  --mockup-bg-light: #1e293b;
+  --mockup-bg-dark: #020617;
+  --mockup-border: #334155;
+}
+
+/* Tool Dashboard layout styling */
+.favicon-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.favicon-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--pico-border-color);
+  background: var(--pico-card-background-color);
+  padding: 1.5rem;
+}
+
+.favicon-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.favicon-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  color: var(--pico-primary);
+}
+
+[data-theme="dark"] .favicon-card-icon {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.favicon-card-body {
+  flex-grow: 1;
+}
+
+.favicon-card-footer {
+  margin-top: 1.5rem;
+}
+
+/* Dropzone style */
+.favicon-dropzone {
+  border: 2px dashed var(--pico-border-color);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(15, 23, 42, 0.02);
+  transition: border-color 0.2s ease, background 0.2s ease;
+  margin-bottom: 1.5rem;
+}
+
+.favicon-dropzone:hover, .favicon-dropzone.dragover {
+  border-color: var(--pico-primary);
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.favicon-dropzone svg {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+/* Form layouts */
+.favicon-editor-layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 992px) {
+  .favicon-editor-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Preset colors grid */
+.color-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.color-preset-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px var(--pico-border-color);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease;
+}
+
+.color-preset-btn:hover {
+  transform: scale(1.15);
+}
+
+/* Live previews */
+.preview-container {
+  border: 1px solid var(--pico-border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Browser tab mockup */
+.browser-tab-mockup {
+  border: 1px solid var(--mockup-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--mockup-bg-light);
+}
+
+.browser-tab-header {
+  display: flex;
+  align-items: center;
+  background: var(--mockup-bg-light);
+  padding: 6px 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--mockup-border);
+}
+
+.browser-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+}
+.browser-dot:nth-child(2) { background: #f59e0b; }
+.browser-dot:nth-child(3) { background: #10b981; }
+
+.browser-tabs {
+  display: flex;
+  margin-left: 12px;
+}
+
+.browser-tab {
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--mockup-border);
+  border-bottom: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  padding: 4px 12px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser-tab img, .browser-tab canvas {
+  width: 16px;
+  height: 16px;
+}
+
+.browser-tab-content {
+  background: var(--pico-card-background-color);
+  height: 60px;
+  border-top: 1px solid var(--mockup-border);
+}
+
+/* Smartphone mockup */
+.smartphone-mockup {
+  border: 8px solid #1e293b;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 240px;
+  margin: 0 auto;
+  aspect-ratio: 9/16;
+  background: #0f172a;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+.smartphone-screen {
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  align-content: start;
+  height: 100%;
+}
+
+.smartphone-app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.smartphone-app-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.smartphone-app-icon img, .smartphone-app-icon canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.smartphone-app-label {
+  font-size: 9px;
+  color: #fff;
+  text-align: center;
+  max-width: 50px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Output grid sizes */
+.output-sizes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.output-size-item {
+  border: 1px solid var(--pico-border-color);
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.01);
+}
+
+.output-size-preview {
+  margin: 0.5rem auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid var(--pico-border-color);
+  border-radius: 4px;
+  box-shadow: inset 0 0 4px rgba(0,0,0,0.05);
+}
+
+/* Status autosave indicator mapping style */
+#save-status {
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+/* Guides index list styling */
+.guides-list {
+  list-style: none;
+  padding: 0;
+}
+
+.guides-list li {
+  margin-bottom: 0.75rem;
+}
+
+.guides-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.guides-list a:hover {
+  text-decoration: underline;
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-2 {
+  margin-top: 2rem;
+}
+
+.mb-2 {
+  margin-bottom: 2rem;
+}
