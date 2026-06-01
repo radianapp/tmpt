@@ -1,5 +1,6 @@
 // app/kerja/berkas/js/dashboard.js
 import { initBerkasDB, getFiles, getFile, putFile, deleteFileMetadata, getFolders, getFolder, putFolder, deleteFolderMetadata, getTags, putTag, deleteTagMetadata, getSetting, putSetting } from './berkas-db.js';
+import { openTmptDB, dbGetAll } from '/shared/db.js';
 
 import { saveFileToOpfs, getFileFromOpfs, removeFileFromOpfs, getOpfsFolderSize } from './opfs.js';
 import { selectLocalFolder, verifyPermission, writeLocalFile, deleteLocalFile } from './fsaa.js';
@@ -232,7 +233,114 @@ async function syncAllApps() {
     console.error("Gagal sinkronisasi Hitung:", err);
   }
 
-  // 3. Clean up deleted metadata of files that no longer exist in original apps
+  // 3. Sync Papan (Drawing Boards)
+  try {
+    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+      if (!database.objectStoreNames.contains('boards')) {
+        database.createObjectStore('boards', { keyPath: 'id' });
+      }
+    });
+    const boards = await dbGetAll(papanDb, 'boards') || [];
+
+    for (const board of boards) {
+      const key = `papan-${board.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = board.created_at || new Date().toISOString();
+      const updated = board.updated_at || board.created_at || new Date().toISOString();
+      
+      const size = new Blob([JSON.stringify(board.elements || [])]).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: board.title || 'Papan Coretan Tanpa Judul',
+          type: 'papan',
+          app_id: board.id,
+          app_db: 'tmpt_papan',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: board.starred || false,
+          tags: [],
+          trash: board.trash || false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== board.title || existing.size_bytes !== size || existing.starred !== (board.starred || false) || existing.trash !== (board.trash || false)) {
+          existing.name = board.title || 'Papan Coretan Tanpa Judul';
+          existing.size_bytes = size;
+          existing.starred = board.starred || false;
+          existing.trash = board.trash || false;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    papanDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Papan:", err);
+  }
+
+  // 4. Sync Markdown (tmpt_markdown)
+  try {
+    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+      if (!database.objectStoreNames.contains('documents')) {
+        database.createObjectStore('documents', { keyPath: 'id' });
+      }
+      if (!database.objectStoreNames.contains('folders')) {
+        database.createObjectStore('folders', { keyPath: 'id' });
+      }
+    });
+    const mdDocs = await dbGetAll(markdownDb, 'documents') || [];
+
+    for (const doc of mdDocs) {
+      const key = `markdown-${doc.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = doc.created_at || new Date().toISOString();
+      const updated = doc.updated_at || doc.created_at || new Date().toISOString();
+      const size = new Blob([doc.content || '']).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: doc.title || 'Tanpa Judul',
+          type: 'markdown',
+          app_id: doc.id,
+          app_db: 'tmpt_markdown',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: doc.trashed || false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== doc.title || existing.size_bytes !== size || existing.trash !== (doc.trashed || false)) {
+          existing.name = doc.title || 'Tanpa Judul';
+          existing.size_bytes = size;
+          existing.trash = doc.trashed || false;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    markdownDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Markdown:", err);
+  }
+
+  // 5. Clean up deleted metadata of files that no longer exist in original apps
   for (const [key, file] of existingAppMap.entries()) {
     if (file.app_id && !syncedKeys.has(key)) {
       await deleteFileMetadata(file.id);
@@ -592,6 +700,8 @@ async function handleStarFile(id) {
     if (file.type === 'catat_notes') {
       // Sync back pinned state to Catat
       await updateCatatNotePinned(file.app_id, file.starred);
+    } else if (file.type === 'papan') {
+      await updatePapanBoardStarred(file.app_id, file.starred);
     }
     await refreshContent();
   }
@@ -667,6 +777,123 @@ async function updateCatatNoteTrashed(noteId, isTrashed) {
   }
 }
 
+async function updatePapanBoardStarred(boardId, isStarred) {
+  try {
+    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+      if (!database.objectStoreNames.contains('boards')) {
+        database.createObjectStore('boards', { keyPath: 'id' });
+      }
+    });
+    const transaction = papanDb.transaction('boards', 'readwrite');
+    const store = transaction.objectStore('boards');
+    const req = store.get(boardId);
+    req.onsuccess = () => {
+      const board = req.result;
+      if (board) {
+        board.starred = isStarred;
+        board.updated_at = new Date().toISOString();
+        store.put(board);
+      }
+    };
+    transaction.oncomplete = () => {
+      papanDb.close();
+    };
+  } catch (e) {
+    console.error("Gagal menyinkronkan status starred ke Papan:", e);
+  }
+}
+
+async function updatePapanBoardTrashed(boardId, isTrashed) {
+  try {
+    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+      if (!database.objectStoreNames.contains('boards')) {
+        database.createObjectStore('boards', { keyPath: 'id' });
+      }
+    });
+    const transaction = papanDb.transaction('boards', 'readwrite');
+    const store = transaction.objectStore('boards');
+    const req = store.get(boardId);
+    req.onsuccess = () => {
+      const board = req.result;
+      if (board) {
+        board.trash = isTrashed;
+        if (isTrashed) {
+          board.starred = false;
+        }
+        board.updated_at = new Date().toISOString();
+        store.put(board);
+      }
+    };
+    transaction.oncomplete = () => {
+      papanDb.close();
+    };
+  } catch (e) {
+    console.error("Gagal menyinkronkan status trashed ke Papan:", e);
+  }
+}
+
+async function deletePapanBoardRecord(boardId) {
+  try {
+    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+      if (!database.objectStoreNames.contains('boards')) {
+        database.createObjectStore('boards', { keyPath: 'id' });
+      }
+    });
+    const transaction = papanDb.transaction('boards', 'readwrite');
+    const store = transaction.objectStore('boards');
+    store.delete(boardId);
+    transaction.oncomplete = () => {
+      papanDb.close();
+    };
+  } catch (e) {
+    console.error("Gagal menghapus board dari Papan:", e);
+  }
+}
+
+async function updateMarkdownDocTrashed(docId, isTrashed) {
+  try {
+    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+      if (!database.objectStoreNames.contains('documents')) {
+        database.createObjectStore('documents', { keyPath: 'id' });
+      }
+    });
+    const transaction = markdownDb.transaction('documents', 'readwrite');
+    const store = transaction.objectStore('documents');
+    const req = store.get(docId);
+    req.onsuccess = () => {
+      const doc = req.result;
+      if (doc) {
+        doc.trashed = isTrashed;
+        doc.updated_at = new Date().toISOString();
+        store.put(doc);
+      }
+    };
+    transaction.oncomplete = () => {
+      markdownDb.close();
+    };
+  } catch (e) {
+    console.error("Gagal menyinkronkan status trashed ke Markdown:", e);
+  }
+}
+
+async function deleteMarkdownRecord(docId) {
+  try {
+    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+      if (!database.objectStoreNames.contains('documents')) {
+        database.createObjectStore('documents', { keyPath: 'id' });
+      }
+    });
+    const transaction = markdownDb.transaction('documents', 'readwrite');
+    const store = transaction.objectStore('documents');
+    store.delete(docId);
+    transaction.oncomplete = () => {
+      markdownDb.close();
+    };
+  } catch (e) {
+    console.error("Gagal menghapus record dari Markdown:", e);
+  }
+}
+
 async function handleRestoreFile(id) {
   const file = await getFile(id);
   if (!file) return;
@@ -678,6 +905,10 @@ async function handleRestoreFile(id) {
 
   if (file.type === 'catat_notes') {
     await updateCatatNoteTrashed(file.app_id, false);
+  } else if (file.type === 'papan') {
+    await updatePapanBoardTrashed(file.app_id, false);
+  } else if (file.type === 'markdown') {
+    await updateMarkdownDocTrashed(file.app_id, false);
   }
 
   // Hapus dari registry fsaa_deleted_files jika dipulihkan
@@ -738,6 +969,10 @@ async function handleEmptyTrash() {
         await deleteCatatRecord(file.type, file.app_id);
       } else if (file.type === 'hitung') {
         await deleteHitungRecord(file.app_id);
+      } else if (file.type === 'papan') {
+        await deletePapanBoardRecord(file.app_id);
+      } else if (file.type === 'markdown') {
+        await deleteMarkdownRecord(file.app_id);
       }
 
       await deleteFileMetadata(file.id);
@@ -794,6 +1029,10 @@ async function handleDeleteFile(id, permanent = false) {
       await deleteCatatRecord(file.type, file.app_id);
     } else if (file.type === 'hitung') {
       await deleteHitungRecord(file.app_id);
+    } else if (file.type === 'papan') {
+      await deletePapanBoardRecord(file.app_id);
+    } else if (file.type === 'markdown') {
+      await deleteMarkdownRecord(file.app_id);
     }
 
     await deleteFileMetadata(id);
@@ -804,6 +1043,10 @@ async function handleDeleteFile(id, permanent = false) {
     await putFile(file);
     if (file.type === 'catat_notes') {
       await updateCatatNoteTrashed(file.app_id, true);
+    } else if (file.type === 'papan') {
+      await updatePapanBoardTrashed(file.app_id, true);
+    } else if (file.type === 'markdown') {
+      await updateMarkdownDocTrashed(file.app_id, true);
     }
     if (window.TMPT_UI) window.TMPT_UI.toast("Berkas dipindahkan ke Sampah.", "success");
   }
@@ -886,9 +1129,13 @@ async function handleOpenFile(id) {
 
   // File type specific redirect / open
   if (file.type === 'catat_notes' || file.type === 'catat_lists') {
-    window.location.href = `/app/kerja/catatan/index.html`;
+    window.location.href = `/app/kerja/catatan/index.html?id=${file.app_id}`;
   } else if (file.type === 'hitung') {
     window.location.href = `/app/kerja/hitung/index.html?id=${file.app_id}`;
+  } else if (file.type === 'papan') {
+    window.location.href = `/app/kerja/papan/editor.html?id=${file.app_id}`;
+  } else if (file.type === 'markdown') {
+    window.location.href = `/app/dev/markdown/?id=${file.app_id}`;
   } else if (file.type === 'pdf' || file.type === 'image') {
     if (file.opfs_path) {
       const blob = await getFileFromOpfs(file.opfs_path);
@@ -1138,6 +1385,10 @@ function initEventListeners() {
   document.getElementById('new-form-btn')?.addEventListener('click', (e) => {
     e.preventDefault();
     openAppWithContext('/app/kerja/forms/builder.html', null, 'berkas', { new: 1, folder_id: currentFolderId });
+  });
+  document.getElementById('new-papan-btn')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.href = `/app/kerja/papan/index.html`;
   });
   document.getElementById('new-folder-btn')?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -1515,8 +1766,23 @@ function initEventListeners() {
   });
   document.getElementById('btn-fsaa-connect')?.addEventListener('click', async () => {
     try {
+      const savedHandle = await getSetting('fsaa_handle');
+      if (savedHandle) {
+        // Request permission on the already saved handle (triggered by user click activation)
+        const allowed = await verifyPermission(savedHandle, true, true);
+        if (allowed) {
+          localFolderHandle = savedHandle;
+          updateFsaaStatusUI(true);
+          if (window.TMPT_UI) window.TMPT_UI.toast("Akses folder lokal diberikan!", "success");
+          await syncOpfsToLocalFolder();
+          await syncLocalFolderToOpfs();
+          await refreshContent();
+          return;
+        }
+      }
+
       const handle = await selectLocalFolder();
-      const allowed = await verifyPermission(handle, true);
+      const allowed = await verifyPermission(handle, true, true);
       if (allowed) {
         localFolderHandle = handle;
         // Save directory handle references in DB
@@ -1525,6 +1791,8 @@ function initEventListeners() {
         if (window.TMPT_UI) window.TMPT_UI.toast("Berhasil menghubungkan ke folder lokal!", "success");
         // Sync OPFS files to local disk
         await syncOpfsToLocalFolder();
+        await syncLocalFolderToOpfs();
+        await refreshContent();
       }
     } catch (err) {
       console.error(err);
@@ -1634,7 +1902,7 @@ async function syncOpfsToLocalFolder() {
 async function syncLocalFolderToOpfs() {
   if (!localFolderHandle) return;
   
-  const hasPermission = await verifyPermission(localFolderHandle, true);
+  const hasPermission = await verifyPermission(localFolderHandle, true, false);
   if (!hasPermission) return;
 
   const filesInDb = await getFiles();
@@ -1878,17 +2146,21 @@ async function openTagFileModal(fileId) {
 async function loadFsaaSettings() {
   const handle = await getSetting('fsaa_handle');
   if (handle) {
-    const hasPermission = await verifyPermission(handle, true);
+    const hasPermission = await verifyPermission(handle, true, false);
     if (hasPermission) {
       localFolderHandle = handle;
       updateFsaaStatusUI(true);
+      return;
+    } else {
+      localFolderHandle = handle; // Keep handle reference so we know which directory is connected
+      updateFsaaStatusUI(false, true);
       return;
     }
   }
   updateFsaaStatusUI(false);
 }
 
-function updateFsaaStatusUI(connected) {
+function updateFsaaStatusUI(connected, needsPermission = false) {
   const statusText = document.getElementById('fsaa-status-text');
   const connectBtn = document.getElementById('btn-fsaa-connect');
   const disconnectBtn = document.getElementById('btn-fsaa-disconnect');
@@ -1897,9 +2169,15 @@ function updateFsaaStatusUI(connected) {
     statusText.innerHTML = `🟢 Terhubung: <strong>${escapeHtml(localFolderHandle.name)}</strong>`;
     connectBtn.style.display = 'none';
     disconnectBtn.style.display = 'block';
+  } else if (needsPermission && localFolderHandle) {
+    statusText.innerHTML = `⚠️ Butuh Izin Akses: <strong>${escapeHtml(localFolderHandle.name)}</strong>`;
+    connectBtn.style.display = 'block';
+    connectBtn.textContent = '🔑 Berikan Akses';
+    disconnectBtn.style.display = 'block';
   } else {
     statusText.innerHTML = `🔴 Tidak Terhubung`;
     connectBtn.style.display = 'block';
+    connectBtn.textContent = '📁 Hubungkan Folder';
     disconnectBtn.style.display = 'none';
   }
 }
@@ -1935,6 +2213,9 @@ function getFileTypeEmoji(type) {
     image: '🖼',
     catat_notes: '📓',
     catat_lists: '☑️',
+    papan: '🎨',
+    hitung: '📊',
+    markdown: '📝',
     other: '📦'
   };
   return emojiMap[type] || '📦';
@@ -1949,6 +2230,9 @@ function getFileTypeLabel(type) {
     image: 'Gambar',
     catat_notes: 'Catatan',
     catat_lists: 'Tugas',
+    papan: 'Papan Coretan',
+    hitung: 'Spreadsheet',
+    markdown: 'Markdown',
     other: 'Lainnya'
   };
   return labelMap[type] || 'Lainnya';
@@ -1960,3 +2244,46 @@ function escapeHtml(str) {
   d.textContent = str;
   return d.innerHTML;
 }
+
+// --- Hamburger Sidebar Toggle ---
+window.setupSidebarToggle = function() {
+  const nav = document.querySelector('header nav');
+  if (!nav) return;
+
+  const firstUl = nav.querySelector('ul');
+  if (firstUl && !nav.querySelector('.sidebar-toggle-btn')) {
+    const toggleLi = document.createElement('li');
+    toggleLi.style.display = 'flex';
+    toggleLi.style.alignItems = 'center';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'sidebar-toggle-btn';
+    toggleBtn.innerHTML = '☰';
+    toggleBtn.setAttribute('aria-label', 'Toggle Sidebar');
+    toggleBtn.onclick = () => window.toggleSidebar();
+    toggleBtn.style.cssText = "background: transparent; border: none; color: var(--pico-heading-color); font-size: 1.5rem; padding: 0 0.5rem; cursor: pointer; margin: 0; width: auto; line-height: 1; display: flex; align-items: center;";
+
+    toggleLi.appendChild(toggleBtn);
+    firstUl.prepend(toggleLi);
+  }
+};
+
+window.toggleSidebar = function() {
+  const sidebar = document.querySelector('.berkas-sidebar');
+  if (!sidebar) return;
+
+  if (window.innerWidth > 768) {
+    sidebar.classList.toggle('collapsed');
+  } else {
+    sidebar.classList.toggle('show');
+  }
+};
+
+// Listen to HTMX after swap to setup search bar
+document.body.addEventListener('htmx:afterSwap', (e) => {
+  window.setupSidebarToggle();
+});
+
+// Also call it on load
+setTimeout(window.setupSidebarToggle, 100);
+

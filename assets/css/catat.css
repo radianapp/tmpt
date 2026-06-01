@@ -544,3 +544,26 @@
 .completed-container details summary::after {
     margin-left: auto;
 }
+
+/* Sidebar Theme Overrides (Tema Terang & Gelap) */
+.sidebar-menu-item {
+    color: var(--pico-h1-color) !important;
+}
+.sidebar-menu-item span {
+    color: inherit !important;
+}
+.sidebar-menu-item:hover, .sidebar-menu-item.active {
+    background: var(--pico-form-element-background-color) !important;
+    color: var(--pico-h1-color) !important;
+}
+.sidebar-menu-item.active-primary {
+    background: var(--pico-form-element-background-color) !important;
+    color: var(--pico-h1-color) !important;
+}
+.sidebar-section-header {
+    color: var(--pico-muted-color) !important;
+}
+.note-card {
+    background: var(--pico-card-background-color) !important;
+    border: 1px solid var(--pico-muted-border-color) !important;
+}

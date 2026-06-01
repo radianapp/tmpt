@@ -3,7 +3,8 @@
  * Verifies signed cryptographic license keys using native Web Crypto API (Ed25519)
  */
 
-const LicenseModule = {
+if (!window.TMPT_License) {
+    const LicenseModule = {
     // Embedded Public Key (Safe to expose)
     PUBLIC_KEY_JWK: {
         kty: "OKP",
@@ -196,6 +197,7 @@ const LicenseModule = {
         this._cachedStatus = null;
         localStorage.removeItem('tmpt_pro_license');
     }
-};
+    };
 
-window.TMPT_License = LicenseModule;
+    window.TMPT_License = LicenseModule;
+}

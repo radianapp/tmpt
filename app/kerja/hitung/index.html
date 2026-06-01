@@ -321,17 +321,11 @@
     </style>
 
     <!-- JS Dependensi -->
-    <script src="/shared/htmx.min.js"></script>
     <script src="./vendor/xspreadsheet.js"></script>
     <script src="./vendor/xlsx.full.min.js"></script>
     <script src="./vendor/chart.js"></script>
  
     <!-- Platform Modules TMPT -->
-    <script src="/shared/pwa.js"></script>
-    <script src="/shared/crypto.js"></script>
-    <script src="/shared/vault.js"></script>
-    <script src="/shared/auth.js"></script>
-    <script src="/shared/ui.js"></script>
     <script>
         // Force Theme to Light in Hitung
         document.documentElement.setAttribute('data-theme', 'light');
@@ -350,7 +344,7 @@
             window.TMPT_UI.initTheme();
         }
     </script>
-    <script src="/shared/license.js"></script>
+    <script src="/app/feedback/feedback-widget.js" defer></script>
  
     <!-- HITUNG Modules -->
     <script src="./hitung_storage.js"></script>
@@ -402,6 +396,16 @@
 
                 <!-- Right Section: Account / Platform Links -->
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Umpan Balik / Bantuan -->
+                    <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                            <path d="M12 17l0 .01"></path>
+                            <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                        </svg>
+                    </button>
+
                     <!-- App Launcher -->
                     <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
                         <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
@@ -545,6 +549,16 @@
                 </div>
 
                 <div style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Umpan Balik / Bantuan -->
+                    <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                            <path d="M12 17l0 .01"></path>
+                            <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                        </svg>
+                    </button>
+
                     <!-- App Launcher -->
                     <div class="tmpt-app-launcher" style="position: relative; display: inline-block; margin-left: 8px;">
                         <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: #5f6368;" onmouseover="this.style.backgroundColor='#f1f3f4'" onmouseout="this.style.backgroundColor='transparent'">

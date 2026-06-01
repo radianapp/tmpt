@@ -3,7 +3,7 @@
 /**
  * Verify permission for a FileSystemHandle, requesting it if necessary.
  */
-export async function verifyPermission(fileHandle, readWrite = true) {
+export async function verifyPermission(fileHandle, readWrite = true, requestIfNeed = false) {
   const options = {};
   if (readWrite) {
     options.mode = 'readwrite';
@@ -13,8 +13,14 @@ export async function verifyPermission(fileHandle, readWrite = true) {
     return true;
   }
   
-  if ((await fileHandle.requestPermission(options)) === 'granted') {
-    return true;
+  if (requestIfNeed) {
+    try {
+      if ((await fileHandle.requestPermission(options)) === 'granted') {
+        return true;
+      }
+    } catch (err) {
+      console.warn('Gagal meminta izin:', err);
+    }
   }
   
   return false;

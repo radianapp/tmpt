@@ -4,6 +4,7 @@
     { "name": "Hitung", "url": "/app/kerja/hitung/", "icon": "📊", "desc": "Spreadsheet Cepat & Privat", "isEnabled": true },
     { "name": "Catatan", "url": "/app/kerja/catatan/", "icon": "📓", "desc": "Catatan Cepat untuk Ide Penting", "isEnabled": true },
     { "name": "PDF Tools", "url": "/app/kerja/pdf/", "icon": "📑", "desc": "14 Alat PDF — Privat & Offline", "isEnabled": true },
+    { "name": "Papan Tulis", "url": "/app/kerja/papan/", "icon": "🎨", "desc": "Coretan Ide & Sketsa Bebas", "isEnabled": true },
     { "name": "Berkas", "url": "/app/kerja/berkas/", "icon": "📁", "desc": "Pusat Semua File TMPT", "isEnabled": true },
     { "name": "Tulis", "url": "/app/kerja/tulis/", "icon": "📝", "desc": "Tulis Dokumen Tanpa Gangguan", "isEnabled": false },
     { "name": "Slide", "url": "/app/kerja/slide/", "icon": "🛝", "desc": "Presentasi Langsung dari Browser", "isEnabled": false },
@@ -13,6 +14,7 @@
   ],
   "dev": [
     { "name": "Code", "url": "/app/dev/code/", "icon": "💻", "desc": "Editor Kode Ringan & Cepat", "isEnabled": true },
+    { "name": "Markdown", "url": "/app/dev/markdown/", "icon": "📝", "desc": "Editor Markdown Splitscreen & Offline", "isEnabled": true },
     { "name": "Diagram", "url": "/app/dev/diagram/", "icon": "📊", "desc": "Visualisasikan Arsitektur & Flow", "isEnabled": false },
     { "name": "Regex", "url": "/app/dev/regex/", "icon": "🔍", "desc": "Regex Tester Instan", "isEnabled": false },
     { "name": "JSON", "url": "/app/dev/json/", "icon": "⚙️", "desc": "Formatter JSON & YAML", "isEnabled": false },

@@ -4,7 +4,8 @@
   "description": "Tempat data kamu, bukan tempat data orang lain.",
   "private": true,
   "scripts": {
-    "build": "node build.js",
+    "build": "node bin/rebuild-pwa.js && node build.js",
+    "pwa:rebuild": "node bin/rebuild-pwa.js",
     "cap:sync": "npm run build && npx cap sync",
     "cap:open:android": "npx cap open android",
     "cap:open:ios": "npx cap open ios",

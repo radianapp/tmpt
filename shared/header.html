@@ -12,6 +12,18 @@
         <ul>
             <li class="hide-mobile"><a href="/app/home/harga/" class="secondary">Harga</a></li>
             
+            <!-- Umpan Balik / Bantuan -->
+            <li>
+                <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                        <path d="M12 17l0 .01"></path>
+                        <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                    </svg>
+                </button>
+            </li>
+
             <!-- Ganti Tema -->
             <li>
                 <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
@@ -176,8 +188,21 @@
         }
     }
 
+    async function loadFeedbackModule() {
+        if (!window.TMPT_Feedback) {
+            await new Promise((resolve) => {
+                const script = document.createElement('script');
+                script.src = '/app/feedback/feedback-widget.js';
+                script.defer = true;
+                script.onload = resolve;
+                document.head.appendChild(script);
+            });
+        }
+    }
+
     async function initTMPTHeader() {
         await loadLicenseModule();
+        await loadFeedbackModule();
 
         // Tampilkan badge PRO jika aktif
         const proBadge = document.getElementById('header-pro-badge');
@@ -201,6 +226,16 @@
             const navRightUl = document.querySelector('header nav ul:last-of-type');
             if (navRightUl) {
                 navRightUl.innerHTML = `
+                    <li>
+                        <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                                <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                                <path d="M12 17l0 .01"></path>
+                                <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                            </svg>
+                        </button>
+                    </li>
                     <li>
                         <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
                             <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">

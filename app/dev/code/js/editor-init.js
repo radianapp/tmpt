@@ -1,5 +1,5 @@
 // app/dev/code/js/editor-init.js
-import { openTmptDB, dbGet, dbPut, dbGetAll } from '/shared/db.js';
+import { openTmptDB, dbGet, dbPut, dbGetAll, dbDelete } from '/shared/db.js';
 const toast = (msg, type) => window.TMPT_UI.toast(msg, type);
 import { verifyPermission, readDirectoryRecursive, readFileContent, writeFileContent, createLocalFile, createLocalDirectory } from './fsaa.js';
 import { fetchGitHubRepoContents, fetchGitHubFileContent, commitGitHubFileContent } from './github.js';
@@ -90,16 +90,15 @@ async function loadProject() {
   initMonaco();
 }
 
-async function refreshFileTree() {
+async function refreshFileTree(requestPermission = false) {
   if (project.type === 'local') {
     const dirHandle = project.local_handle;
-    const hasPermission = await verifyPermission(dirHandle, true);
+    const hasPermission = await verifyPermission(dirHandle, true, requestPermission);
     if (!hasPermission) {
-      toast('Izin ditolak untuk folder lokal.', 'error');
-      fileTreeContainer.innerHTML = '<p class="secondary" style="padding: 1rem;">Butuh akses folder. <a href="#" id="btn-retry-permission">Buka Ulang</a></p>';
+      fileTreeContainer.innerHTML = '<p class="secondary" style="padding: 1rem;">Butuh akses folder lokal. <a href="#" id="btn-retry-permission">Buka Ulang</a></p>';
       document.getElementById('btn-retry-permission').onclick = async (e) => {
         e.preventDefault();
-        await refreshFileTree();
+        await refreshFileTree(true);
       };
       return;
     }
@@ -176,6 +175,9 @@ function buildBrowserTree(files) {
   return sortNodes(root);
 }
 
+// State for copy/paste
+let copiedNode = null; // { path, type, projectId }
+
 function renderFileTree(nodes, container, depth = 0) {
   if (depth === 0) container.innerHTML = '';
 
@@ -185,6 +187,8 @@ function renderFileTree(nodes, container, depth = 0) {
     
     const row = document.createElement('div');
     row.className = 'tree-node-row';
+    row.setAttribute('draggable', 'true');
+    
     if (activeFile && activeFile.path === node.path) {
       row.classList.add('active');
     }
@@ -195,13 +199,13 @@ function renderFileTree(nodes, container, depth = 0) {
       <span class="node-label" title="${node.name}">${node.name}</span>
     `;
 
+    // Click handler
     row.addEventListener('click', async (e) => {
       e.stopPropagation();
       document.querySelectorAll('.tree-node-row').forEach(r => r.classList.remove('active'));
       row.classList.add('active');
 
       if (isDir) {
-        // Toggle directory sub-tree visibility if children container exists
         const subContainer = nodeEl.querySelector('.sub-tree');
         if (subContainer) {
           subContainer.classList.toggle('hidden');
@@ -212,19 +216,469 @@ function renderFileTree(nodes, container, depth = 0) {
       }
     });
 
+    // Context Menu Handler
+    row.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      showContextMenu(e, node);
+    });
+
+    // Drag and Drop handlers
+    row.addEventListener('dragstart', (e) => {
+      e.stopPropagation();
+      e.dataTransfer.setData('text/plain', node.path);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+
+    if (isDir) {
+      row.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        row.classList.add('drag-over');
+      });
+      row.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        row.classList.remove('drag-over');
+      });
+      row.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        row.classList.remove('drag-over');
+        const draggedPath = e.dataTransfer.getData('text/plain');
+        if (draggedPath && draggedPath !== node.path) {
+          await moveNode(draggedPath, node.path);
+        }
+      });
+    }
+
     nodeEl.appendChild(row);
 
-    if (isDir && node.children) {
+    if (isDir) {
       const subTreeContainer = document.createElement('div');
-      subTreeContainer.className = 'sub-tree';
+      subTreeContainer.className = 'sub-tree hidden';
       subTreeContainer.style.paddingLeft = '0.5rem';
-      renderFileTree(node.children, subTreeContainer, depth + 1);
+      
+      if (node.children && node.children.length > 0) {
+        renderFileTree(node.children, subTreeContainer, depth + 1);
+      } else {
+        subTreeContainer.innerHTML = '<div class="empty-subtree-placeholder">(kosong)</div>';
+      }
       nodeEl.appendChild(subTreeContainer);
     }
 
     container.appendChild(nodeEl);
   });
 }
+
+// ── Context Menu Helpers ───────────────────────────────────────────────────
+
+function showContextMenu(e, node) {
+  // Remove existing menu if any
+  const existingMenu = document.getElementById('tmpt-context-menu');
+  if (existingMenu) existingMenu.remove();
+
+  const menu = document.createElement('div');
+  menu.id = 'tmpt-context-menu';
+  menu.className = 'context-menu';
+  menu.style.top = `${e.clientY}px`;
+  menu.style.left = `${e.clientX}px`;
+
+  const createItem = (label, icon, onClick) => {
+    const item = document.createElement('button');
+    item.className = 'context-menu-item';
+    item.innerHTML = `<span>${icon}</span> <span>${label}</span>`;
+    item.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      menu.remove();
+      onClick();
+    });
+    return item;
+  };
+
+  const createDivider = () => {
+    const div = document.createElement('div');
+    div.className = 'context-menu-divider';
+    return div;
+  };
+
+  if (node) {
+    const isDir = node.type === 'directory';
+
+    if (isDir) {
+      menu.appendChild(createItem('File Baru', '📄', () => createNodeInFolder(node.path, 'file')));
+      menu.appendChild(createItem('Folder Baru', '📁', () => createNodeInFolder(node.path, 'directory')));
+      menu.appendChild(createDivider());
+    }
+
+    menu.appendChild(createItem('Ubah Nama', '✏️', () => renameNode(node)));
+    menu.appendChild(createItem('Hapus', '🗑️', () => deleteNode(node)));
+    menu.appendChild(createDivider());
+    menu.appendChild(createItem('Salin (Copy)', '📋', () => copyNode(node)));
+    
+    if (isDir && copiedNode) {
+      menu.appendChild(createItem('Tempel (Paste)', '📥', () => pasteNode(node.path)));
+    }
+  } else {
+    menu.appendChild(createItem('File Baru di Root', '📄', () => createNodeInFolder('', 'file')));
+    menu.appendChild(createItem('Folder Baru di Root', '📁', () => createNodeInFolder('', 'directory')));
+    if (copiedNode) {
+      menu.appendChild(createDivider());
+      menu.appendChild(createItem('Tempel di Root', '📥', () => pasteNode('')));
+    }
+  }
+
+  document.body.appendChild(menu);
+}
+
+// Global listener to close context menu
+document.addEventListener('click', () => {
+  const menu = document.getElementById('tmpt-context-menu');
+  if (menu) menu.remove();
+});
+
+// Context menu on empty area
+setTimeout(() => {
+  const container = document.getElementById('file-tree-container');
+  if (container) {
+    container.addEventListener('contextmenu', (e) => {
+      if (e.target === container || container.contains(e.target) && !e.target.closest('.tree-node-row')) {
+        e.preventDefault();
+        showContextMenu(e, null);
+      }
+    });
+    
+    container.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    
+    container.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      const draggedPath = e.dataTransfer.getData('text/plain');
+      if (draggedPath) {
+        await moveNode(draggedPath, '');
+      }
+    });
+  }
+}, 500);
+
+// ── File Tree Operation Handlers ──────────────────────────────────────────
+
+async function createNodeInFolder(parentPath, type) {
+  if (project.type !== 'local' && project.type !== 'browser') {
+    toast('Membuat file/folder baru hanya didukung untuk proyek lokal atau virtual.', 'info');
+    return;
+  }
+
+  const noun = type === 'file' ? 'file' : 'folder';
+  const placeholder = type === 'file' ? 'app.js' : 'Folder baru';
+  const name = await window.TMPT_UI.prompt(`Masukkan nama ${noun} baru:`, placeholder);
+  if (!name) return;
+
+  const fullPath = parentPath ? `${parentPath}/${name}` : name;
+
+  try {
+    if (project.type === 'local') {
+      // Find parent directory handle
+      let parentHandle = project.local_handle;
+      if (parentPath) {
+        const findNode = (nodes, path) => {
+          for (const n of nodes) {
+            if (n.path === path) return n;
+            if (n.children) {
+              const found = findNode(n.children, path);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+        const node = findNode(fileTree, parentPath);
+        if (node && node.handle) parentHandle = node.handle;
+      }
+
+      if (type === 'file') {
+        const handle = await createLocalFile(parentHandle, name);
+        toast(`File ${name} berhasil dibuat!`, 'success');
+        await refreshFileTree();
+        await selectFile({ path: fullPath, name: name, handle: handle });
+      } else {
+        await createLocalDirectory(parentHandle, name);
+        toast(`Folder ${name} berhasil dibuat!`, 'success');
+        await refreshFileTree();
+      }
+    } else if (project.type === 'browser') {
+      const id = `${project.id}:${fullPath}`;
+      const record = {
+        id,
+        projectId: project.id,
+        path: fullPath,
+        name: name,
+        type: type,
+        ...(type === 'file' ? { content: '' } : {})
+      };
+      await dbPut(db, 'files', record);
+      toast(`${type === 'file' ? 'File' : 'Folder'} ${name} berhasil dibuat!`, 'success');
+      await refreshFileTree();
+      if (type === 'file') {
+        await selectFile({ path: fullPath, name: name });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    toast(`Gagal membuat ${noun}.`, 'error');
+  }
+}
+
+async function renameNode(node) {
+  const newName = await window.TMPT_UI.prompt(`Ubah nama "${node.name}" menjadi:`, node.name);
+  if (!newName || newName === node.name) return;
+
+  const parts = node.path.split('/');
+  parts[parts.length - 1] = newName;
+  const newPath = parts.join('/');
+
+  if (project.type === 'browser') {
+    try {
+      await renameBrowserFileOrFolder(node.path, newPath);
+      toast('Nama berhasil diubah.', 'success');
+      await refreshFileTree();
+      
+      // Update active file or tabs if active
+      if (activeFile && (activeFile.path === node.path || activeFile.path.startsWith(node.path + '/'))) {
+        const relative = activeFile.path.slice(node.path.length);
+        activeFile.path = newPath + relative;
+        activeFile.name = activeFile.path.split('/').pop();
+        activeFile.id = `${project.id}:${activeFile.path}`;
+        renderTabs();
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Gagal mengubah nama.', 'error');
+    }
+  } else if (project.type === 'local') {
+    try {
+      if (node.handle && typeof node.handle.move === 'function') {
+        await node.handle.move(newName);
+        toast('Nama berhasil diubah.', 'success');
+        await refreshFileTree();
+      } else {
+        toast('Ubah nama file lokal tidak didukung oleh browser Anda.', 'warning');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Gagal mengubah nama file lokal: ' + err.message, 'error');
+    }
+  }
+}
+
+async function deleteNode(node) {
+  const confirmDel = await confirm(`Apakah Anda yakin ingin menghapus ${node.type === 'directory' ? 'folder' : 'file'} "${node.name}"?`);
+  if (!confirmDel) return;
+
+  if (project.type === 'browser') {
+    try {
+      const allFiles = await dbGetAll(db, 'files');
+      const projectFiles = allFiles.filter(f => f.projectId === project.id);
+      
+      for (const file of projectFiles) {
+        if (file.path === node.path || file.path.startsWith(node.path + '/')) {
+          await dbDelete(db, 'files', file.id);
+          
+          // Remove from open tabs if matches
+          const tabIndex = openTabs.findIndex(t => t.path === file.path);
+          if (tabIndex !== -1) {
+            openTabs.splice(tabIndex, 1);
+            if (activeFile && activeFile.path === file.path) {
+              activeFile = openTabs.length > 0 ? openTabs[openTabs.length - 1] : null;
+              if (activeFile) {
+                selectFile(activeFile);
+              } else {
+                if (editorInstance) editorInstance.setValue('');
+                document.getElementById('editor-lang-indicator').textContent = 'Plain Text';
+              }
+            }
+          }
+        }
+      }
+      toast('Berhasil dihapus.', 'success');
+      await refreshFileTree();
+      renderTabs();
+    } catch (err) {
+      console.error(err);
+      toast('Gagal menghapus.', 'error');
+    }
+  } else if (project.type === 'local') {
+    try {
+      if (node.handle && typeof node.handle.remove === 'function') {
+        await node.handle.remove({ recursive: true });
+        toast('Berhasil dihapus.', 'success');
+        await refreshFileTree();
+      } else {
+        toast('Hapus file lokal tidak didukung oleh browser Anda.', 'warning');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Gagal menghapus file lokal: ' + err.message, 'error');
+    }
+  }
+}
+
+async function copyNode(node) {
+  copiedNode = {
+    path: node.path,
+    name: node.name,
+    type: node.type,
+    projectId: project.id
+  };
+  toast(`Salin: "${node.name}" ke clipboard.`, 'info');
+}
+
+async function pasteNode(targetParentPath) {
+  if (!copiedNode) return;
+  if (copiedNode.projectId !== project.id) {
+    toast('Tidak dapat menyalin antar proyek berbeda.', 'warning');
+    return;
+  }
+
+  if (project.type === 'browser') {
+    try {
+      const allFiles = await dbGetAll(db, 'files');
+      const projectFiles = allFiles.filter(f => f.projectId === project.id);
+      
+      const targetPath = targetParentPath ? `${targetParentPath}/${copiedNode.name}` : copiedNode.name;
+
+      // Prevent pasting inside itself
+      if (targetPath === copiedNode.path || targetPath.startsWith(copiedNode.path + '/')) {
+        toast('Tidak dapat menempelkan folder ke dalam dirinya sendiri.', 'warning');
+        return;
+      }
+
+      // Check collision
+      const exists = projectFiles.some(f => f.path === targetPath);
+      let pasteName = copiedNode.name;
+      let finalTargetPath = targetPath;
+      if (exists) {
+        pasteName = `Copy_of_${copiedNode.name}`;
+        finalTargetPath = targetParentPath ? `${targetParentPath}/${pasteName}` : pasteName;
+      }
+
+      for (const file of projectFiles) {
+        if (file.path === copiedNode.path) {
+          const newId = `${project.id}:${finalTargetPath}`;
+          const newRecord = {
+            ...file,
+            id: newId,
+            path: finalTargetPath,
+            name: pasteName
+          };
+          await dbPut(db, 'files', newRecord);
+        } else if (file.path.startsWith(copiedNode.path + '/')) {
+          const relative = file.path.slice(copiedNode.path.length);
+          const newSubPath = finalTargetPath + relative;
+          const newId = `${project.id}:${newSubPath}`;
+          const newRecord = {
+            ...file,
+            id: newId,
+            path: newSubPath
+          };
+          await dbPut(db, 'files', newRecord);
+        }
+      }
+      toast('Berhasil ditempel.', 'success');
+      await refreshFileTree();
+    } catch (err) {
+      console.error(err);
+      toast('Gagal menempelkan.', 'error');
+    }
+  } else {
+    toast('Salin/Tempel saat ini hanya didukung di proyek Browser.', 'info');
+  }
+}
+
+async function renameBrowserFileOrFolder(oldPath, newPath) {
+  const allFiles = await dbGetAll(db, 'files');
+  const projectFiles = allFiles.filter(f => f.projectId === project.id);
+  
+  for (const file of projectFiles) {
+    if (file.path === oldPath) {
+      await dbDelete(db, 'files', file.id);
+      file.path = newPath;
+      file.name = newPath.split('/').pop();
+      file.id = `${project.id}:${newPath}`;
+      await dbPut(db, 'files', file);
+    } else if (file.path.startsWith(oldPath + '/')) {
+      await dbDelete(db, 'files', file.id);
+      const relative = file.path.slice(oldPath.length);
+      const updatedPath = newPath + relative;
+      file.path = updatedPath;
+      file.id = `${project.id}:${updatedPath}`;
+      await dbPut(db, 'files', file);
+    }
+  }
+}
+
+async function moveNode(draggedPath, targetParentPath) {
+  if (targetParentPath === draggedPath || targetParentPath.startsWith(draggedPath + '/')) {
+    toast('Tidak dapat memindahkan folder ke dalam dirinya sendiri.', 'warning');
+    return;
+  }
+
+  const name = draggedPath.split('/').pop();
+  const newPath = targetParentPath ? `${targetParentPath}/${name}` : name;
+
+  if (project.type === 'browser') {
+    try {
+      await renameBrowserFileOrFolder(draggedPath, newPath);
+      toast(`Berhasil memindahkan ke ${newPath || 'root'}`, 'success');
+      await refreshFileTree();
+      
+      if (activeFile && (activeFile.path === draggedPath || activeFile.path.startsWith(draggedPath + '/'))) {
+        const relative = activeFile.path.slice(draggedPath.length);
+        const activeNewPath = newPath + relative;
+        activeFile.path = activeNewPath;
+        activeFile.id = `${project.id}:${activeNewPath}`;
+        renderTabs();
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Gagal memindahkan file/folder.', 'error');
+    }
+  } else if (project.type === 'local') {
+    try {
+      const findNode = (nodes, path) => {
+        for (const n of nodes) {
+          if (n.path === path) return n;
+          if (n.children) {
+            const found = findNode(n.children, path);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      const nodeToMove = findNode(fileTree, draggedPath);
+      if (nodeToMove && nodeToMove.handle && typeof nodeToMove.handle.move === 'function') {
+        let targetHandle = project.local_handle;
+        if (targetParentPath) {
+          const parentNode = findNode(fileTree, targetParentPath);
+          if (parentNode && parentNode.handle) {
+            targetHandle = parentNode.handle;
+          }
+        }
+        await nodeToMove.handle.move(targetHandle, name);
+        toast(`Berhasil memindahkan ke ${newPath || 'root'}`, 'success');
+        await refreshFileTree();
+      } else {
+        toast('Pemindahan folder lokal tidak didukung oleh browser Anda.', 'warning');
+      }
+    } catch (err) {
+      console.error(err);
+      toast('Gagal memindahkan file/folder lokal: ' + err.message, 'error');
+    }
+  } else {
+    toast('Pemindahan file hanya didukung untuk proyek browser dan lokal.', 'info');
+  }
+}
+
 
 async function selectFile(node) {
   let fileData = openTabs.find(tab => tab.path === node.path);
@@ -348,6 +802,7 @@ function getLanguageMode(extension) {
 }
 
 function initMonaco() {
+  if (editorInstance) return;
   // Monaco is loaded using AMD loader.js
   require.config({ paths: { 'vs': './vendor/monaco/vs' } });
   
@@ -576,22 +1031,18 @@ function setupUIEventListeners() {
       logToConsole(`🖼️ Merender ${activeFile.name} ke Pratinjau...`, 'info');
       await renderHtmlPreview(htmlPreviewFrame, activeFile.content, getProjectFileContent);
     } else if (ext === 'py') {
-      // Run Python via Pyodide
-      logToConsole(`🐍 Mengeksekusi ${activeFile.name} (Python via Pyodide)...`, 'info');
-      logToConsole('⏳ Memuat Python runtime (mungkin butuh waktu pertama kali)...', 'info');
-      btnRunCode.disabled = true;
-      btnRunCode.textContent = '⏳ Python Loading...';
+      // Cek apakah kode mengandung input() call
+      const inputPrompts = extractInputPrompts(activeFile.content);
 
-      try {
-        await runPython(
-          activeFile.content,
-          (msg, type) => logToConsole(msg, type),
-          (errMsg) => logToConsole(errMsg, 'error')
-        );
-        logToConsole('✅ Selesai.', 'info');
-      } finally {
-        btnRunCode.disabled = false;
-        btnRunCode.textContent = '▶ Jalankan';
+      if (inputPrompts.length > 0) {
+        // Tampilkan Input Panel terlebih dahulu
+        const inputValues = await showPythonInputPanel(inputPrompts);
+        if (inputValues === null) return; // User batal
+
+        await executePython(activeFile.content, inputValues);
+      } else {
+        // Langsung run tanpa input panel
+        await executePython(activeFile.content, []);
       }
     } else if (ext === 'md') {
       // Markdown preview
@@ -708,6 +1159,113 @@ function setupUIEventListeners() {
   setupExportPanel();
 }
 
+// ── Python Input Panel ────────────────────────────────────────────────────────
+
+/**
+ * Scan kode Python untuk semua panggilan input().
+ * Kembalikan array string prompt (atau '' jika tidak ada prompt).
+ * Contoh: input("Nama: ") → "Nama: "
+ */
+function extractInputPrompts(code) {
+  const prompts = [];
+  // Regex: input( ... ) — tangkap argumen string pertama jika ada
+  const re = /\binput\s*\(\s*(?:f?(?:"([^"\\]*)"|'([^'\\]*)'))?/g;
+  let match;
+  while ((match = re.exec(code)) !== null) {
+    const prompt = (match[1] ?? match[2] ?? '').trim();
+    prompts.push(prompt);
+  }
+  return prompts;
+}
+
+/**
+ * Tampilkan modal Input Panel, render field untuk setiap input() prompt.
+ * Kembalikan Promise yang resolve dengan array string nilai, atau null jika batal.
+ */
+function showPythonInputPanel(prompts) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('modal-python-input');
+    const fieldsContainer = document.getElementById('python-input-fields');
+    const btnRun = document.getElementById('btn-python-input-run');
+    const btnCancel = document.getElementById('btn-python-input-cancel');
+
+    // Render field per prompt
+    fieldsContainer.innerHTML = '';
+    prompts.forEach((prompt, i) => {
+      const label = document.createElement('label');
+      label.style.cssText = 'font-size: 0.88rem;';
+      label.textContent = prompt || `Input ke-${i + 1}`;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `py-input-${i}`;
+      input.placeholder = `Nilai untuk input #${i + 1}`;
+      input.style.cssText = 'margin-bottom: 0; font-family: monospace;';
+      input.setAttribute('aria-label', prompt || `Input ke-${i + 1}`);
+
+      // Enter di input terakhir = submit
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          if (i === prompts.length - 1) btnRun.click();
+          else document.getElementById(`py-input-${i + 1}`)?.focus();
+        }
+      });
+
+      fieldsContainer.appendChild(label);
+      fieldsContainer.appendChild(input);
+    });
+
+    // Cleanup listeners sebelumnya
+    const newBtnRun = btnRun.cloneNode(true);
+    const newBtnCancel = btnCancel.cloneNode(true);
+    btnRun.replaceWith(newBtnRun);
+    btnCancel.replaceWith(newBtnCancel);
+
+    newBtnRun.addEventListener('click', () => {
+      const values = prompts.map((_, i) =>
+        (document.getElementById(`py-input-${i}`)?.value ?? '').trim()
+      );
+      modal.close();
+      resolve(values);
+    });
+
+    newBtnCancel.addEventListener('click', () => {
+      modal.close();
+      resolve(null);
+    });
+
+    modal.showModal();
+    // Fokus ke field pertama
+    setTimeout(() => document.getElementById('py-input-0')?.focus(), 100);
+  });
+}
+
+/**
+ * Eksekusi Python dengan menampilkan loading state dan mengirim inputValues ke worker.
+ */
+async function executePython(code, inputValues) {
+  rightPanel.classList.remove('collapsed');
+  tabConsole.click();
+  logToConsole(`🐍 Mengeksekusi kode Python via Pyodide...`, 'info');
+  logToConsole('⏳ Memuat Python runtime (mungkin butuh waktu pertama kali)...', 'info');
+
+  btnRunCode.disabled = true;
+  btnRunCode.textContent = '⏳ Loading...';
+
+  try {
+    await runPython(
+      code,
+      (msg, type) => logToConsole(msg, type),
+      (errMsg) => logToConsole(errMsg, 'error'),
+      inputValues
+    );
+    logToConsole('✅ Selesai.', 'info');
+  } finally {
+    btnRunCode.disabled = false;
+    btnRunCode.textContent = '▶ Jalankan';
+  }
+}
+
 // ── Export Browser Project ────────────────────────────────────────────────────
 
 function setupExportPanel() {
@@ -738,21 +1296,24 @@ async function getBrowserProjectFiles() {
   return allFiles.filter(f => f.projectId === project.id && f.type === 'file');
 }
 
-/**
- * Lazy load JSZip dari CDN dan kembalikan class-nya via window.JSZip.
- * ES Module tidak bisa akses globals yang di-inject secara runtime sebagai bare identifier —
- * harus lewat window.JSZip secara eksplisit.
- */
 async function loadJSZip() {
   if (window.JSZip) return window.JSZip;
 
-  await new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
-    s.onload = resolve;
-    s.onerror = () => reject(new Error('Gagal memuat JSZip dari CDN. Periksa koneksi internet.'));
-    document.head.appendChild(s);
-  });
+  const tempDefine = window.define;
+  window.define = undefined;
+
+  try {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      // Gunakan file lokal dengan relative path
+      s.src = './vendor/jszip.min.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Gagal memuat JSZip. Pastikan file vendor/jszip.min.js ada.'));
+      document.head.appendChild(s);
+    });
+  } finally {
+    window.define = tempDefine;
+  }
 
   if (!window.JSZip) throw new Error('JSZip tidak tersedia setelah dimuat.');
   return window.JSZip;

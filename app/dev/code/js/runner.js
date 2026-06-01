@@ -98,7 +98,7 @@ let _runIdCounter = 0;
  */
 function getPythonWorker() {
   if (!_pythonWorker) {
-    _pythonWorker = new Worker(new URL('./python-worker.js', import.meta.url), { type: 'classic' });
+    _pythonWorker = new Worker(new URL('./python-worker.js?v=' + Date.now(), import.meta.url), { type: 'classic' });
 
     _pythonWorker.onmessage = (event) => {
       const { type, message, id } = event.data;
@@ -156,9 +156,10 @@ export function preloadPythonRuntime() {
  * @param {string} code - Kode Python yang akan dijalankan
  * @param {function} onLog - Callback untuk output (message, type)
  * @param {function} onError - Callback untuk error (message)
+ * @param {string[]} inputValues - Nilai pre-filled untuk setiap input() call
  * @returns {Promise<void>}
  */
-export function runPython(code, onLog, onError) {
+export function runPython(code, onLog, onError, inputValues = []) {
   return new Promise((resolve) => {
     const worker = getPythonWorker();
     const runId = `py_${++_runIdCounter}_${Date.now()}`;
@@ -169,7 +170,7 @@ export function runPython(code, onLog, onError) {
       onDone: resolve
     });
 
-    worker.postMessage({ type: 'run', code, id: runId });
+    worker.postMessage({ type: 'run', code, id: runId, inputValues });
   });
 }
 

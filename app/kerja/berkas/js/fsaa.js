@@ -9,7 +9,7 @@ export async function selectLocalFolder() {
   return handle;
 }
 
-export async function verifyPermission(fileHandle, readWrite) {
+export async function verifyPermission(fileHandle, readWrite, requestIfNecessary = true) {
   const options = {};
   if (readWrite) {
     options.mode = 'readwrite';
@@ -17,8 +17,10 @@ export async function verifyPermission(fileHandle, readWrite) {
   if ((await fileHandle.queryPermission(options)) === 'granted') {
     return true;
   }
-  if ((await fileHandle.requestPermission(options)) === 'granted') {
-    return true;
+  if (requestIfNecessary) {
+    if ((await fileHandle.requestPermission(options)) === 'granted') {
+      return true;
+    }
   }
   return false;
 }

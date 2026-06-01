@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/shared/pico.min.css">
     <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="./settings.css">
     <script src="/shared/htmx.min.js"></script>
     <script src="/shared/pwa.js"></script>
     <script src="/shared/crypto.js"></script>
@@ -29,178 +30,395 @@
         })();
     </script>
 
-    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+    <!-- Chrome-like Settings Header Bar -->
+    <header class="settings-header-bar">
+        <div class="settings-header-left">
+            <button class="settings-hamburger" onclick="toggleSidebarDrawer()" aria-label="Menu Utama" style="padding: 0; background: transparent; border: none; cursor: pointer; color: var(--pico-heading-color); display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.65rem; text-decoration: none;">
+                <img src="/assets/img/logo.svg?v=2" alt="Logo" style="width: 24px; height: 24px;">
+                <span class="settings-title">Pengaturan</span>
+            </a>
+        </div>
+        
+        <!-- Search Input -->
+        <div class="settings-search-container">
+            <span class="settings-search-icon">🔍</span>
+            <input type="search" id="settings-search" class="settings-search-input" placeholder="Cari pengaturan" autocomplete="off" oninput="filterSettings(this.value)">
+        </div>
 
-    <main class="container">
-        <header style="text-align: center; margin-top: 2rem; margin-bottom: 2.5rem;">
-            <h1 style="font-weight: 800; font-size: 2.5rem; color: var(--pico-h1-color);">Pengaturan</h1>
-            <p class="secondary" style="font-size: 1.15rem;">Kelola preferensi dan keamanan Brankas Anda.</p>
-        </header>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <!-- Umpan Balik / Bantuan -->
+            <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                    <path d="M12 17l0 .01"></path>
+                    <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                </svg>
+            </button>
 
-        <div class="grid" style="gap: 2rem; margin-bottom: 2rem;">
-            <!-- Status Akun -->
-            <section style="grid-column: 1 / -1;">
-                <article class="settings-card" id="account-status-card" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 0;">
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <div style="width: 50px; height: 50px; border-radius: 50%; background: var(--pico-muted-border-color); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">👤</div>
-                        <div>
-                            <h3 style="margin: 0; font-size: 1.25rem;">Status Lisensi</h3>
-                            <div id="license-status-text" class="secondary" style="font-size: 0.95rem;">Memuat...</div>
+            <!-- Ganti Tema -->
+            <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
+                <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+                </svg>
+            </button>
+            
+            <!-- App Launcher -->
+            <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
+                <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <rect x="4" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="4" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="4" y="16" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="16" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="16" width="4" height="4" rx="1"></rect>
+                    </svg>
+                </button>
+                <div id="tmpt-app-launcher-menu" style="display: none; position: absolute; top: 45px; right: 0; background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); border-radius: 16px; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left;">
+                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; color: var(--pico-color);">Aplikasi TMPT</h4>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
+                        <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
+                            <span style="font-size: 1.5rem;">💻</span>
+                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
+                        </a>
+                        <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
+                            <span style="font-size: 1.5rem;">🔐</span>
+                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
+                        </a>
+                        <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
+                            <span style="font-size: 1.5rem;">📝</span>
+                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
+                        </a>
+                        <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
+                            <span style="font-size: 1.5rem;">📊</span>
+                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Dropdown -->
+            <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
+                <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase;">
+                    <span id="tmpt-profile-initial">G</span>
+                </button>
+                <div id="tmpt-profile-menu" style="display: none; position: absolute; top: 45px; right: 0; background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); border-radius: 20px; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: var(--pico-color);">
+                    <div id="tmpt-profile-email" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                        <div id="tmpt-profile-avatar-large" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid var(--pico-muted-border-color); text-transform: uppercase;">G</div>
+                    </div>
+                    <h3 id="tmpt-profile-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Halo, Tamu.</h3>
+                    <p id="tmpt-profile-subtitle" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.25rem;">Tmpt terkunci</p>
+                    <div id="tmpt-profile-status-badge" style="margin-bottom: 1.5rem;"></div>
+                    <hr style="margin: 1rem 0;">
+                    <div id="tmpt-profile-vault-list" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                    <hr style="margin: 1rem 0;">
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button id="tmpt-profile-action-btn" class="outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">Buka Tmpt</button>
+                        <button id="tmpt-profile-settings-btn" class="outline secondary" onclick="window.location.href='/app/auth/settings/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; display: none;">Setelan</button>
+                        <button id="tmpt-profile-setup-btn" class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">+ Buat Tmpt Baru</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Switcher Include -->
+    <div hx-get="/shared/vault-switcher.html?v=3" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <!-- Sidebar Backdrop Overlay -->
+    <div id="sidebar-overlay" class="settings-sidebar-overlay" onclick="toggleSidebarDrawer(false)"></div>
+
+    <!-- Main Container -->
+    <div class="settings-container">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <ul class="settings-nav-list">
+                <li class="settings-nav-item active" data-target="section-license">
+                    <a class="settings-nav-link" onclick="scrollToSection('section-license')">
+                        <span class="settings-row-icon">👤</span> Akun & Lisensi
+                    </a>
+                </li>
+                <li class="settings-nav-item" data-target="section-tampilan">
+                    <a class="settings-nav-link" onclick="scrollToSection('section-tampilan')">
+                        <span class="settings-row-icon">🖥️</span> Tampilan
+                    </a>
+                </li>
+                <li class="settings-nav-item" data-target="section-keamanan">
+                    <a class="settings-nav-link" onclick="scrollToSection('section-keamanan')">
+                        <span class="settings-row-icon">🔒</span> Keamanan
+                    </a>
+                </li>
+                <li class="settings-nav-item" data-target="section-backup">
+                    <a class="settings-nav-link" onclick="scrollToSection('section-backup')">
+                        <span class="settings-row-icon">💾</span> Data & Backup
+                    </a>
+                </li>
+                <li class="settings-nav-item" data-target="section-tentang">
+                    <a class="settings-nav-link" onclick="scrollToSection('section-tentang')">
+                        <span class="settings-row-icon">ℹ️</span> Tentang
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Panel -->
+        <main class="settings-main">
+            <!-- Akun & Lisensi Section -->
+            <section id="section-license" class="settings-section">
+                <div class="settings-section-title">Akun & Lisensi</div>
+                <div class="license-card">
+                    <div class="license-card-left">
+                        <div class="license-avatar">👤</div>
+                        <div class="license-details">
+                            <span class="license-title" style="font-size: 1.15rem; font-weight: 600;">Status Lisensi</span>
+                            <span id="license-status-text" class="license-sub">Memuat...</span>
                         </div>
                     </div>
                     <div id="license-action-container">
-                        <!-- Akan diisi oleh JS -->
+                        <!-- Filled by JS -->
                     </div>
-                </article>
+                </div>
             </section>
-        </div>
 
-        <div class="grid" style="gap: 2rem;">
-            <!-- Tampilan & Preferensi -->
-            <section>
-                <article class="settings-card">
-                    <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🎨 Tampilan</h3>
-                    <div class="grid" style="gap: 1.5rem;">
-                        <label for="theme">
-                            <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Tema Aplikasi (Mode)</span>
-                            <select id="theme" style="border-radius: 10px;" onchange="updateSetting('theme', this.value)">
+            <!-- Tampilan Section -->
+            <section id="section-tampilan" class="settings-section">
+                <div class="settings-section-title">Tampilan</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="tema aplikasi mode terang gelap">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">🌗</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Tema Aplikasi (Mode)</span>
+                                <span class="settings-row-desc">Atur tampilan antarmuka ke mode gelap atau terang.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="theme" onchange="updateSetting('theme', this.value)">
                                 <option value="light">Terang</option>
                                 <option value="dark">Gelap</option>
                             </select>
-                        </label>
-                        <label for="theme_stylesheet">
-                            <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Gaya Visual (Palet Warna)</span>
-                            <select id="theme_stylesheet" style="border-radius: 10px;" onchange="updateSetting('themeStylesheet', this.value)">
+                        </div>
+                    </div>
+
+                    <div class="settings-row" data-search-text="gaya visual palet warna premium cyberpunk nord midnight">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">🎨</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Gaya Visual (Palet Warna)</span>
+                                <span class="settings-row-desc font-size-small">Pilih skema warna visual yang sesuai untuk Brankas Anda.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="theme_stylesheet" onchange="updateSetting('themeStylesheet', this.value)">
                                 <option value="tmpt.css">TMPT Premium (Default)</option>
                                 <option value="cyberpunk.css">Neon Cyberpunk</option>
                                 <option value="nord.css">Nordic Frost</option>
                                 <option value="midnight-gold.css">Midnight Gold</option>
                             </select>
-                        </label>
+                        </div>
                     </div>
-                </article>
+                </div>
             </section>
 
-            <!-- Keamanan -->
-            <section>
-                <article class="settings-card">
-                    <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🔒 Keamanan</h3>
-                    <label for="autolock">
-                        <span style="font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">Auto-lock Otomatis</span>
-                        <select id="autolock" style="border-radius: 10px;" onchange="updateSetting('autoLock', parseInt(this.value))">
-                            <option value="1">1 Menit</option>
-                            <option value="5">5 Menit</option>
-                            <option value="15">15 Menit</option>
-                            <option value="30">30 Menit</option>
-                            <option value="60">1 Jam</option>
-                            <option value="0">Jangan Pernah</option>
-                        </select>
-                    </label>
+            <!-- Keamanan Section -->
+            <section id="section-keamanan" class="settings-section">
+                <div class="settings-section-title">Keamanan</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="auto-lock otomatis menit jam jangan pernah">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">⏱️</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Auto-lock Otomatis</span>
+                                <span class="settings-row-desc">Kunci Brankas secara otomatis setelah tidak aktif beberapa saat.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="autolock" onchange="updateSetting('autoLock', parseInt(this.value))">
+                                <option value="1">1 Menit</option>
+                                <option value="5">5 Menit</option>
+                                <option value="15">15 Menit</option>
+                                <option value="30">30 Menit</option>
+                                <option value="60">1 Jam</option>
+                                <option value="0">Jangan Pernah</option>
+                            </select>
+                        </div>
+                    </div>
 
-                    <hr style="margin: 2rem 0; opacity: 0.2;">
-                    
-                    <details>
-                        <summary style="font-weight: 700; font-size: 1.1rem; cursor: pointer;">🔐 Ganti Kata Kunci Utama</summary>
-                        <div style="margin-top: 1.5rem;">
-                            <div class="info-alert" style="margin-bottom: 1.5rem; border-left: 4px solid var(--tmpt-border-active); background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: 0 10px 10px 0;">
-                                <small style="line-height: 1.5; display: block;">⚠️ Mengganti Kata Kunci Utama akan mengenkripsi ulang seluruh data Anda. Pastikan Anda mengingat password baru ini dan mem-backup data Anda terlebih dahulu!</small>
+                    <div class="settings-row" data-search-text="ganti kata kunci utama password baru passphrase">
+                        <div class="settings-row-left" style="cursor: pointer;" onclick="document.getElementById('change-pwd-details').toggleAttribute('open')">
+                            <span class="settings-row-icon">🔑</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Ganti Kata Kunci Utama</span>
+                                <span class="settings-row-desc">Perbarui kata kunci enkripsi Brankas Anda.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <span class="settings-row-arrow">▶</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Change Password Form inside a clean card -->
+                <details id="change-pwd-details" style="border: 1px solid var(--pico-muted-border-color); border-radius: var(--settings-border-radius); background: var(--pico-card-background-color); margin-top: -0.75rem; margin-bottom: 1.5rem; overflow: hidden;">
+                    <summary style="display: none;"></summary>
+                    <div style="padding: 1.5rem;">
+                        <div class="info-alert" style="margin-bottom: 1.5rem; border-left: 4px solid var(--tmpt-border-active); background: rgba(99, 102, 241, 0.05); padding: 1rem; border-radius: 0 10px 10px 0;">
+                            <small style="line-height: 1.5; display: block; color: var(--pico-color);">⚠️ Mengganti Kata Kunci Utama akan mengenkripsi ulang seluruh data Anda. Pastikan Anda mengingat password baru ini dan mem-backup data Anda terlebih dahulu!</small>
+                        </div>
+
+                        <form id="change-password-form" onsubmit="handleChangePassword(event)">
+                            <label for="current_password" style="font-weight: 600;">Password Saat Ini
+                                <input type="password" id="current_password" style="border-radius: 8px; margin-top: 0.5rem;" required>
+                            </label>
+                            
+                            <label for="new_password" style="font-weight: 600; margin-top: 1rem;">Password Baru</label>
+                            <div class="pwd-input-row mb-half" style="display: flex; gap: 0.5rem;">
+                                <input type="password" id="new_password" required minlength="12" placeholder="Minimal 12 karakter" style="border-radius: 8px; margin-bottom: 0;">
+                                <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 8px;">👁️</button>
+                            </div>
+                            <details class="mb-1" style="margin-top: 0.75rem;">
+                                <summary style="font-weight: 600; font-size: 0.95rem; cursor: pointer;">💡 Bingung bikin password? Buat otomatis</summary>
+                                <div class="pwd-generator-box" style="margin-top: 0.75rem; padding: 1rem; background: rgba(0,0,0,0.1); border-radius: 8px;">
+                                    <p style="margin-bottom: 1rem; font-size: 0.85rem;"><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
+                                    <button type="button" class="btn-navy" style="width: 100%; font-size: 0.95rem; padding: 0.6rem 1rem;" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
+                                    <div class="generator-link" style="text-align: center; margin-top: 0.75rem;">
+                                        <small><a href="/app/tools/password-gen/" target="_blank" rel="noopener noreferrer" style="color: var(--tmpt-border-active); font-weight: 600;">Buka Tools Generator Lengkap ↗</a></small>
+                                    </div>
+                                </div>
+                            </details>
+
+                            <label for="confirm_new_password" style="font-weight: 600; margin-top: 1.25rem;">Konfirmasi Password Baru</label>
+                            <div class="pwd-input-row" style="display: flex; gap: 0.5rem;">
+                                <input type="password" id="confirm_new_password" required placeholder="Ulangi password baru" style="border-radius: 8px; margin-bottom: 0;">
+                                <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('confirm_new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 8px;">👁️</button>
                             </div>
 
-                            <form id="change-password-form" onsubmit="handleChangePassword(event)">
-                                <label for="current_password" style="font-weight: 600;">Password Saat Ini
-                                    <input type="password" id="current_password" style="border-radius: 10px; margin-top: 0.5rem;" required>
-                                </label>
-                                
-                                <label for="new_password" style="font-weight: 600; margin-top: 1rem;">Password Baru</label>
-                                <div class="pwd-input-row mb-half" style="display: flex; gap: 0.5rem;">
-                                    <input type="password" id="new_password" required minlength="12" placeholder="Minimal 12 karakter" style="border-radius: 10px; margin-bottom: 0;">
-                                    <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 10px;">👁️</button>
-                                </div>
-                                <details class="mb-1" style="margin-top: 0.75rem;">
-                                    <summary style="font-weight: 600; font-size: 0.95rem; cursor: pointer;">💡 Bingung bikin password? Buat otomatis</summary>
-                                    <div class="pwd-generator-box" style="margin-top: 0.75rem; padding: 1rem; background: rgba(0,0,0,0.1); border-radius: 10px;">
-                                        <p style="margin-bottom: 1rem;"><small>Kami akan membuatkan sebuah "Passphrase" (gabungan kata) yang mudah diingat namun sangat sulit ditebak oleh komputer.</small></p>
-                                        <button type="button" class="btn-navy" style="width: 100%; font-size: 0.95rem; padding: 0.6rem 1rem;" onclick="autoGenerateMaster()">🎲 Buat Passphrase Baru</button>
-                                        <div class="generator-link" style="text-align: center; margin-top: 0.75rem;">
-                                            <small><a href="/app/tools/password-gen/" target="_blank" rel="noopener noreferrer" style="color: var(--tmpt-border-active); font-weight: 600;">Buka Tools Generator Lengkap ↗</a></small>
-                                        </div>
-                                    </div>
-                                </details>
+                            <label for="new_hint" style="font-weight: 600; margin-top: 1.25rem;">Password Hint Baru (Opsional)
+                                <input type="text" id="new_hint" placeholder="Contoh: Nama kucing + tahun lahir" style="border-radius: 8px; margin-top: 0.5rem;">
+                                <small class="secondary" style="display: block; margin-top: 0.25rem;">Hint sebelumnya akan ditimpa.</small>
+                            </label>
 
-                                <label for="confirm_new_password" style="font-weight: 600; margin-top: 1.25rem;">Konfirmasi Password Baru</label>
-                                <div class="pwd-input-row" style="display: flex; gap: 0.5rem;">
-                                    <input type="password" id="confirm_new_password" required placeholder="Ulangi password baru" style="border-radius: 10px; margin-bottom: 0;">
-                                    <button type="button" class="btn-gray" onclick="toggleSettingsVisibility('confirm_new_password', this)" title="Tampilkan/Sembunyikan" style="padding: 0 1rem; border-radius: 10px;">👁️</button>
-                                </div>
+                            <button type="submit" id="btn-change-pwd" class="btn-navy" style="width: 100%; margin-top: 1.5rem; border-radius: 8px;">Ganti Password</button>
+                        </form>
+                    </div>
+                </details>
 
-                                <label for="new_hint" style="font-weight: 600; margin-top: 1.25rem;">Password Hint Baru (Opsional)
-                                    <input type="text" id="new_hint" placeholder="Contoh: Nama kucing + tahun lahir" style="border-radius: 10px; margin-top: 0.5rem;">
-                                    <small class="secondary" style="display: block; margin-top: 0.25rem;">Hint sebelumnya akan ditimpa.</small>
-                                </label>
+                <!-- Recovery Codes (Pro Feature Container) -->
+                <div id="recovery-codes-section" style="margin-top: 1rem;">
+                    <div id="recovery-codes-content"></div>
+                </div>
+            </section>
 
-                                <button type="submit" id="btn-change-pwd" class="btn-navy" style="width: 100%; margin-top: 1.5rem;">Ganti Password</button>
-                            </form>
+            <!-- Data & Backup Section -->
+            <section id="section-backup" class="settings-section">
+                <div class="settings-section-title">Data & Backup</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="cadangkan data backup unduh tmpt">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">📤</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Cadangkan Data</span>
+                                <span class="settings-row-desc">Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt terenkripsi.</span>
+                            </div>
                         </div>
-                    </details>
-                </article>
-            </section>
-            
-            <!-- Recovery Codes (Pro Feature) -->
-            <section id="recovery-codes-section">
-                <div id="recovery-codes-content"></div>
-            </section>
-        </div>
-
-        <!-- Backup & Restore -->
-        <section>
-            <article class="settings-card">
-                <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">💾 Data & Backup</h3>
-                <div class="grid" style="gap: 2.5rem; align-items: center;">
-                    <div>
-                        <strong style="font-size: 1.15rem; display: block; margin-bottom: 0.5rem;">Cadangkan Data</strong>
-                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;"><small>Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt dengan enkripsi aman.</small></p>
-                        <button class="btn-navy" style="width: 100%;" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
+                        <div class="settings-row-right">
+                            <button class="btn-navy" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
+                        </div>
                     </div>
-                    <div>
-                        <strong style="font-size: 1.15rem; display: block; margin-bottom: 0.5rem;">Pulihkan Data</strong>
-                        <p class="secondary" style="margin-bottom: 1.5rem; line-height: 1.5;"><small>Timpa data saat ini dengan data dari file backup (.tmpt) Anda secara instan.</small></p>
-                        <button class="btn-gray" style="width: 100%; cursor: pointer; opacity: 1;" onclick="handleRestoreClick()">Pilih File Backup</button>
-                        <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
+
+                    <div class="settings-row" data-search-text="pulihkan data restore impor file backup tmpt">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">📥</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Pulihkan Data</span>
+                                <span class="settings-row-desc">Timpa data saat ini dengan data dari file backup (.tmpt) Anda secara instan.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <button class="btn-gray" onclick="handleRestoreClick()">Pilih File Backup</button>
+                            <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
+                        </div>
                     </div>
                 </div>
-            </article>
-        </section>
 
-        <!-- Zona Bahaya -->
-        <section>
-            <article class="settings-card" style="border: 1px solid #ef444455 !important; background: rgba(239, 68, 68, 0.03) !important;">
-                <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: #ef4444;">⚠️ Zona Bahaya</h3>
-                <p class="secondary" style="margin-bottom: 2rem; font-size: 1.05rem;">Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</p>
-                <div style="text-align: right;">
-                    <button class="btn-danger" onclick="handleDestroyVault()">Hapus Seluruh Brankas</button>
+                <!-- Danger Zone (Zona Bahaya) Inside a red bordered panel -->
+                <div class="settings-section-title" style="color: #ef4444; margin-top: 1.5rem;">Zona Bahaya</div>
+                <div class="settings-panel danger-zone-panel" data-search-text="zona bahaya hapus brankas permanen reset total data">
+                    <div class="settings-row" style="align-items: center;">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon" style="color: #ef4444;">⚠️</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title" style="font-weight: 600;">Zona Bahaya</span>
+                                <span class="settings-row-desc" style="color: var(--pico-secondary);">Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <button class="btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="handleDestroyVault()">Hapus Seluruh Brankas</button>
+                        </div>
+                    </div>
                 </div>
-            </article>
-        </section>
+            </section>
 
-        <!-- Informasi Sistem & Versi (Gambar 2) -->
-        <section class="security-status-card" style="margin-top: 1.5rem; margin-bottom: 4rem;">
-            <h4 style="font-weight: 700; font-size: 1.25rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">Status Sistem & Versi</h4>
-            <div class="security-info-grid">
-                <div class="security-info-item">
-                    <span class="dot dot-green"></span>
-                    <span>TMPT Version: <span class="tmpt-version"></span></span>
+            <!-- Tentang Section (System status / Version info) -->
+            <section id="section-tentang" class="settings-section">
+                <div class="settings-section-title">Tentang</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="versi tmpt sistem update codename">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">ℹ️</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Versi Sistem</span>
+                                <span class="settings-row-desc">Informasi build rilis TMPT saat ini.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right" style="font-family: monospace; font-size: 0.9rem;">
+                            <span class="tmpt-version">Memuat...</span>
+                        </div>
+                    </div>
+
+                    <div class="settings-row" data-search-text="codename pico rise">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">🏷️</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Codename</span>
+                                <span class="settings-row-desc">Nama kode rilis edisi saat ini.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right" style="font-size: 0.9rem; font-weight: 500;">
+                            "Pico Rise"
+                        </div>
+                    </div>
+
+                    <div class="settings-row" data-search-text="last update pembaruan terakhir">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">📅</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Pembaruan Terakhir</span>
+                                <span class="settings-row-desc">Tanggal publikasi rilis build ini.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right" style="font-size: 0.9rem; color: var(--pico-secondary);">
+                            2026-05-15
+                        </div>
+                    </div>
                 </div>
-                <div class="security-info-item" style="justify-content: center;">
-                    <span class="dot dot-blue"></span>
-                    <span>Codename: "Pico Rise"</span>
-                </div>
-                <div class="security-info-item" style="justify-content: flex-end;">
-                    <span class="dot dot-purple"></span>
-                    <span>Last Update: 2026-05-15</span>
-                </div>
-            </div>
-        </section>
-    </main>
+            </section>
+        </main>
+    </div>
 
     <!-- Recovery Codes Modal -->
     <dialog id="recovery-display-modal">
@@ -372,15 +590,18 @@
 
             if (!isPro) {
                 recoveryContent.innerHTML = `
-                    <article class="settings-card" style="position: relative; background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(2, 132, 199, 0.05)); border-color: var(--pico-muted-border-color); height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
-                        <div>
-                            <span class="badge" style="position: absolute; top: 15px; right: 20px; font-size: 0.7rem; padding: 3px 10px; background: linear-gradient(135deg, #1e40af, #0284c7); color: #fff; border-radius: 20px; font-weight: 600;">PRO FEATURE</span>
-                            <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1rem; color: var(--pico-h1-color);">🔑 Recovery Codes</h3>
-                            <p class="secondary" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
-                                Hasilkan kode pemulihan darurat untuk memulihkan Brankas Anda dan mereset Kata Kunci Utama jika Anda lupa.
-                            </p>
+                    <article class="settings-card" style="position: relative; background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(2, 132, 199, 0.05)); border-color: var(--pico-muted-border-color); height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; border-radius: var(--settings-border-radius); padding: 1.5rem;">
+                        <span class="badge" style="position: absolute; top: 15px; right: 20px; font-size: 0.7rem; padding: 3px 10px; background: linear-gradient(135deg, #1e40af, #0284c7); color: #fff; border-radius: 20px; font-weight: 600;">PRO FEATURE</span>
+                        <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1rem;">
+                            <span style="font-size: 1.25rem;">🔑</span>
+                            <div>
+                                <h3 style="font-weight: 600; font-size: 0.95rem; margin: 0; color: var(--pico-color);">Recovery Codes</h3>
+                                <p class="secondary" style="font-size: 0.825rem; line-height: 1.5; margin-top: 0.25rem; margin-bottom: 0;">
+                                    Hasilkan kode pemulihan darurat untuk memulihkan Brankas Anda dan mereset Kata Kunci Utama jika Anda lupa.
+                                </p>
+                            </div>
                         </div>
-                        <a href="/app/home/pro/" role="button" class="btn-navy" style="width: 100%; text-align: center; border-radius: 10px; text-decoration: none;">Upgrade ke Pro Edition</a>
+                        <a href="/app/home/pro/" role="button" class="btn-navy" style="width: 100%; text-align: center; border-radius: 8px; text-decoration: none;">Upgrade ke Pro Edition</a>
                     </article>
                 `;
                 return;
@@ -391,29 +612,34 @@
             const remainingCount = hasRecovery ? meta.recovery_hashes.length : 0;
 
             recoveryContent.innerHTML = `
-                <article class="settings-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+                <article class="settings-card" style="height: 100%; display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0; border-radius: var(--settings-border-radius); padding: 1.5rem; border: 1px solid var(--pico-muted-border-color); background: var(--pico-card-background-color);">
                     <div>
-                        <h3 style="font-weight: 700; font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--pico-h1-color);">🔑 Recovery Codes</h3>
+                        <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.25rem;">
+                            <span style="font-size: 1.25rem;">🔑</span>
+                            <div>
+                                <h3 style="font-weight: 600; font-size: 0.95rem; margin: 0; color: var(--pico-color);">Recovery Codes</h3>
+                                <p class="secondary" style="font-size: 0.825rem; line-height: 1.5; margin-top: 0.25rem; margin-bottom: 0;">
+                                    Recovery Codes adalah 8 buah kode unik sekali pakai. Jika Anda kehilangan Kata Kunci Utama, Anda dapat masuk ke Brankas menggunakan salah satu kode ini dan mereset password Anda.
+                                </p>
+                            </div>
+                        </div>
                         ${hasRecovery ? `
                             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: rgba(34, 197, 94, 0.08); border-left: 4px solid #22c55e; padding: 0.75rem 1rem; border-radius: 0 10px 10px 0;">
                                 <div>
-                                    <strong style="color: #22c55e; display: block; font-size: 0.95rem;">Status: Aktif</strong>
-                                    <span class="secondary" style="font-size: 0.85rem;">Anda memiliki <strong>${remainingCount} dari 8</strong> kode pemulihan tersisa.</span>
+                                    <strong style="color: #22c55e; display: block; font-size: 0.9rem;">Status: Aktif</strong>
+                                    <span class="secondary" style="font-size: 0.8rem;">Anda memiliki <strong>${remainingCount} dari 8</strong> kode pemulihan tersisa.</span>
                                 </div>
                             </div>
                         ` : `
                             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; background: rgba(234, 179, 8, 0.08); border-left: 4px solid #eab308; padding: 0.75rem 1rem; border-radius: 0 10px 10px 0;">
                                 <div>
-                                    <strong style="color: #eab308; display: block; font-size: 0.95rem;">Status: Belum Dibuat</strong>
-                                    <span class="secondary" style="font-size: 0.85rem;">Segera buat kode pemulihan untuk mengantisipasi jika Anda lupa Kata Kunci Utama.</span>
+                                    <strong style="color: #eab308; display: block; font-size: 0.9rem;">Status: Belum Dibuat</strong>
+                                    <span class="secondary" style="font-size: 0.8rem;">Segera buat kode pemulihan untuk mengantisipasi jika Anda lupa Kata Kunci Utama.</span>
                                 </div>
                             </div>
                         `}
-                        <p class="secondary" style="font-size: 0.9rem; line-height: 1.5; margin-bottom: 1.5rem;">
-                            Recovery Codes adalah 8 buah kode unik sekali pakai. Jika Anda kehilangan Kata Kunci Utama, Anda dapat masuk ke Brankas menggunakan salah satu kode ini dan mereset password Anda.
-                        </p>
                     </div>
-                    <button class="btn-navy" onclick="handleGenerateRecovery()">${hasRecovery ? 'Buat Ulang Kode Pemulihan' : 'Hasilkan Kode Pemulihan'}</button>
+                    <button class="btn-navy" style="border-radius: 8px;" onclick="handleGenerateRecovery()">${hasRecovery ? 'Buat Ulang Kode Pemulihan' : 'Hasilkan Kode Pemulihan'}</button>
                 </article>
             `;
         }
@@ -452,27 +678,177 @@
             }
         }
 
+        // Navigation Sidebar & Scrolling
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+                
+                // Update active sidebar item
+                document.querySelectorAll('.settings-nav-item').forEach(item => {
+                    if (item.getAttribute('data-target') === id) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                });
+
+                // Auto-close sidebar drawer on mobile after selection
+                toggleSidebarDrawer(false);
+            }
+        }
+
+        // Toggle mobile slide-in drawer
+        function toggleSidebarDrawer(forceState) {
+            const sidebar = document.querySelector('.settings-sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            let show = false;
+            if (forceState !== undefined) {
+                show = !!forceState;
+            } else {
+                show = !sidebar.classList.contains('open');
+            }
+
+            if (show) {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            } else {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Intersection Observer to highlight sidebar as we scroll
+        const observerOptions = {
+            root: null,
+            rootMargin: '-10% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.id;
+                    document.querySelectorAll('.settings-nav-item').forEach(item => {
+                        if (item.getAttribute('data-target') === id) {
+                            item.classList.add('active');
+                        } else {
+                            item.classList.remove('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        // Filter settings based on query
+        function filterSettings(query) {
+            query = query.toLowerCase().trim();
+            const sections = document.querySelectorAll('.settings-section');
+            
+            sections.forEach(section => {
+                let sectionVisible = false;
+                const rows = section.querySelectorAll('.settings-row, .license-card, #recovery-codes-section');
+                
+                rows.forEach(row => {
+                    // search logic
+                    const searchText = row.getAttribute('data-search-text') || '';
+                    const titleText = row.querySelector('.settings-row-title, .license-title, h3')?.textContent || '';
+                    const descText = row.querySelector('.settings-row-desc, .license-sub, p')?.textContent || '';
+                    
+                    const matches = searchText.includes(query) || 
+                                    titleText.toLowerCase().includes(query) || 
+                                    descText.toLowerCase().includes(query);
+                    
+                    if (query === '' || matches) {
+                        row.style.display = '';
+                        sectionVisible = true;
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide entire section based on row matches
+                if (query === '' || sectionVisible) {
+                    section.style.display = '';
+                    // Highlight matching text in sidebar menu if needed
+                } else {
+                    section.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize header UI logic (extracted from app-header.html logic)
+        async function loadLicenseModule() {
+            if (!window.TMPT_License) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = '/shared/license.js';
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                });
+            }
+        }
+
+        async function loadFeedbackModule() {
+            if (!window.TMPT_Feedback) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = '/app/feedback/feedback-widget.js';
+                    script.defer = true;
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                });
+            }
+        }
+
+        async function initSettingsPageHeader() {
+            await loadLicenseModule();
+            await loadFeedbackModule();
+            
+            if (window.TMPT_UI) {
+                window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'light');
+                window.TMPT_UI.updateProfileUI();
+            }
+            
+            // Set build version details
+            if (window.TMPT_Version) {
+                document.querySelectorAll('.tmpt-version').forEach(el => {
+                    el.textContent = window.TMPT_Version.getVersionString();
+                });
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            await initSettingsPageHeader();
             renderRecoverySection();
             renderLicenseStatus();
 
-                    // Load current data/settings from vault
-                    const encryptedPayload = window.TMPT_Vault.getPayload();
-                    if (encryptedPayload) {
-                        try {
-                            const key = window.TMPT_Auth.getKey();
-                            const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
-                            const data = JSON.parse(decrypted);
-                    
-                            if (data.settings) {
-                                if (data.settings.theme) document.getElementById('theme').value = data.settings.theme === 'system' ? 'light' : data.settings.theme;
-                                if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
-                                if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
-                            }
-                        } catch (e) {
-                            console.error("Failed to load settings from vault", e);
-                        }
+            // Observe sections for scroll active state
+            document.querySelectorAll('.settings-section').forEach(section => {
+                observer.observe(section);
+            });
+
+            // Load current data/settings from vault
+            const encryptedPayload = window.TMPT_Vault.getPayload();
+            if (encryptedPayload) {
+                try {
+                    const key = window.TMPT_Auth.getKey();
+                    const decrypted = await window.TMPT_Crypto.decrypt(encryptedPayload, key);
+                    const data = JSON.parse(decrypted);
+            
+                    if (data.settings) {
+                        if (data.settings.theme) document.getElementById('theme').value = data.settings.theme === 'system' ? 'light' : data.settings.theme;
+                        if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
+                        if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
                     }
+                } catch (e) {
+                    console.error("Failed to load settings from vault", e);
+                }
+            }
         });
 
         async function updateSetting(key, value) {
@@ -612,8 +988,6 @@
                 
                 const newHint = document.getElementById('new_hint').value;
                 if (newHint) vaultData.hint = newHint;
-                // if no new hint is provided, we might keep the old one, but wait, old hint is probably irrelevant.
-                // It's better to clear it if it's empty because the password changed.
                 if (!newHint) delete vaultData.hint;
 
                 window.TMPT_Vault.save(vaultData);

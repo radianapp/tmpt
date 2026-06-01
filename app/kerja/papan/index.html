@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAPAN TULIS — TMPT</title>
+  <meta name="description" content="TMPT Papan Tulis - Ruang berpikir visual privat Anda untuk membuat sketsa, mind map, diagram, dan menuangkan ide secara lokal.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./papan.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" style="padding: 0 2rem; max-width: 100%;" id="main-content">
+    <div class="papan-layout-wrapper">
+      
+      <!-- Sidebar Kiri -->
+      <aside class="papan-sidebar" id="papan-sidebar">
+
+        <nav class="sidebar-nav">
+          <ul style="list-style: none; padding: 0; margin: 0;">
+            <li>
+              <button class="btn-custom-blue" id="btn-create-board" style="width: 100%; border-radius: 12px; margin-bottom: 1.5rem;" aria-label="Buat Papan Baru">
+                <span class="sidebar-icon">➕</span> <span>Papan Baru</span>
+              </button>
+            </li>
+            <li>
+              <strong>Pintasan</strong>
+              <ul style="list-style: none; padding-left: 0.5rem; margin-top: 0.5rem;">
+                <li>
+                  <a href="#" class="active" id="filter-all-boards">
+                    <span class="sidebar-icon">📁</span> <span>Semua Papan</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" id="filter-starred-boards">
+                    <span class="sidebar-icon">⭐</span> <span>Berbintang</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#" id="filter-trash-boards">
+                    <span class="sidebar-icon">🗑️</span> <span>Sampah</span>
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </nav>
+
+        <div style="margin-top: auto; padding: 1rem; border: 1px solid rgba(168, 85, 247, 0.15); border-radius: 14px; background: rgba(168, 85, 247, 0.05); font-size: 0.85rem;">
+          <div style="font-weight: 700; color: var(--pico-heading-color); margin-bottom: 0.25rem;">
+            🔒 Lokal &amp; Privat
+          </div>
+          <p style="color: var(--pico-muted-color); margin-bottom: 0;">Semua papan coretan Anda disimpan sepenuhnya di dalam browser Anda.</p>
+        </div>
+      </aside>
+
+      <!-- Main Panel Kanan -->
+      <section class="papan-main-content">
+        
+        <!-- Action Header -->
+        <div class="papan-action-header">
+          <h1 id="current-filter-title" style="margin: 0; font-size: 1.6rem; font-weight: 800;">Papan Tulis Saya</h1>
+          
+          <div class="papan-action-buttons">
+            <input type="search" id="search-boards" placeholder="Cari papan..." aria-label="Cari Coretan Papan" style="margin-bottom: 0; border-radius: 10px; width: 220px;">
+            
+            <button id="btn-empty-trash" class="outline danger" style="margin: 0; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 12px; display: none;" aria-label="Kosongkan Sampah">
+              🗑️ Kosongkan Sampah
+            </button>
+
+            <button id="btn-import-board" class="outline secondary" style="margin: 0; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 12px;" aria-label="Impor File Papan">
+              📤 Impor
+            </button>
+            <input type="file" id="import-file-input" accept=".papan,.excalidraw" style="display: none;">
+          </div>
+        </div>
+
+        <hr style="margin: 0.5rem 0 1rem 0;">
+
+        <!-- Boards Grid -->
+        <div id="boards-grid" class="papan-grid">
+          <!-- Dinamis dimuat oleh JavaScript -->
+        </div>
+
+        <div id="empty-state" style="display: none; text-align: center; padding: 4rem 2rem;">
+          <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.35;">🎨</div>
+          <h3>Belum ada Papan Tulis</h3>
+          <p class="secondary">Mulai buat sketsa, diagram, atau catat ide visual Anda sekarang.</p>
+          <button class="btn-custom-blue" onclick="document.getElementById('btn-create-board').click()">Buat Papan Pertama</button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Dialog: Konfirmasi (Generic) -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" id="confirm-cancel-btn" style="flex: 1; margin:0; border-radius: 10px;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" style="flex: 1; margin:0; border-radius: 10px;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module">
+    import { openTmptDB } from '/shared/db.js';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Sidebar Toggle Collapse/Expand
+      const sidebar = document.getElementById('papan-sidebar');
+      
+      const toggleSidebar = () => {
+        sidebar.classList.toggle('collapsed');
+      };
+
+      // Inject Hamburger menu to the loaded header dynamically
+      document.body.addEventListener('htmx:afterOnLoad', (e) => {
+        if (e.detail.target.id === 'header-container') {
+          const navUl = document.querySelector('header nav ul');
+          if (navUl) {
+            // Check if hamburger is already added
+            if (document.getElementById('header-sidebar-toggle')) return;
+
+            const li = document.createElement('li');
+            li.innerHTML = `<button id="header-sidebar-toggle" style="background: transparent; border: none; padding: 0.5rem; margin: 0 0.5rem 0 0; display: flex; width: auto; font-size: 1.25rem; cursor: pointer; color: var(--pico-heading-color);" aria-label="Toggle Sidebar">☰</button>`;
+            navUl.insertBefore(li, navUl.firstChild);
+            
+            document.getElementById('header-sidebar-toggle').onclick = toggleSidebar;
+          }
+        }
+      });
+
+      // Autentikasi TMPT
+      if (window.TMPT_Auth) {
+        await window.TMPT_Auth.init();
+        if (!window.TMPT_Auth.isUnlocked()) {
+          window.location.href = '/app/auth/login/';
+          return;
+        }
+        window.TMPT_Auth.setupIdleListeners();
+      }
+
+      const boardsGrid = document.getElementById('boards-grid');
+      const emptyState = document.getElementById('empty-state');
+      const btnCreateBoard = document.getElementById('btn-create-board');
+      const searchBoards = document.getElementById('search-boards');
+      const btnImportBoard = document.getElementById('btn-import-board');
+      const importFileInput = document.getElementById('import-file-input');
+
+      let db = null;
+      let boards = [];
+
+      // Custom Confirmation Dialog
+      function showConfirmDialog(title, message) {
+        return new Promise((resolve) => {
+          const modal = document.getElementById('confirm-modal');
+          document.getElementById('confirm-title').textContent = title;
+          document.getElementById('confirm-message').textContent = message;
+          modal.showModal();
+          
+          document.getElementById('confirm-ok-btn').onclick = () => {
+            modal.close();
+            resolve(true);
+          };
+          document.getElementById('confirm-cancel-btn').onclick = () => {
+            modal.close();
+            resolve(false);
+          };
+        });
+      }
+
+      // Open IndexedDB
+      async function initDB() {
+        try {
+          db = await openTmptDB('tmpt_papan', 1, (database) => {
+            if (!database.objectStoreNames.contains('boards')) {
+              database.createObjectStore('boards', { keyPath: 'id' });
+            }
+          });
+        } catch (err) {
+          console.error("Gagal inisialisasi database:", err);
+          if (window.TMPT_UI) window.TMPT_UI.toast("Gagal memuat database lokal", "error");
+        }
+      }
+
+      let currentFilter = 'all';
+
+      // Setup click listeners for filter links
+      const filterAll = document.getElementById('filter-all-boards');
+      const filterStarred = document.getElementById('filter-starred-boards');
+      const filterTrash = document.getElementById('filter-trash-boards');
+
+      function updateActiveLink(activeLink) {
+        [filterAll, filterStarred, filterTrash].forEach(link => {
+          if (link) link.classList.remove('active');
+        });
+        if (activeLink) activeLink.classList.add('active');
+      }
+
+      if (filterAll) {
+        filterAll.onclick = (e) => {
+          e.preventDefault();
+          currentFilter = 'all';
+          updateActiveLink(filterAll);
+          document.getElementById('current-filter-title').textContent = 'Papan Tulis Saya';
+          renderBoards();
+        };
+      }
+
+      if (filterStarred) {
+        filterStarred.onclick = (e) => {
+          e.preventDefault();
+          currentFilter = 'starred';
+          updateActiveLink(filterStarred);
+          document.getElementById('current-filter-title').textContent = 'Papan Tulis Berbintang';
+          renderBoards();
+        };
+      }
+
+      if (filterTrash) {
+        filterTrash.onclick = (e) => {
+          e.preventDefault();
+          currentFilter = 'trash';
+          updateActiveLink(filterTrash);
+          document.getElementById('current-filter-title').textContent = 'Tempat Sampah Papan';
+          renderBoards();
+        };
+      }
+
+      async function loadBoards() {
+        if (!db) return;
+        try {
+          const transaction = db.transaction('boards', 'readonly');
+          const store = transaction.objectStore('boards');
+          
+          return new Promise((resolve) => {
+            const req = store.getAll();
+            req.onsuccess = () => {
+              boards = req.result.sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
+              resolve();
+            };
+            req.onerror = () => resolve([]);
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      function renderBoards() {
+        const btnEmptyTrash = document.getElementById('btn-empty-trash');
+        const btnImportBoard = document.getElementById('btn-import-board');
+        if (currentFilter === 'trash') {
+          if (btnEmptyTrash) btnEmptyTrash.style.display = 'inline-block';
+          if (btnImportBoard) btnImportBoard.style.display = 'none';
+        } else {
+          if (btnEmptyTrash) btnEmptyTrash.style.display = 'none';
+          if (btnImportBoard) btnImportBoard.style.display = 'inline-block';
+        }
+
+        const query = searchBoards.value.toLowerCase().trim();
+        let filtered = boards.filter(b => b.title.toLowerCase().includes(query));
+
+        if (currentFilter === 'all') {
+          filtered = filtered.filter(b => !b.trash);
+        } else if (currentFilter === 'starred') {
+          filtered = filtered.filter(b => b.starred && !b.trash);
+        } else if (currentFilter === 'trash') {
+          filtered = filtered.filter(b => b.trash);
+        }
+
+        if (filtered.length === 0) {
+          boardsGrid.style.display = 'none';
+          emptyState.style.display = 'block';
+          return;
+        }
+
+        boardsGrid.style.display = 'grid';
+        emptyState.style.display = 'none';
+        boardsGrid.innerHTML = '';
+
+        filtered.forEach(board => {
+          const card = document.createElement('div');
+          card.className = 'board-card';
+          card.onclick = () => {
+            window.location.href = `./editor.html?id=${board.id}`;
+          };
+
+          const thumbnailHtml = board.thumbnail 
+            ? `<img src="${board.thumbnail}" alt="${board.title}">` 
+            : `<div class="board-thumbnail-placeholder">🎨</div>`;
+
+          const updatedDate = new Date(board.updated_at).toLocaleDateString('id-ID', {
+            day: 'numeric', month: 'short', year: 'numeric'
+          });
+
+          const isStarred = board.starred || false;
+          const starColor = isStarred ? '#f59e0b' : 'var(--pico-secondary-color)';
+          const starIcon = isStarred ? '★' : '☆';
+
+          let actionButtons = '';
+          if (currentFilter === 'trash') {
+            actionButtons = `
+              <button class="outline" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; margin: 0; line-height: 1; border-radius: 6px; width: auto; height: auto;" onclick="event.stopPropagation(); restoreBoard('${board.id}')">Pulihkan</button>
+              <button class="outline danger" style="padding: 0.2rem 0.4rem; font-size: 0.7rem; margin: 0; line-height: 1; border-radius: 6px; width: auto; height: auto; color: var(--pico-danger-color); border-color: var(--pico-danger-color); background: transparent;" onclick="event.stopPropagation(); deleteBoard('${board.id}')">Hapus</button>
+            `;
+          } else {
+            actionButtons = `
+              <span class="star-btn" style="cursor: pointer; padding: 0.2rem 0.5rem; color: ${starColor}; font-size: 1.1rem; line-height: 1;" onclick="event.stopPropagation(); toggleStarBoard('${board.id}')" title="Bintangi Papan">${starIcon}</span>
+              <span class="delete-btn" style="cursor: pointer; padding: 0.2rem 0.5rem; color: var(--pico-danger-color);" onclick="event.stopPropagation(); deleteBoard('${board.id}')" title="Pindahkan ke Sampah">🗑️</span>
+            `;
+          }
+
+          card.innerHTML = `
+            <div class="board-thumbnail">${thumbnailHtml}</div>
+            <div class="board-info">
+              <div class="board-title" title="${board.title}">${board.title}</div>
+              <div class="board-meta">
+                <span>Diperbarui ${updatedDate}</span>
+                <div style="display: flex; gap: 0.25rem; align-items: center;">
+                  ${actionButtons}
+                </div>
+              </div>
+            </div>
+          `;
+          boardsGrid.appendChild(card);
+        });
+      }
+
+      window.restoreBoard = async (id) => {
+        if (!db) return;
+        try {
+          const transaction = db.transaction('boards', 'readwrite');
+          const store = transaction.objectStore('boards');
+          const req = store.get(id);
+          req.onsuccess = () => {
+            const board = req.result;
+            if (board) {
+              board.trash = false;
+              board.updated_at = new Date().toISOString();
+              store.put(board);
+            }
+          };
+          transaction.oncomplete = async () => {
+            if (window.TMPT_UI) window.TMPT_UI.toast("Papan dipulihkan", "success");
+            if (window.broadcastTMPT) {
+              window.broadcastTMPT('FILE_UPDATED', { id, type: 'papan', title: 'Papan dipulihkan', app_db: 'tmpt_papan' });
+            }
+            await loadBoards();
+            renderBoards();
+          };
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      window.toggleStarBoard = async (id) => {
+        if (!db) return;
+        try {
+          const transaction = db.transaction('boards', 'readwrite');
+          const store = transaction.objectStore('boards');
+          const req = store.get(id);
+          req.onsuccess = () => {
+            const board = req.result;
+            if (board) {
+              board.starred = !board.starred;
+              board.updated_at = new Date().toISOString();
+              store.put(board);
+            }
+          };
+          transaction.oncomplete = async () => {
+            if (window.broadcastTMPT) {
+              window.broadcastTMPT('FILE_UPDATED', { id, type: 'papan', title: 'Papan diubah', app_db: 'tmpt_papan' });
+            }
+            await loadBoards();
+            renderBoards();
+          };
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      window.deleteBoard = async (id) => {
+        if (!db) return;
+        
+        let confirmMsg = "Pindahkan papan tulis ini ke Tempat Sampah?";
+        let titleMsg = "Pindahkan ke Sampah";
+        if (currentFilter === 'trash') {
+          confirmMsg = "Apakah Anda yakin ingin menghapus papan tulis ini secara permanen? Tindakan ini tidak dapat dibatalkan.";
+          titleMsg = "Hapus Permanen";
+        }
+        
+        const confirmDelete = await showConfirmDialog(titleMsg, confirmMsg);
+        if (!confirmDelete) return;
+
+        try {
+          const transaction = db.transaction('boards', 'readwrite');
+          const store = transaction.objectStore('boards');
+          
+          if (currentFilter === 'trash') {
+            store.delete(id);
+          } else {
+            const req = store.get(id);
+            req.onsuccess = () => {
+              const board = req.result;
+              if (board) {
+                board.trash = true;
+                board.starred = false;
+                board.updated_at = new Date().toISOString();
+                store.put(board);
+              }
+            };
+          }
+          
+          transaction.oncomplete = async () => {
+            if (currentFilter === 'trash') {
+              if (window.TMPT_UI) window.TMPT_UI.toast("Papan berhasil dihapus permanen", "success");
+              if (window.broadcastTMPT) {
+                window.broadcastTMPT('FILE_DELETED', { id, type: 'papan' });
+              }
+            } else {
+              if (window.TMPT_UI) window.TMPT_UI.toast("Papan dipindahkan ke Sampah", "success");
+              if (window.broadcastTMPT) {
+                window.broadcastTMPT('FILE_UPDATED', { id, type: 'papan', title: 'Papan dihapus', app_db: 'tmpt_papan' });
+              }
+            }
+            
+            await loadBoards();
+            renderBoards();
+          };
+        } catch (err) {
+          console.error(err);
+        }
+      };
+
+      const btnEmptyTrashEl = document.getElementById('btn-empty-trash');
+      if (btnEmptyTrashEl) {
+        btnEmptyTrashEl.onclick = async () => {
+          if (!db) return;
+          const trashedBoards = boards.filter(b => b.trash);
+          if (trashedBoards.length === 0) {
+            if (window.TMPT_UI) window.TMPT_UI.toast("Tempat sampah sudah kosong", "info");
+            return;
+          }
+
+          const confirmDelete = await showConfirmDialog("Kosongkan Sampah", "Apakah Anda yakin ingin menghapus semua papan tulis di Tempat Sampah secara permanen? Tindakan ini tidak dapat dibatalkan.");
+          if (!confirmDelete) return;
+
+          try {
+            const transaction = db.transaction('boards', 'readwrite');
+            const store = transaction.objectStore('boards');
+            trashedBoards.forEach(b => {
+              store.delete(b.id);
+            });
+
+            transaction.oncomplete = async () => {
+              if (window.TMPT_UI) window.TMPT_UI.toast("Tempat sampah berhasil dikosongkan", "success");
+              if (window.broadcastTMPT) {
+                trashedBoards.forEach(b => {
+                  window.broadcastTMPT('FILE_DELETED', { id: b.id, type: 'papan' });
+                });
+              }
+              await loadBoards();
+              renderBoards();
+            };
+          } catch (err) {
+            console.error(err);
+          }
+        };
+      }
+
+      btnCreateBoard.onclick = async () => {
+        if (!db) return;
+        const id = crypto.randomUUID();
+        const newBoard = {
+          id,
+          title: 'Papan Coretan Baru',
+          elements: [],
+          appState: {
+            viewBackgroundColor: '#ffffff',
+            gridMode: true,
+            snapToGrid: false,
+            gridSize: 20,
+            theme: 'light'
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          thumbnail: '',
+          version: 1
+        };
+
+        const transaction = db.transaction('boards', 'readwrite');
+        const store = transaction.objectStore('boards');
+        store.put(newBoard);
+        
+        transaction.oncomplete = () => {
+          // Broadcast file creation
+          if (window.broadcastTMPT) {
+            window.broadcastTMPT('FILE_CREATED', {
+              id,
+              type: 'papan',
+              title: newBoard.title,
+              app_db: 'tmpt_papan'
+            });
+          }
+          window.location.href = `./editor.html?id=${id}`;
+        };
+      };
+
+      searchBoards.oninput = () => {
+        renderBoards();
+      };
+
+      // Import board
+      btnImportBoard.onclick = () => {
+        importFileInput.click();
+      };
+
+      importFileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          try {
+            const rawData = event.target.result;
+            const parsed = JSON.parse(rawData);
+            
+            let id = crypto.randomUUID();
+            let title = file.name.replace(/\.[^/.]+$/, "");
+            let elements = [];
+            let appState = {
+              viewBackgroundColor: '#ffffff',
+              gridMode: true,
+              snapToGrid: false,
+              gridSize: 20,
+              theme: 'light'
+            };
+
+            // Detect if Excalidraw or Native Papan
+            if (parsed.type === 'excalidraw' || (parsed.elements && !parsed.appState)) {
+              elements = parsed.elements || [];
+              if (parsed.appState && parsed.appState.viewBackgroundColor) {
+                appState.viewBackgroundColor = parsed.appState.viewBackgroundColor;
+              }
+            } else {
+              elements = parsed.elements || [];
+              appState = parsed.appState || appState;
+              title = parsed.title || title;
+            }
+
+            const importedBoard = {
+              id,
+              title,
+              elements,
+              appState,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              thumbnail: '',
+              version: 1
+            };
+
+            const transaction = db.transaction('boards', 'readwrite');
+            const store = transaction.objectStore('boards');
+            store.put(importedBoard);
+
+            transaction.oncomplete = async () => {
+              if (window.TMPT_UI) window.TMPT_UI.toast("Papan berhasil diimpor!", "success");
+              
+              if (window.broadcastTMPT) {
+                window.broadcastTMPT('FILE_CREATED', {
+                  id,
+                  type: 'papan',
+                  title: importedBoard.title,
+                  app_db: 'tmpt_papan'
+                });
+              }
+
+              await loadBoards();
+              renderBoards();
+            };
+          } catch (err) {
+            console.error("Gagal mengimpor:", err);
+            alert("File tidak valid atau rusak.");
+          }
+        };
+        reader.readAsText(file);
+      };
+
+      await initDB();
+      await loadBoards();
+      renderBoards();
+    });
+  </script>
+
+</body>
+</html>

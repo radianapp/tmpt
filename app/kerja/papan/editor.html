@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Papan Coretan — TMPT</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./papan.css">
+  
+  <!-- Caveat Google Font for Premium Sketch Feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+</head>
+<body>
+
+  <main class="editor-container" id="editor-main">
+    
+    <!-- Top Left Title Controls -->
+    <div class="editor-topleft">
+      <a href="./index.html" class="button outline secondary" style="margin: 0; padding: 0.4rem 0.8rem; border-radius: 12px;" aria-label="Kembali ke Dashboard">
+        ⬅️
+      </a>
+      <div class="editor-title-container">
+        <input type="text" id="board-title-input" class="editor-title-input" value="Papan Coretan Baru" aria-label="Judul Papan Coretan">
+        <span id="save-status" style="font-size: 0.75rem; color: var(--pico-muted-color);" aria-live="polite">Tersimpan ✓</span>
+      </div>
+    </div>
+
+    <!-- Centered Horizontal Toolbar (Excalidraw Style) -->
+    <div class="toolbar-horizontal" id="main-toolbar">
+      <button class="toolbar-btn" data-tool="pan" data-tooltip="Tangan / Geser (H)" aria-label="Tangan / Geser (H)">🖐️</button>
+      <button class="toolbar-btn active" data-tool="select" data-tooltip="Seleksi (V / 1)" aria-label="Seleksi (V / 1)">
+        ↖️
+        <span class="toolbar-shortcut">1</span>
+      </button>
+      <button class="toolbar-btn" data-tool="rectangle" data-tooltip="Kotak (R / 2)" aria-label="Kotak (R / 2)">
+        ▭
+        <span class="toolbar-shortcut">2</span>
+      </button>
+      <button class="toolbar-btn" data-tool="diamond" data-tooltip="Belah Ketupat (D / 3)" aria-label="Belah Ketupat (D / 3)">
+        ◇
+        <span class="toolbar-shortcut">3</span>
+      </button>
+      <button class="toolbar-btn" data-tool="ellipse" data-tooltip="Lingkaran (O / 4)" aria-label="Lingkaran (O / 4)">
+        ◯
+        <span class="toolbar-shortcut">4</span>
+      </button>
+      <button class="toolbar-btn" data-tool="triangle" data-tooltip="Segitiga" aria-label="Segitiga">△</button>
+      <button class="toolbar-btn" data-tool="line" data-tooltip="Garis (L / 6)" aria-label="Garis (L / 6)">
+        ╱
+        <span class="toolbar-shortcut">6</span>
+      </button>
+      <button class="toolbar-btn" data-tool="arrow" data-tooltip="Panah (A / 5)" aria-label="Panah (A / 5)">
+        ➡️
+        <span class="toolbar-shortcut">5</span>
+      </button>
+      <button class="toolbar-btn" data-tool="freedraw" data-tooltip="Menggambar Bebas (P / 7)" aria-label="Menggambar Bebas (P / 7)">
+        ✏️
+        <span class="toolbar-shortcut">7</span>
+      </button>
+      <button class="toolbar-btn" data-tool="text" data-tooltip="Teks (T / 8)" aria-label="Teks (T / 8)">
+        T
+        <span class="toolbar-shortcut">8</span>
+      </button>
+      <button class="toolbar-btn" data-tool="sticky" data-tooltip="Sticky Note (S / 9)" aria-label="Sticky Note (S / 9)">
+        📌
+        <span class="toolbar-shortcut">9</span>
+      </button>
+      <hr style="margin: 0; width: 1px; height: 24px; background: var(--pico-muted-border-color); align-self: center;">
+      <button class="zoom-btn" id="btn-undo" data-tooltip="Urung (Ctrl+Z)" aria-label="Undo" style="width: 36px; height: 36px;">↩️</button>
+      <button class="zoom-btn" id="btn-redo" data-tooltip="Ulangi (Ctrl+Y)" aria-label="Redo" style="width: 36px; height: 36px;">↪️</button>
+      <hr style="margin: 0; width: 1px; height: 24px; background: var(--pico-muted-border-color); align-self: center;">
+      <select id="canvas-grid-select" style="margin: 0; padding: 0.15rem 0.4rem; font-size: 0.72rem; width: auto; border-radius: 8px; height: 32px; align-self: center; background: transparent; border: 1px solid var(--pico-muted-border-color); color: var(--pico-color);">
+        <option value="blank">⏹️ Kosong</option>
+        <option value="grid">#️⃣ Kotak-kotak</option>
+        <option value="lines">📋 Garis Buku</option>
+      </select>
+      <hr style="margin: 0; width: 1px; height: 24px; background: var(--pico-muted-border-color); align-self: center;">
+      <button class="toolbar-btn" id="btn-clear-canvas" data-tooltip="Bersihkan Papan" aria-label="Bersihkan Papan" style="color: var(--pico-danger-color);">🗑️</button>
+    </div>
+
+    <!-- Top Right Export Controls -->
+    <div class="editor-topright">
+      <details class="dropdown" id="export-dropdown" style="margin: 0;">
+        <summary class="button outline secondary" style="padding: 0.4rem 0.8rem; border-radius: 12px; margin-bottom: 0;">
+          💾 Ekspor
+        </summary>
+        <ul style="right: 0; left: auto; min-width: 160px; list-style: none; padding: 0.5rem 0;">
+          <li><a href="#" id="export-png-btn">🖼️ Ekspor PNG (2x)</a></li>
+          <li><a href="#" id="export-svg-btn">📐 Ekspor SVG</a></li>
+          <li><a href="#" id="export-papan-btn">📥 Simpan .papan</a></li>
+          <li><a href="#" id="export-excal-btn">🔀 Ekspor Excalidraw</a></li>
+        </ul>
+      </details>
+    </div>
+
+    <!-- Infinite Canvas -->
+    <canvas id="papan-canvas"></canvas>
+
+    <!-- Inline Text Editor Overlay -->
+    <div id="text-editor-overlay" contenteditable="true" style="display: none;"></div>
+
+    <!-- Left Sidebar Properties Panel -->
+    <div class="properties-panel" id="properties-panel" style="display: none;">
+
+      <!-- Stroke Color Picker -->
+      <div class="property-group" id="stroke-prop-group">
+        <span class="property-label">Garis (Stroke)</span>
+        <div class="color-picker-swatches" id="stroke-color-picker">
+          <div class="color-swatch active" data-color="#1e1e1e" style="background: #1e1e1e;"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 1.5px solid #ccc;" title="Putih (Untuk Dark Mode)"></div>
+          <div class="color-swatch" data-color="#94a3b8" style="background: #94a3b8;" title="Abu-abu Terang"></div>
+          <div class="color-swatch" data-color="#e11d48" style="background: #e11d48;"></div>
+          <div class="color-swatch" data-color="#ea580c" style="background: #ea580c;"></div>
+          <div class="color-swatch" data-color="#16a34a" style="background: #16a34a;"></div>
+          <div class="color-swatch" data-color="#2563eb" style="background: #2563eb;"></div>
+          <div class="color-swatch" data-color="#7c3aed" style="background: #7c3aed;"></div>
+        </div>
+      </div>
+
+      <!-- Fill Color Picker -->
+      <div class="property-group" id="fill-prop-group">
+        <span class="property-label">Latar (Fill)</span>
+        <div class="color-picker-swatches" id="fill-color-picker">
+          <div class="color-swatch active" data-color="transparent" style="background: transparent; border: 1.5px dashed #ccc;"></div>
+          <div class="color-swatch" data-color="#ffffff" style="background: #ffffff; border: 1.5px solid #ccc;"></div>
+          <div class="color-swatch" data-color="#94a3b8" style="background: #94a3b8;"></div>
+          <div class="color-swatch" data-color="#f87171" style="background: #f87171;"></div>
+          <div class="color-swatch" data-color="#fb923c" style="background: #fb923c;"></div>
+          <div class="color-swatch" data-color="#4ade80" style="background: #4ade80;"></div>
+          <div class="color-swatch" data-color="#60a5fa" style="background: #60a5fa;"></div>
+          <div class="color-swatch" data-color="#a78bfa" style="background: #a78bfa;"></div>
+        </div>
+      </div>
+
+      <!-- Fill Style Picker -->
+      <div class="property-group" id="fill-style-group">
+        <span class="property-label">Gaya Isi</span>
+        <div class="prop-button-group" id="fill-style-group-btns">
+          <button class="prop-btn active" data-value="solid" title="Solid">Solid</button>
+          <button class="prop-btn" data-value="hachure" title="Arsir">Arsir</button>
+          <button class="prop-btn" data-value="transparent" title="Kosong">Kosong</button>
+        </div>
+      </div>
+
+      <!-- Opacity Slider -->
+      <div class="property-group" id="opacity-prop-group">
+        <span class="property-label">Transparansi</span>
+        <input type="range" id="opacity-slider" min="0" max="100" value="100" style="margin-bottom: 0; width: 100%;">
+      </div>
+
+      <!-- Layers Settings -->
+      <div class="property-group" id="layers-prop-group">
+        <span class="property-label">Lapisan (Layers)</span>
+        <div class="prop-button-group" id="layers-group-btns">
+          <button class="prop-btn" data-action="to-back" title="Paling Belakang" style="font-size: 0.85rem !important; padding: 0.1rem !important;">⏬</button>
+          <button class="prop-btn" data-action="backward" title="Turun Satu Tingkat" style="font-size: 0.85rem !important; padding: 0.1rem !important;">🔽</button>
+          <button class="prop-btn" data-action="forward" title="Naik Satu Tingkat" style="font-size: 0.85rem !important; padding: 0.1rem !important;">🔼</button>
+          <button class="prop-btn" data-action="to-front" title="Paling Depan" style="font-size: 0.85rem !important; padding: 0.1rem !important;">⏫</button>
+        </div>
+      </div>
+
+      <!-- Roughness Slider -->
+      <div class="property-group" id="roughness-prop-group">
+        <span class="property-label">Roughness</span>
+        <div class="prop-button-group" id="roughness-group-btns">
+          <button class="prop-btn" data-value="0" title="Presisi">Clean</button>
+          <button class="prop-btn active" data-value="1" title="Sketsa">Sketch</button>
+          <button class="prop-btn" data-value="2" title="Kasar">Rough</button>
+        </div>
+      </div>
+
+      <!-- Stroke Width -->
+      <div class="property-group" id="stroke-width-prop-group">
+        <span class="property-label">Garis</span>
+        <div class="prop-button-group" id="stroke-width-group-btns">
+          <button class="prop-btn" data-value="1" title="Tipis">Thin</button>
+          <button class="prop-btn active" data-value="2" title="Sedang">Medium</button>
+          <button class="prop-btn" data-value="4" title="Tebal">Thick</button>
+        </div>
+      </div>
+
+      <!-- Font Family -->
+      <div class="property-group" id="font-family-group" style="display: none;">
+        <span class="property-label">Font</span>
+        <div class="prop-button-group" id="font-family-group-btns">
+          <button class="prop-btn active" data-value="hand" title="Tulis Tangan">Hand</button>
+          <button class="prop-btn" data-value="clean" title="Modern">Sans</button>
+          <button class="prop-btn" data-value="code" title="Monospace">Mono</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Left Widgets (Zoom only) -->
+    <div class="bottom-left-widgets">
+      <!-- Zoom controls -->
+      <div class="zoom-widget">
+        <button class="zoom-btn" id="zoom-out-btn" aria-label="Zoom Out">➖</button>
+        <span class="zoom-value" id="zoom-value-span">100%</span>
+        <button class="zoom-btn" id="zoom-in-btn" aria-label="Zoom In">➕</button>
+        <button class="zoom-btn" id="zoom-reset-btn" aria-label="Reset Zoom" style="font-size: 0.85rem;">🔄</button>
+      </div>
+    </div>
+
+    <!-- PicoCSS Custom Confirm Clear Dialog -->
+    <dialog id="clear-confirm-modal">
+      <article style="max-width: 400px; border-radius: 16px;">
+        <header style="margin-bottom: 1rem; padding: 0.75rem 1rem;">
+          <a href="#close" aria-label="Close" class="close" id="btn-close-clear-modal" style="float: right;"></a>
+          <strong style="font-size: 1.1rem;">Konfirmasi Hapus</strong>
+        </header>
+        <p style="font-size: 0.9rem; margin-bottom: 1.5rem;">Apakah Anda yakin ingin menghapus semua coretan di papan tulis ini? Tindakan ini tidak dapat dibatalkan.</p>
+        <footer style="display: flex; justify-content: flex-end; gap: 0.5rem; padding: 0.75rem 1rem; border-top: 1px solid var(--pico-muted-border-color);">
+          <button class="secondary outline" id="btn-cancel-clear" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.85rem;">Batal</button>
+          <button class="danger" id="btn-confirm-clear" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.85rem; background-color: var(--pico-danger-color);">Hapus Semuanya</button>
+        </footer>
+      </article>
+    </dialog>
+
+  </main>
+
+  <script type="module" src="./js/papan-core.js"></script>
+
+</body>
+</html>

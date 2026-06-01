@@ -65,6 +65,10 @@ Buka `http://localhost:8000` di browser Anda.
 npx serve .
 ```
 
+### Rebuild PWA
+```powershell
+npm run pwa:rebuild
+```
 ---
 
 ## 🏗 Arsitektur & Keamanan

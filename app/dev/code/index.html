@@ -61,7 +61,29 @@
 
     <!-- Projects Section -->
     <div id="projects-section">
-      <h5 style="border-bottom: 1px solid var(--code-border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">Proyek Anda</h5>
+      <div class="projects-section-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--code-border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        <h5 style="margin: 0; border: none; padding: 0;">Proyek Anda</h5>
+        <div class="view-toggle-group" style="display: flex; background: var(--pico-card-sectioning-background-color); border: 1px solid var(--code-border-color); border-radius: 8px; padding: 2px;">
+          <button id="btn-view-grid" class="icon-btn active" aria-label="Tampilan Grid" style="margin: 0; padding: 4px 8px; border-radius: 6px; line-height: 1;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none;" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="4" width="6" height="6" rx="1" />
+              <rect x="14" y="4" width="6" height="6" rx="1" />
+              <rect x="4" y="14" width="6" height="6" rx="1" />
+              <rect x="14" y="14" width="6" height="6" rx="1" />
+            </svg>
+          </button>
+          <button id="btn-view-list" class="icon-btn" aria-label="Tampilan List" style="margin: 0; padding: 4px 8px; border-radius: 6px; line-height: 1;">
+            <svg xmlns="http://www.w3.org/2000/svg" style="width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none;" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="9" y1="6" x2="20" y2="6" />
+              <line x1="9" y1="12" x2="20" y2="12" />
+              <line x1="9" y1="18" x2="20" y2="18" />
+              <line x1="5" y1="6" x2="5" y2="6.01" />
+              <line x1="5" y1="12" x2="5" y2="12.01" />
+              <line x1="5" y1="18" x2="5" y2="18.01" />
+            </svg>
+          </button>
+        </div>
+      </div>
       <div class="code-projects-grid" id="projects-container">
         <!-- Diisi secara dinamis oleh JS -->
       </div>

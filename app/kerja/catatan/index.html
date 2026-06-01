@@ -8,7 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
     <link rel="stylesheet" href="/shared/pico.min.css">
     <link rel="stylesheet" href="/shared/app.css?v=2">
-    <link rel="stylesheet" href="/assets/css/catat.css?v=1">
+    <link rel="stylesheet" href="/assets/css/catat.css?v=3">
     <style>
         /* Header Full Width */
         header.container {
@@ -79,7 +79,7 @@
             align-items: center;
             gap: 0.75rem;
             padding: 0.6rem 1rem;
-            color: var(--pico-color);
+            color: var(--pico-h1-color) !important;
             text-decoration: none;
             border-radius: 12px;
             font-weight: 600;
@@ -89,20 +89,24 @@
             background: transparent;
             justify-content: flex-start;
             margin-bottom: 0;
+            box-shadow: none;
+        }
+        .sidebar-menu-item span {
+            color: inherit !important;
         }
         .sidebar-menu-item:hover, .sidebar-menu-item.active {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--pico-color) !important;
+            background: var(--pico-form-element-background-color) !important;
+            color: var(--pico-h1-color) !important;
         }
         .sidebar-menu-item.active-primary {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--pico-color) !important;
+            background: var(--pico-form-element-background-color) !important;
+            color: var(--pico-h1-color) !important;
         }
         .sidebar-section-header {
             font-size: 0.85rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: var(--pico-muted-color);
+            color: var(--pico-muted-color) !important;
             padding: 0.5rem 1rem;
             font-weight: 700;
             display: flex;
@@ -181,8 +185,8 @@
         /* Pinned Card Styling */
         .note-card {
             border-radius: 12px;
-            background: #1e293b;
-            border: 1px solid rgba(255,255,255,0.05);
+            background: var(--pico-card-background-color);
+            border: 1px solid var(--pico-muted-border-color);
             padding: 1.25rem;
             transition: all 0.2s ease;
         }
@@ -559,6 +563,24 @@
 
             // Cek parameter import_opfs dari Berkas
             const params = new URLSearchParams(window.location.search);
+            
+            // Cek parameter id / note_id / list_id untuk membuka langsung dari Berkas
+            const idParam = params.get('id') || params.get('note_id') || params.get('list_id');
+            if (idParam) {
+                const note = notesData.find(n => n.id === idParam);
+                if (note) {
+                    currentMode = 'notes';
+                    setSidebarMode('notes');
+                    setTimeout(() => editNote(idParam), 300);
+                } else {
+                    const list = listsData.find(l => l.id === idParam);
+                    if (list) {
+                        currentMode = 'lists';
+                        setSidebarMode('lists');
+                        setTimeout(() => editList(idParam), 300);
+                    }
+                }
+            }
             const importOpfs = params.get('import_opfs');
             const importName = params.get('name') || 'Impor Catatan';
             if (importOpfs) {

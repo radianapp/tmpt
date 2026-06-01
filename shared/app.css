@@ -10,6 +10,7 @@
     --pico-background-color: #f8fafc !important;
     --pico-card-bg: #ffffff;
     --pico-h1-color: #0f172a;
+    --pico-heading-color: #1e293b; /* Warna heading untuk light mode */
 }
 
 [data-theme="dark"] {
@@ -19,6 +20,7 @@
     --pico-background-color: #191919 !important;
     --pico-card-bg: #222222;
     --pico-h1-color: #f1f5f9;
+    --pico-heading-color: #f0f1f3; /* Warna heading untuk dark mode */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +31,7 @@
         --pico-background-color: #191919 !important;
         --pico-card-bg: #222222;
         --pico-h1-color: #f1f5f9;
+        --pico-heading-color: #f0f1f3; /* Warna heading untuk sistem dark mode */
     }
 }
 

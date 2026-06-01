@@ -29,5 +29,6 @@ function getCurrentApp() {
   if (path.includes('/app/kerja/catatan/')) return 'catatan';
   if (path.includes('/app/kerja/hitung/')) return 'hitung';
   if (path.includes('/app/kerja/vault/')) return 'vault';
+  if (path.includes('/app/dev/markdown/')) return 'markdown';
   return 'unknown';
 }

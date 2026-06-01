@@ -9,11 +9,13 @@ const STORE_NAME = 'projects';
 
 let db = null;
 let projectsList = [];
+let viewMode = localStorage.getItem('tmpt_code_view_mode') || 'grid';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initDB();
   await loadProjects();
   setupEventListeners();
+  updateViewToggleButtons();
 });
 
 async function initDB() {
@@ -43,6 +45,20 @@ async function loadProjects() {
   }
 }
 
+function updateViewToggleButtons() {
+  const btnGrid = document.getElementById('btn-view-grid');
+  const btnList = document.getElementById('btn-view-list');
+  if (btnGrid && btnList) {
+    if (viewMode === 'grid') {
+      btnGrid.classList.add('active');
+      btnList.classList.remove('active');
+    } else {
+      btnList.classList.add('active');
+      btnGrid.classList.remove('active');
+    }
+  }
+}
+
 function renderProjects(projects) {
   const container = document.getElementById('projects-container');
   const emptyState = document.getElementById('empty-state');
@@ -58,6 +74,12 @@ function renderProjects(projects) {
 
   emptyState.classList.add('hidden');
   section.classList.remove('hidden');
+
+  if (viewMode === 'list') {
+    container.classList.add('view-list');
+  } else {
+    container.classList.remove('view-list');
+  }
 
   // Sort by last opened
   const sorted = [...projects].sort((a, b) => new Date(b.last_opened || 0) - new Date(a.last_opened || 0));
@@ -128,6 +150,24 @@ function renderProjects(projects) {
 }
 
 function setupEventListeners() {
+  // View toggle buttons
+  const btnGrid = document.getElementById('btn-view-grid');
+  const btnList = document.getElementById('btn-view-list');
+  if (btnGrid && btnList) {
+    btnGrid.addEventListener('click', () => {
+      viewMode = 'grid';
+      localStorage.setItem('tmpt_code_view_mode', 'grid');
+      updateViewToggleButtons();
+      renderProjects(projectsList);
+    });
+    btnList.addEventListener('click', () => {
+      viewMode = 'list';
+      localStorage.setItem('tmpt_code_view_mode', 'list');
+      updateViewToggleButtons();
+      renderProjects(projectsList);
+    });
+  }
+
   // Search
   document.getElementById('search-projects').addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase();

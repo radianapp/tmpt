@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Markdown — Editor Markdown Teknis & Offline</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./markdown.css?v=2.7">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  
+  <!-- Vendor offline libs -->
+  <script src="./vendor/marked.min.js"></script>
+  <script src="./vendor/purify.min.js"></script>
+  
+  <!-- Lazy load Monaco Editor Loader from dev/code vendor -->
+  <script src="/app/dev/code/vendor/monaco/vs/loader.js"></script>
+
+  
+  <script type="module" src="/shared/seo.js" data-seo-key="markdown-editor"></script>
+</head>
+<body>
+  
+  <!-- Global App Header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <div class="markdown-app" id="markdown-app-container">
+    
+    <!-- Sidebar Kiri: Berkas & Folder -->
+    <aside class="markdown-sidebar" id="sidebar-panel">
+      <div class="sidebar-header-box">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+          <span style="font-weight: 700; font-size: 1rem; color: var(--pico-heading-color); display: flex; align-items: center; gap: 0.35rem;">
+            <span>📝 Markdown</span>
+          </span>
+          <div class="sidebar-actions-row">
+            <a href="#" id="btn-new-file" class="sidebar-icon-btn" title="Berkas Baru" aria-label="Berkas Baru">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </a>
+            <a href="#" id="btn-new-folder" class="sidebar-icon-btn" title="Folder Baru" aria-label="Folder Baru">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </a>
+            <a href="#" id="btn-open-settings" class="sidebar-icon-btn" title="Pengaturan" aria-label="Pengaturan">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav-menu" style="padding: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; border-bottom: 1px solid var(--border-color);">
+        <a href="#" class="sidebar-menu-item active" id="btn-view-all">
+          <span>📂</span> <span>Semua Dokumen</span>
+        </a>
+        <a href="#" class="sidebar-menu-item" id="btn-trash-view">
+          <span>🗑️</span> <span>Kotak Sampah</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-search">
+        <input type="search" id="search-docs" placeholder="Cari berkas...">
+      </div>
+
+      <!-- Trash Actions Row (Hidden by default) -->
+      <div id="trash-actions-row" class="hidden" style="padding: 0.5rem; display: flex; gap: 0.5rem; border-bottom: 1px solid var(--border-color);">
+        <button class="outline" id="btn-empty-trash" style="flex: 1; padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; border-color: #ef4444; color: #ef4444;">🧹 Bersihkan</button>
+        <button class="outline" id="btn-restore-all-trash" style="flex: 1; padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; border-color: #10b981; color: #10b981;">🔄 Pulihkan Semua</button>
+      </div>
+
+      <div class="sidebar-tree" id="file-tree-container">
+        <!-- Struktur folder/file diisi dinamis oleh JS -->
+      </div>
+
+      <div class="sidebar-footer">
+        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
+          <span id="storage-use-indicator">0 B digunakan</span>
+          <a href="#" id="btn-import-md" style="font-size: 0.75rem; text-decoration: none;">📥 Impor</a>
+        </div>
+        <input type="file" id="import-file-input" accept=".md,.txt" style="display: none;">
+      </div>
+    </aside>
+
+    <!-- Main Workspace Area -->
+    <div class="markdown-main">
+      
+      <!-- Toolbar Atas -->
+      <div class="markdown-toolbar">
+        <div class="toolbar-left">
+          <!-- Formatting buttons -->
+          <button id="tb-bold" class="outline" title="Tebal (Ctrl+B)" aria-label="Bold"><b>B</b></button>
+          <button id="tb-italic" class="outline" title="Miring (Ctrl+I)" aria-label="Italic"><i>I</i></button>
+          <button id="tb-strike" class="outline" title="Coret (Ctrl+Shift+S)" aria-label="Strikethrough"><del>S</del></button>
+          <button id="tb-code-inline" class="outline" title="Kode Segaris (Ctrl+Shift+C)" aria-label="Inline Code"><code>&lt;&gt;</code></button>
+          
+          <span class="toolbar-divider"></span>
+
+          <details class="dropdown" id="dropdown-headings" style="margin: 0;">
+            <summary class="outline button" style="margin: 0; padding: 0.35rem 0.6rem; font-size: 0.82rem; border-radius: 8px;">H▾</summary>
+            <ul>
+              <li><a href="#" class="btn-heading" data-level="1">Heading 1</a></li>
+              <li><a href="#" class="btn-heading" data-level="2">Heading 2</a></li>
+              <li><a href="#" class="btn-heading" data-level="3">Heading 3</a></li>
+              <li><a href="#" class="btn-heading" data-level="4">Heading 4</a></li>
+            </ul>
+          </details>
+
+          <button id="tb-list-ul" class="outline" title="Daftar Bulatan (Ctrl+U)" aria-label="Bullet List">• list</button>
+          <button id="tb-list-ol" class="outline" title="Daftar Angka (Ctrl+O)" aria-label="Numbered List">1. list</button>
+          <button id="tb-list-task" class="outline" title="Daftar Tugas" aria-label="Task List">☑ list</button>
+          
+          <span class="toolbar-divider"></span>
+          
+          <button id="tb-quote" class="outline" title="Kutipan Blok (Ctrl+Q)" aria-label="Blockquote">“</button>
+          <button id="tb-code-block" class="outline" title="Blok Kode (Ctrl+Alt+C)" aria-label="Code Block">Code</button>
+          <button id="tb-hr" class="outline" title="Garis Horisontal" aria-label="Horizontal Rule">―</button>
+          
+          <span class="toolbar-divider"></span>
+
+          <button id="tb-link" class="outline" title="Tautkan Link (Ctrl+K)" aria-label="Insert Link">🔗</button>
+          <button id="tb-image" class="outline" title="Gambar (Ctrl+Shift+I)" aria-label="Insert Image">🖼️</button>
+          <button id="tb-table" class="outline" title="Tabel" aria-label="Insert Table">⊞ Tabel</button>
+
+          <details class="dropdown" id="dropdown-more" style="margin: 0;">
+            <summary class="outline button" style="margin: 0; padding: 0.35rem 0.6rem; font-size: 0.82rem; border-radius: 8px;">⊕▾</summary>
+            <ul>
+              <li><a href="#" id="tb-latex-inline">📐 LaTeX Segaris</a></li>
+              <li><a href="#" id="tb-latex-block">📐 LaTeX Blok</a></li>
+              <li><a href="#" id="tb-mermaid">📊 Diagram Mermaid</a></li>
+              <li><a href="#" id="tb-footnote">📑 Footnote</a></li>
+              <li><a href="#" id="tb-toc">📜 Daftar Isi (TOC)</a></li>
+            </ul>
+          </details>
+        </div>
+
+        <div class="toolbar-right">
+          <!-- View Modes -->
+          <div class="view-toggles" style="display: flex; gap: 0.25rem;">
+            <button id="btn-mode-split" class="outline active" title="Tampilan Terpisah" aria-label="Split View">Split</button>
+            <button id="btn-mode-editor" class="outline" title="Hanya Editor" aria-label="Editor Only">Editor</button>
+            <button id="btn-mode-preview" class="outline" title="Hanya Preview" aria-label="Preview Only">Preview</button>
+            <button id="btn-mode-focus" class="outline" title="Mode Fokus (F11)" aria-label="Focus Mode">Focus</button>
+            <button id="btn-exit-focus-toolbar" class="outline" title="Keluar Mode Fokus" aria-label="Keluar Mode Fokus" style="margin: 0; padding: 0.35rem 0.6rem; border-radius: 8px; border-color: #ef4444; color: #ef4444; display: none;">Keluar Fokus</button>
+          </div>
+
+          <span class="toolbar-divider"></span>
+
+          <details class="dropdown" id="dropdown-export" style="margin: 0;">
+            <summary class="button btn-navy" style="margin: 0; padding: 0.35rem 0.85rem; font-size: 0.85rem; border-radius: 8px;">Ekspor ▾</summary>
+            <ul dir="rtl" style="text-align: left; right: 0; left: auto;">
+              <li><a href="#" id="export-md">📄 Markdown (.md)</a></li>
+              <li><a href="#" id="export-html">🌐 HTML Standar</a></li>
+              <li><a href="#" id="export-html-github">🐙 HTML + Style GitHub</a></li>
+              <li><a href="#" id="export-pdf">🖨️ Cetak / Simpan PDF</a></li>
+            </ul>
+          </details>
+        </div>
+      </div>
+
+      <!-- Editor Content Workspace Container -->
+      <div class="markdown-content split" id="workspace-container">
+        
+        <!-- Panel Editor -->
+        <div class="editor-panel" id="editor-panel-host">
+          <div id="monaco-editor-host" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <!-- Panel Preview -->
+        <div class="preview-panel" id="preview-panel-host">
+          <!-- Preview HTML will be rendered inside this div or iframe -->
+          <div class="markdown-body" id="preview-html-content"></div>
+        </div>
+
+      </div>
+
+      <!-- Status Bar Bawah -->
+      <footer class="markdown-statusbar">
+        <div class="statusbar-left">
+          <span>Format: <b>Markdown</b></span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-size">0 B</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-words">0 kata</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-time">~0 menit baca</span>
+        </div>
+        <div class="statusbar-right">
+          <span id="save-status">Tersimpan ✓</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-cursor">Baris 1, Kolom 1</span>
+        </div>
+      </footer>
+
+    </div>
+
+  </div>
+
+  <!-- Dialog: Opsi Berkas -->
+  <dialog id="modal-file-options">
+    <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">Opsi Berkas</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-file-options').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button class="outline" id="btn-opt-rename" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem;">✏️ Ganti Nama</button>
+        <button class="outline" id="btn-opt-duplicate" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem;">📋 Duplikat</button>
+        <button class="outline" id="btn-opt-trash" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem; color: #ef4444; border-color: #ef4444;">🗑️ Hapus ke Sampah</button>
+        <button class="outline hidden" id="btn-opt-delete-permanent" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem; color: #dc2626; border-color: #dc2626;">❌ Hapus Permanen</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Opsi Folder -->
+  <dialog id="modal-folder-options">
+    <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">Opsi Folder</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-folder-options').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <button class="outline" id="btn-fopt-newfile" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem;">📄 Berkas Baru</button>
+        <button class="outline" id="btn-fopt-rename" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem;">✏️ Ganti Nama</button>
+        <button class="outline" id="btn-fopt-delete" style="margin: 0; border-radius: 8px; text-align: left; padding: 0.5rem 1rem; color: #ef4444; border-color: #ef4444;">🗑️ Hapus Folder</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Pengaturan (Settings) -->
+  <dialog id="modal-settings">
+    <article style="max-width: 550px; width: 95%; border-radius: 16px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0; font-weight: 700;">⚙️ Pengaturan Editor</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-settings').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      
+      <form id="form-settings" onsubmit="event.preventDefault();">
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div>
+            <label for="setting-font-size" style="font-weight: 600;">Ukuran Font Editor</label>
+            <select id="setting-font-size" style="border-radius: 8px;">
+              <option value="12">12px</option>
+              <option value="14">14px</option>
+              <option value="16" selected>16px</option>
+              <option value="18">18px</option>
+              <option value="20">20px</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="checkbox" id="setting-word-wrap" checked style="margin: 0;">
+              <span>Aktifkan Word Wrap (Bungkus Baris Teks)</span>
+            </label>
+          </div>
+
+          <div>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+              <input type="checkbox" id="setting-line-numbers" checked style="margin: 0;">
+              <span>Tampilkan Nomor Baris</span>
+            </label>
+          </div>
+
+          <div>
+            <label for="setting-preview-theme" style="font-weight: 600;">Tema Pratinjau (Preview Theme)</label>
+            <select id="setting-preview-theme" style="border-radius: 8px;">
+              <option value="default" selected>Default TMPT (Clean & Modern)</option>
+              <option value="github">GitHub Markdown Style</option>
+              <option value="minimal">Minimalist Typography</option>
+            </select>
+          </div>
+
+          <div style="border: 1px solid var(--pico-muted-border-color); border-radius: 12px; padding: 1rem; background: var(--pico-card-sectioning-background-color);">
+            <strong style="display: block; margin-bottom: 0.5rem;">Ekstensi Markdown</strong>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.5rem;">
+              <input type="checkbox" id="setting-ext-latex" checked style="margin: 0;">
+              <span>Dukungan Rumus Matematika LaTeX (KaTeX)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.5rem;">
+              <input type="checkbox" id="setting-ext-mermaid" checked style="margin: 0;">
+              <span>Dukungan Diagram Alir UML (Mermaid.js)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0;">
+              <input type="checkbox" id="setting-ext-emoji" checked style="margin: 0;">
+              <span>Konversi Otomatis Emoji Markup (misal: :smile:)</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.75rem; border-top: 1px solid var(--pico-muted-border-color); padding-top: 1rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-settings').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
+          <button type="button" class="btn-navy" id="btn-save-settings" style="margin: 0; border-radius: 8px;">Simpan Perubahan</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Folder CRUD (Create/Rename) -->
+  <dialog id="modal-folder-crud">
+    <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 id="folder-crud-title" style="margin-bottom: 0; font-weight: 700;">Buat Folder Baru</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-folder-crud').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <form id="form-folder-crud" onsubmit="event.preventDefault();">
+        <input type="hidden" id="folder-crud-id">
+        <div style="margin-bottom: 1rem;">
+          <label for="folder-name-input">Nama Folder</label>
+          <input type="text" id="folder-name-input" placeholder="Masukkan nama folder..." required autocomplete="off">
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-folder-crud').close()" style="margin:0; border-radius: 8px;">Batal</button>
+          <button type="submit" class="btn-navy" id="btn-save-folder" style="margin:0; border-radius: 8px;">Simpan</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Konfirmasi (Generic) -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Float Exit Focus Button -->
+  <button class="btn-exit-focus" id="btn-exit-focus-float">Keluar Mode Fokus (Esc)</button>
+
+  <script type="module" src="./markdown.js?v=2.6"></script>
+</body>
+</html>

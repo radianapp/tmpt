@@ -106,5 +106,17 @@ export const SEO_CONFIG = {
     desc: 'Editor kode offline-first di ekosistem TMPT.',
     noindex: true,
     schemas: []
+  },
+  'markdown-editor': {
+    title: 'TMPT Markdown — Editor Markdown Teknis & Offline',
+    desc: 'Editor Markdown offline-first dengan split live preview, rumus KaTeX, diagram Mermaid, dan penyimpanan local-first yang aman.',
+    canonical: 'https://tmpt.my.id/app/dev/markdown/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Dev', url: '/app/dev/' },
+      { name: 'TMPT Markdown', url: '/app/dev/markdown/' }
+    ]
   }
 };

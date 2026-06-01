@@ -30,8 +30,6 @@ async function ensurePyodide() {
 
     pyodide = await self.loadPyodide({
       indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.27.5/full/',
-      // stdout/stderr dihandle di sini, BUKAN dari Python class
-      // agar tidak terkena DataCloneError saat postMessage
       stdout: (text) => {
         self.postMessage({ type: 'stdout', message: text, id: _activeId });
       },
@@ -40,28 +38,8 @@ async function ensurePyodide() {
       }
     });
 
-    // Override input() — stdin tidak tersedia di Web Worker / Pyodide
-    // Tanpa ini akan muncul OSError [Errno 29] I/O error yang membingungkan
-    pyodide.runPython(`
-import builtins as _builtins
-
-def _tmpt_input(prompt=''):
-    if prompt:
-        print(f"[input prompt: {prompt}]")
-    raise EOFError(
-        "\\n\\u26a0\\ufe0f  input() tidak tersedia di lingkungan browser (Pyodide).\\n"
-        "   Ganti input() dengan nilai langsung, contoh:\\n"
-        "   \\n"
-        "   # SEBELUM (tidak bisa di browser):\\n"
-        "   # nilai = float(input('Masukkan angka: '))\\n"
-        "   \\n"
-        "   # SESUDAH (gunakan nilai langsung):\\n"
-        "   nilai = 36.6"
-    )
-
-_builtins.input = _tmpt_input
-del _builtins
-`);
+    // input() dioverride per-run (di onmessage type='run') dengan input queue
+    // agar bisa menerima nilai dari user melalui modal Input Panel
 
     isLoading = false;
     isLoaded = true;
@@ -75,18 +53,43 @@ del _builtins
 }
 
 self.onmessage = async (event) => {
-  const { type, code, id } = event.data;
+  const { type, code, id, inputValues } = event.data;
 
   if (type === 'run') {
     _activeId = id;
     try {
       const py = await ensurePyodide();
 
+      // Setup input queue dari nilai yang dikirim main thread
+      // Ini menggantikan override sebelumnya yang hanya throw error
+      const inputs = Array.isArray(inputValues) ? [...inputValues] : [];
+      py.runPython(`
+import builtins as _b
+
+def _tmpt_input(prompt=''):
+    if prompt:
+        import sys
+        sys.stdout.write(str(prompt))
+        sys.stdout.flush()
+    idx = _tmpt_input.idx
+    queue = _tmpt_input.queue
+    if idx < len(queue):
+        val = str(queue[idx])
+        _tmpt_input.idx += 1
+        print(val)   # Echo seperti terminal asli
+        return val
+    raise EOFError("Tidak ada input ke-" + str(idx + 1) + ". Klik Jalankan lagi dan isi semua nilai input.")
+
+_tmpt_input.idx = 0
+_tmpt_input.queue = ${JSON.stringify(inputs)}
+_b.input = _tmpt_input
+del _b
+`);
+
       let result;
       try {
         result = py.runPython(code);
       } catch (pyErr) {
-        // Pyodide exception — tampilkan pesan error Python yang bersih
         const msg = pyErr.message || String(pyErr);
         self.postMessage({ type: 'error', message: msg, id });
         self.postMessage({ type: 'done', id });
@@ -94,7 +97,6 @@ self.onmessage = async (event) => {
         return;
       }
 
-      // Jika ada return value (bukan None), tampilkan
       if (result !== undefined && result !== null && String(result) !== 'None') {
         self.postMessage({ type: 'result', message: String(result), id });
       }

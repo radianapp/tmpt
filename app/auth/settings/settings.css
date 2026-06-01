@@ -1,0 +1,430 @@
+/* Custom styles for Chrome-like settings page */
+
+:root {
+    --settings-sidebar-width: 250px;
+    --settings-border-radius: 8px;
+    --settings-row-padding: 1rem 1.25rem;
+}
+
+/* Page Layout */
+.settings-container {
+    display: flex;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 4rem 1rem;
+}
+
+/* Header Bar overrides */
+.settings-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 2rem;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    background-color: var(--pico-card-background-color);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.settings-header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Invert black logo in dark theme */
+[data-theme="dark"] .settings-header-left img {
+    filter: invert(1) brightness(2);
+}
+
+.settings-logo {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--pico-primary);
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.settings-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--pico-color);
+}
+
+.settings-search-container {
+    flex: 1;
+    max-width: 600px;
+    margin: 0 2rem;
+    position: relative;
+}
+
+.settings-search-input {
+    width: 100%;
+    padding: 0.5rem 1rem 0.5rem 2.5rem !important;
+    border-radius: 100px !important;
+    font-size: 0.9rem;
+    margin: 0 !important;
+    height: auto !important;
+    background-color: var(--pico-background-color) !important;
+    border: 1px solid var(--pico-muted-border-color) !important;
+    transition: all 0.2s ease;
+}
+
+.settings-search-input:focus {
+    box-shadow: 0 0 0 2px var(--pico-primary-focus) !important;
+    background-color: var(--pico-card-background-color) !important;
+}
+
+.settings-search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+/* Sidebar Navigation */
+.settings-sidebar {
+    width: var(--settings-sidebar-width);
+    flex-shrink: 0;
+    position: sticky;
+    top: 5rem;
+    height: fit-content;
+}
+
+.settings-nav-list {
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.settings-nav-item {
+    margin-bottom: 0.25rem;
+    list-style: none !important;
+    padding: 0 !important;
+}
+
+.settings-nav-link {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 0.75rem;
+    padding: 0.65rem 1rem !important;
+    color: var(--pico-color);
+    text-decoration: none;
+    border-radius: 100px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+    width: 100%;
+}
+
+.settings-nav-link:hover {
+    background-color: rgba(128, 128, 128, 0.08);
+    text-decoration: none;
+}
+
+.settings-nav-item.active .settings-nav-link {
+    background-color: var(--pico-primary-background);
+    color: var(--pico-primary);
+    font-weight: 600;
+}
+
+/* Main Content Area */
+.settings-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-section {
+    margin-bottom: 2.5rem;
+    scroll-margin-top: 5rem; /* for smooth scrolling offset */
+}
+
+.settings-section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--pico-color);
+}
+
+/* Cards & Rows style like Chrome settings */
+.settings-panel {
+    background-color: var(--pico-card-background-color);
+    border-radius: var(--settings-border-radius);
+    border: 1px solid var(--pico-muted-border-color);
+    overflow: hidden;
+    margin-bottom: 1rem;
+    box-shadow: var(--pico-box-shadow);
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--settings-row-padding);
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    min-height: 3.5rem;
+}
+
+.settings-row:last-child {
+    border-bottom: none;
+}
+
+.settings-row-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-row-icon {
+    font-size: 1.25rem;
+    width: 24px;
+    text-align: center;
+    opacity: 0.85;
+    flex-shrink: 0;
+}
+
+.settings-row-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.settings-row-title {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--pico-color);
+}
+
+.settings-row-desc {
+    font-size: 0.825rem;
+    color: var(--pico-secondary);
+    margin-top: 0.15rem;
+}
+
+.settings-row-right {
+    margin-left: 1.5rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Row controls */
+.settings-row-right select {
+    margin: 0 !important;
+    padding: 0.35rem 2rem 0.35rem 0.75rem !important;
+    font-size: 0.875rem !important;
+    width: auto !important;
+    min-width: 150px;
+    height: auto !important;
+}
+
+.settings-row-right button {
+    margin: 0 !important;
+    padding: 0.4rem 1rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 6px !important;
+    width: auto !important;
+    height: auto !important;
+}
+
+/* Link/Expandable settings indicator */
+.settings-row-arrow {
+    opacity: 0.5;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+/* License card custom styles */
+.license-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem 1.5rem;
+    background-color: var(--pico-card-background-color);
+    border-radius: var(--settings-border-radius);
+    border: 1px solid var(--pico-muted-border-color);
+    margin-bottom: 1.5rem;
+}
+
+.license-card-left {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.license-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(128, 128, 128, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--pico-color);
+}
+
+.license-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.license-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.license-sub {
+    font-size: 0.85rem;
+    color: var(--pico-secondary);
+    margin-top: 0.15rem;
+}
+
+/* Danger Zone Custom Style */
+.danger-zone-panel {
+    border: 1px solid rgba(239, 68, 68, 0.4) !important;
+    background-color: rgba(239, 68, 68, 0.02) !important;
+}
+
+.danger-zone-panel .settings-row-title {
+    color: #ef4444 !important;
+}
+
+/* Hide Hamburger Menu by default on Desktop */
+.settings-hamburger {
+    display: none !important;
+}
+
+/* Sidebar Backdrop Overlay */
+.settings-sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.settings-sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+    .settings-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding-top: 1rem;
+    }
+    
+    /* Hamburger Menu visible in Mobile */
+    .settings-hamburger {
+        display: flex !important;
+        margin-right: 0.5rem;
+    }
+    
+    /* Transform Sidebar into Slide-in Drawer */
+    .settings-sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background-color: var(--pico-card-background-color);
+        border-right: 1px solid var(--pico-muted-border-color);
+        z-index: 999;
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 2rem 1rem !important;
+        margin-bottom: 0;
+        box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+        display: block !important;
+        overflow-y: auto;
+    }
+    
+    .settings-sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .settings-nav-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .settings-nav-link {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem;
+        border-radius: 8px;
+    }
+    
+    .settings-search-container {
+        margin: 0 0.5rem;
+        max-width: 100%;
+    }
+    
+    .settings-header-bar {
+        padding: 0.75rem 1rem;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    
+    .settings-header-left {
+        justify-content: flex-start;
+        flex: 1;
+    }
+    
+    /* Place Search on its own line in very small screens if needed, otherwise flex wrap handle it */
+    .settings-search-container {
+        order: 3;
+        width: 100%;
+        margin: 0;
+        margin-top: 0.25rem;
+    }
+    
+    .settings-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .settings-row-right {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+    }
+    
+    .settings-row-right select,
+    .settings-row-right button {
+        width: 100% !important;
+    }
+}

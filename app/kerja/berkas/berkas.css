@@ -332,6 +332,7 @@
 .badge-other { background-color: #6b7280; }
 .badge-catat_notes { background-color: #f59e0b; }
 .badge-catat_lists { background-color: #06b6d2; }
+.badge-papan { background-color: #8b5cf6; }
 
 /* List View Table */
 .file-list-table {
@@ -457,32 +458,41 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .berkas-sidebar {
-    width: 60px;
-    padding-right: 0.5rem;
-  }
-  .sidebar-nav strong,
-  .sidebar-nav ul li ul,
-  .sidebar-nav #sidebar-add-folder,
-  .sidebar-nav .tags-container,
-  .storage-card {
-    display: none !important;
+/* Responsive & Collapse Sidebar */
+.berkas-sidebar {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (min-width: 769px) {
+  .berkas-sidebar.collapsed {
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+    padding-right: 0;
+    border-right: none;
+    margin-right: -1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  .berkas-layout {
-    flex-direction: column;
-  }
   .berkas-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid var(--berkas-border-color);
-    padding-right: 0;
-    padding-bottom: 1rem;
+    position: fixed;
+    top: 70px;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    z-index: 1000;
+    background: var(--pico-background-color) !important;
+    border-right: 1px solid var(--berkas-border-color);
+    padding: 1.5rem;
+    transform: translateX(-100%);
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
   }
+
+  .berkas-sidebar.show {
+    transform: translateX(0);
+  }
+
   .search-box {
     width: 100%;
   }

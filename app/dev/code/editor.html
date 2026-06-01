@@ -18,7 +18,11 @@
   <script src="/shared/auth.js"></script>
   <script src="/shared/ui.js"></script>
   <script src="/shared/license.js"></script>
+  <script src="/app/feedback/feedback-widget.js" defer></script>
   
+  <!-- JSZip for project exporting -->
+  <script src="./vendor/jszip.min.js"></script>
+
   <!-- Lazy load Monaco Editor Loader script -->
   <script src="./vendor/monaco/vs/loader.js"></script>
   
@@ -59,6 +63,16 @@
         ⬇️ Export
       </button>
       <span id="save-status" class="save-status-saved">Tersimpan ✓</span>
+      
+      <!-- Umpan Balik / Bantuan -->
+      <button onclick="window.TMPT_Feedback.toggleWidget()" class="icon-btn" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0.35rem; display: flex; align-items: center; justify-content: center; background: transparent; border: none; cursor: pointer; color: var(--pico-heading-color); margin-bottom: 0;">
+        <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+            <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+            <path d="M12 17l0 .01"></path>
+            <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+        </svg>
+      </button>
     </div>
   </header>
 
@@ -172,6 +186,31 @@
         </button>
         <button class="outline secondary" onclick="document.getElementById('modal-export').close()" style="margin:0; border-radius:10px;" aria-label="Batal">
           Batal
+        </button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Python Input Panel -->
+  <dialog id="modal-python-input" aria-labelledby="python-input-title">
+    <article style="border-radius: 16px; padding: 1.75rem; max-width: 460px; width: 92vw;">
+      <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+        <div>
+          <h4 id="python-input-title" style="margin-bottom: 0.2rem;">🐍 Input Python</h4>
+          <p class="secondary" style="font-size: 0.8rem; margin: 0;">
+            Kode ini menggunakan <code>input()</code>. Isi nilai di bawah sebelum dijalankan.
+          </p>
+        </div>
+      </header>
+      <div id="python-input-fields" style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <!-- Diisi dinamis oleh JS berdasarkan input() yang ditemukan -->
+      </div>
+      <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; justify-content: flex-end;">
+        <button id="btn-python-input-cancel" class="outline secondary" style="margin:0; border-radius:8px;">
+          Batal
+        </button>
+        <button id="btn-python-input-run" class="primary" style="margin:0; border-radius:8px;" aria-label="Jalankan dengan nilai input">
+          ▶ Jalankan
         </button>
       </div>
     </article>
