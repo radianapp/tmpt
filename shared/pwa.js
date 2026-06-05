@@ -3,8 +3,15 @@
  * Handles Service Worker registration and PWA installation.
  */
 
-// Untuk pengembangan, kita matikan dulu agar tidak ada masalah cache
-const ENABLE_PWA = false;
+// Deteksi otomatis environment berdasarkan domain
+const isLocalhost = Boolean(
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '[::1]' ||
+    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
+);
+
+// PWA hanya aktif di production (domain selain localhost)
+const ENABLE_PWA = !isLocalhost;
 
 if (ENABLE_PWA && 'serviceWorker' in navigator) {
     window.addEventListener('load', () => {
