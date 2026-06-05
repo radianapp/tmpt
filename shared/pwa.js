@@ -14,6 +14,15 @@ const isLocalhost = Boolean(
 const ENABLE_PWA = !isLocalhost;
 
 if (ENABLE_PWA && 'serviceWorker' in navigator) {
+    // Monitor service worker controller changes for auto-reloading
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+        }
+    });
+
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
             .then(reg => {
