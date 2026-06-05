@@ -40,6 +40,51 @@
   margin: 0;
 }
 
+/* New Button Dropdown Custom Position & Styling */
+#new-dropdown {
+  position: relative;
+  z-index: 100;
+}
+
+#new-dropdown[open] .new-menu {
+  display: block;
+}
+
+.new-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: var(--pico-card-background-color);
+  border: 1px solid var(--berkas-border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  list-style: none !important;
+  z-index: 1010;
+}
+
+.new-menu li {
+  margin-bottom: 0 !important;
+}
+
+.new-menu li a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--pico-color);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.new-menu li a:hover {
+  background-color: var(--pico-card-sectioning-background-color);
+  color: var(--pico-primary);
+}
+
+
 .sidebar-nav li {
   margin-bottom: 1rem;
 }

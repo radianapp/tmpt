@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator BMI — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⚖️ Kalkulator BMI (Indeks Massa Tubuh)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <!-- Form Input -->
+      <div class="calc-box">
+        <form id="bmi-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="gender">Jenis Kelamin</label>
+            <select id="gender" name="gender">
+              <option value="male">Laki-laki</option>
+              <option value="female">Perempuan</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="age">Usia (Tahun)</label>
+            <input type="number" id="age" name="age" min="2" max="120" value="25" required>
+          </div>
+
+          <div class="form-group">
+            <label for="height">Tinggi Badan (cm)</label>
+            <input type="number" id="height" name="height" min="50" max="250" value="170" required>
+          </div>
+
+          <div class="form-group">
+            <label for="weight">Berat Badan (kg)</label>
+            <input type="number" id="weight" name="weight" min="10" max="300" value="65" required>
+          </div>
+
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%; margin-top: 1rem;">Hitung Sekarang</button>
+        </form>
+      </div>
+
+      <!-- Hasil Output -->
+      <div class="calc-box" id="result-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Indeks Massa Tubuh (BMI)</span>
+          <div class="calc-result-value" id="bmi-value">-</div>
+          <span class="calc-result-badge badge-success" id="bmi-category">Masukkan data Anda</span>
+        </div>
+        
+        <div style="margin-top: 1rem; font-size: 0.95rem;">
+          <strong>Berat Badan Ideal Anda:</strong>
+          <p class="secondary" id="bmi-ideal-range" style="margin-bottom: 0;">-</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEO Content Section -->
+    <section class="calc-related-section">
+      <h3>Cara Kerja &amp; Formula BMI</h3>
+      <p>Body Mass Index (BMI) atau Indeks Massa Tubuh (IMT) adalah metode cepat untuk mengukur kadar lemak tubuh berdasarkan perbandingan berat dan tinggi badan. Formula standar dari World Health Organization (WHO) adalah:</p>
+      <pre><code>BMI = Berat Badan (kg) / (Tinggi Badan (m) * Tinggi Badan (m))</code></pre>
+      
+      <h4 style="margin-top: 1.5rem;">Klasifikasi Nilai BMI (Standar WHO):</h4>
+      <ul>
+        <li><strong>Kurang dari 18.5:</strong> Berat badan kurang (Underweight). Dianjurkan meningkatkan asupan kalori.</li>
+        <li><strong>18.5 – 24.9:</strong> Berat badan ideal/normal. Pertahankan pola makan sehat.</li>
+        <li><strong>25.0 – 29.9:</strong> Berat badan berlebih (Overweight). Disarankan olahraga rutin.</li>
+        <li><strong>30.0 atau lebih:</strong> Obesitas. Disarankan konsultasi medis.</li>
+      </ul>
+    </section>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateBMI } from './js/health-calc.js';
+
+    const slug = 'bmi';
+    const calcName = 'Kalkulator BMI';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set Favorite Button State
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      // Share URL
+      document.getElementById('share-btn').addEventListener('click', () => {
+        const p = {
+          gender: document.getElementById('gender').value,
+          age: document.getElementById('age').value,
+          height: document.getElementById('height').value,
+          weight: document.getElementById('weight').value
+        };
+        copyShareUrl(p);
+      });
+
+      // Calculate Trigger
+      const calcBtn = document.getElementById('btn-calculate');
+      calcBtn.addEventListener('click', runCalculation);
+
+      // Populate from URL
+      const params = getUrlParams();
+      if (params.height && params.weight) {
+        document.getElementById('gender').value = params.gender || 'male';
+        document.getElementById('age').value = params.age || 25;
+        document.getElementById('height').value = params.height;
+        document.getElementById('weight').value = params.weight;
+        runCalculation();
+      }
+    });
+
+    function runCalculation() {
+      const weight = parseFloat(document.getElementById('weight').value);
+      const height = parseFloat(document.getElementById('height').value);
+      
+      if (!weight || !height) return;
+
+      const res = calculateBMI(weight, height);
+      if (res) {
+        document.getElementById('bmi-value').textContent = res.value;
+        const catBadge = document.getElementById('bmi-category');
+        catBadge.textContent = res.category;
+        
+        // Adjust badge color
+        catBadge.className = 'calc-result-badge';
+        if (res.value < 18.5) {
+          catBadge.classList.add('badge-warning');
+        } else if (res.value >= 18.5 && res.value < 25) {
+          catBadge.classList.add('badge-success');
+        } else {
+          catBadge.classList.add('badge-danger');
+        }
+
+        document.getElementById('bmi-ideal-range').textContent = `${res.idealRange.min} kg – ${res.idealRange.max} kg`;
+        
+        // Save to URL and History
+        const inputs = { weight, height, gender: document.getElementById('gender').value };
+        setUrlParams(inputs);
+        saveHistoryEntry(slug, calcName, inputs, { value: res.value });
+      }
+    }
+  </script>
+</body>
+</html>

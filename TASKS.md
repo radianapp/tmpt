@@ -92,3 +92,18 @@
 - [x] Pembuatan `robots.txt`
 - [x] Pembuatan Sitemap XML (`sitemap.xml`, `sitemap-core.xml`, `sitemap-kerja.xml`, `sitemap-dev.xml`, `sitemap-tools.xml`)
 - [x] Integrasi SEO pada Landing Page (`index.html`) dan validasi meta tag dinamis
+
+## Fase 11: Base64 Tools (MVP)
+- [x] Setup folder `/app/tools/base64/` dan file modular
+- [x] Implementasi 29 tools (teks, media, utilitas, dll.)
+- [x] Registrasi di `shared/apps.json` dan `app/app-dashboard.js`
+- [x] Integrasi SEO dan metadata (`shared/seo-config.js`)
+
+## Fase 12: i18n Foundation System
+- [x] Pembuatan kamus terjemahan modular (`shared/i18n-config.js`)
+- [x] Pembuatan engine penerjemah client-side (`shared/i18n.js`)
+- [x] Integrasi i18n data attributes pada header (`shared/app-header.html`)
+- [x] Integrasi i18n data attributes pada footer (`shared/footer.html`)
+- [x] Dukungan dinamis profile dropdown pada UI module (`shared/ui.js`)
+- [x] Implementasi setelan pilihan bahasa di Settings (`app/auth/settings/index.html`)
+- [x] Sinkronisasi bahasa tersimpan dengan enkripsi di dalam vault

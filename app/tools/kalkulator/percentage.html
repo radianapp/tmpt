@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Persentase — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>📈 Kalkulator Persentase</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Mode 1 & 2 -->
+      <div class="calc-box">
+        <h3>Berapa X% dari Y?</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+          <input type="number" id="p1-x" placeholder="X" style="margin-bottom: 0;">
+          <span>% dari</span>
+          <input type="number" id="p1-y" placeholder="Y" style="margin-bottom: 0;">
+          <button class="btn-navy" id="btn-p1" style="margin-bottom: 0;">=</button>
+        </div>
+        <p>Hasil: <strong id="res-p1">-</strong></p>
+
+        <hr>
+
+        <h3>X adalah berapa % dari Y?</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+          <input type="number" id="p2-x" placeholder="X" style="margin-bottom: 0;">
+          <span>dari</span>
+          <input type="number" id="p2-y" placeholder="Y" style="margin-bottom: 0;">
+          <button class="btn-navy" id="btn-p2" style="margin-bottom: 0;">=</button>
+        </div>
+        <p>Hasil: <strong id="res-p2">-</strong>%</p>
+      </div>
+
+      <!-- Mode 3 -->
+      <div class="calc-box">
+        <h3>Perubahan dari X ke Y berapa %?</h3>
+        <div style="display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1rem;">
+          <input type="number" id="p3-x" placeholder="Dari X" style="margin-bottom: 0;">
+          <span>ke</span>
+          <input type="number" id="p3-y" placeholder="Ke Y" style="margin-bottom: 0;">
+          <button class="btn-navy" id="btn-p3" style="margin-bottom: 0;">=</button>
+        </div>
+        <p>Hasil: <strong id="res-p3">-</strong>%</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculatePercentageVal, calculatePercentageOf, calculatePercentageChange } from './js/math-calc.js';
+
+    const slug = 'percentage';
+    const calcName = 'Kalkulator Persentase';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          p1x: document.getElementById('p1-x').value,
+          p1y: document.getElementById('p1-y').value,
+          p2x: document.getElementById('p2-x').value,
+          p2y: document.getElementById('p2-y').value,
+          p3x: document.getElementById('p3-x').value,
+          p3y: document.getElementById('p3-y').value
+        });
+      });
+
+      document.getElementById('btn-p1').addEventListener('click', runP1);
+      document.getElementById('btn-p2').addEventListener('click', runP2);
+      document.getElementById('btn-p3').addEventListener('click', runP3);
+
+      const params = getUrlParams();
+      if (params.p1x) {
+        document.getElementById('p1-x').value = params.p1x;
+        document.getElementById('p1-y').value = params.p1y;
+        runP1();
+      }
+      if (params.p2x) {
+        document.getElementById('p2-x').value = params.p2x;
+        document.getElementById('p2-y').value = params.p2y;
+        runP2();
+      }
+      if (params.p3x) {
+        document.getElementById('p3-x').value = params.p3x;
+        document.getElementById('p3-y').value = params.p3y;
+        runP3();
+      }
+    });
+
+    function runP1() {
+      const x = parseFloat(document.getElementById('p1-x').value);
+      const y = parseFloat(document.getElementById('p1-y').value);
+      if (isNaN(x) || isNaN(y)) return;
+      const res = calculatePercentageVal(x, y);
+      document.getElementById('res-p1').textContent = res.toLocaleString('id-ID');
+      saveHistoryEntry(slug, calcName, { mode: 1, x, y }, { value: res });
+    }
+
+    function runP2() {
+      const x = parseFloat(document.getElementById('p2-x').value);
+      const y = parseFloat(document.getElementById('p2-y').value);
+      if (isNaN(x) || isNaN(y)) return;
+      const res = calculatePercentageOf(x, y);
+      document.getElementById('res-p2').textContent = res.toFixed(2);
+      saveHistoryEntry(slug, calcName, { mode: 2, x, y }, { value: `${res.toFixed(2)}%` });
+    }
+
+    function runP3() {
+      const x = parseFloat(document.getElementById('p3-x').value);
+      const y = parseFloat(document.getElementById('p3-y').value);
+      if (isNaN(x) || isNaN(y)) return;
+      const res = calculatePercentageChange(x, y);
+      const prefix = res > 0 ? '+' : '';
+      document.getElementById('res-p3').textContent = prefix + res.toFixed(2);
+      saveHistoryEntry(slug, calcName, { mode: 3, x, y }, { value: `${prefix}${res.toFixed(2)}%` });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tampilan Presentasi — TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="./css/present.css">
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <!-- SEO metadata -->
+  <script data-seo-key="slides-present" src="/shared/seo.js" type="module"></script>
+</head>
+<body class="present-body">
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+
+  <div class="present-deck" id="present-deck">
+    <!-- Rendered dynamically by present.js -->
+    <div class="loading-state">Memuat presentasi...</div>
+  </div>
+
+  <!-- Drawing canvas overlay -->
+  <canvas id="drawing-canvas" class="drawing-canvas"></canvas>
+
+  <!-- Navigation Toolbar overlay -->
+  <div class="present-controls-bar" id="controls-bar">
+    <button class="outline secondary control-btn" id="ctrl-prev" title="Slide Sebelumnya (Panah Kiri)">◀ Prev</button>
+    <span class="slide-indicator" id="ctrl-indicator">1 / 1</span>
+    <button class="outline secondary control-btn" id="ctrl-next" title="Slide Berikutnya (Panah Kanan)">Next ▶</button>
+    
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 0.25rem;"></div>
+    
+    <button class="outline secondary control-btn active" id="btn-mode-select" title="Mode Navigasi Biasa">🖱️ Navigasi</button>
+    <button class="outline secondary control-btn" id="btn-mode-laser" title="Laser Pointer">🔴 Laser</button>
+    <button class="outline secondary control-btn" id="btn-mode-draw" title="Coret Slide">✏️ Coret</button>
+    <button class="outline secondary control-btn" id="btn-mode-clear" title="Bersihkan Coretan" style="display: none;">🧹 Hapus</button>
+
+    <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 0.25rem;"></div>
+
+    <button class="outline secondary control-btn" id="ctrl-fullscreen" title="Layar Penuh (F)">📺 Fullscreen</button>
+    <button class="outline danger control-btn" id="ctrl-exit" title="Keluar (Esc)">✕ Keluar</button>
+  </div>
+
+  <script type="module" src="./js/present.js"></script>
+</body>
+</html>

@@ -1,0 +1,884 @@
+/* app/kerja/tulis/css/tulis.css */
+
+/* Hide TMPT global header on Editor Page only */
+body.editor-page > header,
+body.editor-page #header-container,
+body.editor-page [hx-get*="app-header.html"] {
+  display: none !important;
+}
+
+/* Global container full width overrides */
+body > header.container,
+#header-container > header.container,
+#main-content {
+  max-width: 100% !important;
+  width: 100% !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin: 0 !important;
+}
+
+main.container-fluid {
+  padding: 0 !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   DASHBOARD STYLING
+   ────────────────────────────────────────────────────────────────────────── */
+.app-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  padding: 1.5rem 2rem;
+}
+
+.template-gallery-section,
+.documents-list-section {
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Template Grid & Card */
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 1.5rem;
+}
+
+.template-card {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.template-card:hover {
+  transform: translateY(-4px);
+}
+
+.template-preview {
+  width: 100%;
+  aspect-ratio: 3/4;
+  border-radius: 6px;
+  border: 1px solid #dadce0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  color: var(--pico-primary);
+  overflow: hidden;
+  position: relative;
+}
+
+[data-theme="dark"] .template-preview {
+  background-color: #1e1e1e;
+  border-color: #444;
+}
+
+.template-preview-text {
+  font-size: 0.45rem;
+  padding: 8px;
+  color: #7f8c8d;
+  text-align: left;
+  line-height: 1.3;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  user-select: none;
+}
+
+.template-name {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--pico-color);
+}
+
+/* Filter Bar Dashboard */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+  padding-top: 1.5rem;
+}
+
+.filter-bar .search-box {
+  flex-grow: 1;
+  max-width: 400px;
+}
+
+.filter-bar .search-box input {
+  margin: 0;
+  border-radius: 20px;
+}
+
+.filter-bar .view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.square-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}
+
+.square-btn.active {
+  background-color: var(--pico-primary);
+  color: white;
+  border-color: var(--pico-primary);
+}
+
+/* Recent Documents Container */
+#documents-container.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1.5rem;
+}
+
+#documents-container.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Grid Card style */
+.doc-card {
+  background-color: var(--pico-card-background-color);
+  border-radius: 8px;
+  border: 1px solid var(--pico-muted-border-color);
+  overflow: hidden;
+  box-shadow: var(--pico-card-box-shadow);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  aspect-ratio: 3/4.2;
+}
+
+.doc-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+}
+
+.doc-thumbnail {
+  width: 100%;
+  height: 65%;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  overflow: hidden;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  padding: 12px;
+  position: relative;
+  cursor: pointer;
+}
+
+[data-theme="dark"] .doc-thumbnail {
+  background-color: #1e1e1e;
+}
+
+.doc-thumbnail-content {
+  font-size: 0.4rem;
+  line-height: 1.4;
+  color: #7f8c8d;
+  text-align: left;
+  user-select: none;
+  pointer-events: none;
+}
+
+.doc-info {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+.doc-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+}
+
+.doc-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  color: var(--pico-heading-color);
+  flex-grow: 1;
+}
+
+.doc-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--pico-secondary-color);
+  margin-top: auto;
+}
+
+/* Card Menu trigger */
+.menu-btn {
+  background: none;
+  border: none;
+  padding: 2px 6px;
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--pico-muted-color);
+  width: auto;
+  line-height: 1;
+}
+
+.menu-btn:hover {
+  color: var(--pico-color);
+}
+
+/* Row List View */
+.doc-row {
+  display: flex;
+  align-items: center;
+  background-color: var(--pico-card-background-color);
+  border-radius: 8px;
+  border: 1px solid var(--pico-muted-border-color);
+  padding: 0.75rem 1rem;
+  gap: 1.5rem;
+}
+
+.doc-row-icon {
+  font-size: 1.5rem;
+}
+
+.doc-row-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-row-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin: 0;
+  cursor: pointer;
+}
+
+.doc-row-meta {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.75rem;
+  color: var(--pico-secondary-color);
+}
+
+.doc-row-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.doc-row-actions button {
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  width: auto;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   GOOGLE DOCS EDITOR LAYOUT
+   ────────────────────────────────────────────────────────────────────────── */
+.gdocs-editor-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* Standalone fullscreen height */
+  background-color: #f9fbfd;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] .gdocs-editor-layout {
+  background-color: #121212;
+}
+
+/* 1. Header (Title bar + Menu bar) */
+.gdocs-header {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 16px 4px 16px;
+  z-index: 1000;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+[data-theme="dark"] .gdocs-header {
+  background-color: #1e1e1e;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+.gdocs-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.logo-and-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-grow: 1;
+}
+
+.gdocs-back-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 50%;
+  color: var(--pico-muted-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+}
+
+.gdocs-back-btn:hover {
+  background-color: #f1f3f4;
+  color: var(--pico-color);
+}
+
+[data-theme="dark"] .gdocs-back-btn:hover {
+  background-color: #2d2d2d;
+}
+
+.title-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.gdocs-title-input {
+  font-size: 1.1rem;
+  font-weight: 500;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  padding: 0 4px !important;
+  margin: 0 !important;
+  border-radius: 4px;
+  height: 24px !important;
+  outline: none;
+  width: auto;
+  min-width: 150px;
+  max-width: 300px;
+  color: var(--pico-heading-color);
+  transition: border-color 0.2s;
+}
+
+.gdocs-title-input:hover,
+.gdocs-title-input:focus {
+  border-color: #dadce0 !important;
+  background-color: #ffffff !important;
+}
+
+[data-theme="dark"] .gdocs-title-input:hover,
+[data-theme="dark"] .gdocs-title-input:focus {
+  border-color: #444 !important;
+  background-color: #2d2d2d !important;
+}
+
+.title-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.icon-btn {
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: #5f6368;
+}
+
+.icon-btn:hover {
+  color: #1a73e8;
+}
+
+.save-status {
+  font-size: 0.7rem;
+  color: #5f6368;
+  margin-left: 6px;
+}
+
+[data-theme="dark"] .save-status {
+  color: #9aa0a6;
+}
+
+.right-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gdocs-focus-btn {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  border-radius: 20px;
+  width: auto;
+  height: auto;
+}
+
+.gdocs-share-btn {
+  margin: 0;
+  background-color: #c2e7ff;
+  border: none;
+  color: #001d35;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gdocs-share-btn:hover {
+  background-color: #b3dbf2;
+}
+
+/* 2. Menu Bar (Left-aligned) */
+.gdocs-menu-bar {
+  display: flex;
+  justify-content: flex-start;
+  gap: 12px;
+  padding-left: 48px;
+  margin: 0;
+}
+
+.menu-item {
+  font-size: 0.8rem;
+  color: #3c4043;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  position: relative;
+  text-align: left;
+}
+
+[data-theme="dark"] .menu-item {
+  color: #e8eaed;
+}
+
+.menu-item:hover {
+  background-color: #f1f3f4;
+}
+
+[data-theme="dark"] .menu-item:hover {
+  background-color: #2d2d2d;
+}
+
+/* Dropdown list */
+.menu-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  min-width: 180px;
+  z-index: 10000;
+  padding: 4px 0;
+}
+
+[data-theme="dark"] .menu-dropdown {
+  background-color: #2c2c2c;
+  border-color: #444;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.menu-item:hover .menu-dropdown {
+  display: block;
+}
+
+.menu-dropdown div {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: #3c4043;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+[data-theme="dark"] .menu-dropdown div {
+  color: #e8eaed;
+}
+
+.menu-dropdown div:hover {
+  background-color: #f1f3f4;
+  color: #1a73e8;
+}
+
+[data-theme="dark"] .menu-dropdown div:hover {
+  background-color: #3d3d3d;
+}
+
+.menu-dropdown hr {
+  margin: 4px 0;
+  border: none;
+  border-top: 1px solid #e8eaed;
+}
+
+[data-theme="dark"] .menu-dropdown hr {
+  border-top-color: #444;
+}
+
+/* 3. Quill Toolbar custom style */
+#quill-toolbar-container {
+  margin-top: 6px;
+  background-color: #edf2fa;
+  border-radius: 24px;
+  padding: 2px 8px;
+}
+
+[data-theme="dark"] #quill-toolbar-container {
+  background-color: #2d2d2d;
+}
+
+.ql-toolbar.ql-snow {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 4px !important;
+  gap: 2px;
+}
+
+/* 4. Google Docs Workspace Split Layout */
+.gdocs-workspace {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar Outline */
+.gdocs-outline-sidebar {
+  width: 240px;
+  border-right: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  padding: 16px;
+  overflow-y: auto;
+  transition: width 0.3s, padding 0.3s;
+}
+
+[data-theme="dark"] .gdocs-outline-sidebar {
+  background-color: #1e1e1e;
+  border-right-color: #2d2d2d;
+}
+
+.gdocs-outline-sidebar.collapsed {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-right: none;
+}
+
+.outline-sidebar-header h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #5f6368;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+/* Sidebar toggle edge button */
+.gdocs-sidebar-toggle-btn {
+  position: absolute;
+  left: 10px;
+  top: 16px;
+  z-index: 99;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  margin: 0;
+}
+
+[data-theme="dark"] .gdocs-sidebar-toggle-btn {
+  background-color: #2c2c2c;
+  border-color: #444;
+}
+
+/* 5. Ruler System */
+/* Horizontal Ruler */
+.gdocs-horizontal-ruler {
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background-color: #f1f3f4;
+  border-bottom: 1px solid #dadce0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .gdocs-horizontal-ruler {
+  background-color: #252526;
+  border-bottom-color: #2d2d2d;
+}
+
+.ruler-scale {
+  width: 800px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 3rem;
+  box-sizing: border-box;
+  font-size: 0.6rem;
+  color: #7f8c8d;
+  line-height: 24px;
+}
+
+.ruler-tick {
+  position: relative;
+}
+
+.ruler-tick::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  height: 6px;
+  background-color: #bdc3c7;
+}
+
+/* Vertical Ruler */
+.gdocs-vertical-ruler {
+  width: 24px;
+  background-color: #f1f3f4;
+  border-right: 1px solid #dadce0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 48px; /* Offset horizontal ruler + padding */
+  box-sizing: border-box;
+  font-size: 0.6rem;
+  color: #7f8c8d;
+  gap: 40px;
+}
+
+[data-theme="dark"] .gdocs-vertical-ruler {
+  background-color: #252526;
+  border-right-color: #2d2d2d;
+}
+
+.ruler-mark {
+  position: relative;
+  width: 100%;
+  text-align: center;
+}
+
+.ruler-mark::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  width: 6px;
+  background-color: #bdc3c7;
+}
+
+/* 6. Document scroll and Paper sheet */
+.gdocs-scroll-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.gdocs-paper-sheet {
+  background-color: #ffffff;
+  color: #2c3e50;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.08);
+  width: 100%;
+  max-width: 800px;
+  min-height: 1050px;
+  padding: 3rem;
+  box-sizing: border-box;
+  margin: 1.5rem 0;
+  border-radius: 2px;
+  transform-origin: top center;
+  transition: transform 0.2s ease;
+}
+
+[data-theme="dark"] .gdocs-paper-sheet {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+
+/* Quill Restyle to merge with paper sheet */
+.ql-container.ql-snow {
+  border: none !important;
+  font-family: 'Times New Roman', serif !important;
+  font-size: 1.05rem;
+}
+
+.ql-editor {
+  min-height: 980px;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+/* 7. Bottom Status bar */
+.gdocs-status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 20px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #ffffff;
+  font-size: 0.75rem;
+  color: #5f6368;
+}
+
+[data-theme="dark"] .gdocs-status-bar {
+  background-color: #1e1e1e;
+  border-top-color: #2d2d2d;
+  color: #9aa0a6;
+}
+
+.gdocs-status-bar .left-section,
+.gdocs-status-bar .right-section {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.gdocs-status-bar select {
+  font-size: 0.75rem;
+  padding: 2px 24px 2px 8px;
+  margin: 0;
+  width: auto;
+  height: auto;
+  background-color: transparent;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .gdocs-status-bar select {
+  border-color: #444;
+  color: #e8eaed;
+}
+
+/* 8. Focus mode overrides */
+.focus-mode .gdocs-header,
+.focus-mode #header-container,
+.focus-mode .gdocs-vertical-ruler,
+.focus-mode .gdocs-sidebar-toggle-btn,
+.focus-mode .gdocs-outline-sidebar,
+.focus-mode .gdocs-status-bar {
+  display: none !important;
+}
+
+.focus-mode .gdocs-editor-layout {
+  height: 100vh;
+}
+
+.focus-mode .gdocs-scroll-container {
+  height: 100vh;
+}
+
+.focus-mode .gdocs-horizontal-ruler {
+  display: none !important;
+}
+
+.btn-exit-focus {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10000;
+  margin: 0;
+}
+
+[data-theme="dark"] .btn-exit-focus {
+  background-color: #2c2c2c;
+  border-color: #444;
+  color: #fff;
+}
+
+/* Context/Dropdown Menu (Recent docs right-click ⋮) */
+.context-dropdown {
+  position: fixed;
+  background-color: var(--pico-card-background-color);
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  list-style: none;
+  padding: 0.25rem 0;
+  margin: 0;
+  z-index: 99999;
+  min-width: 145px;
+}
+
+.context-dropdown li {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  list-style-type: none;
+}
+
+.context-dropdown li:hover {
+  background-color: var(--pico-background-color);
+  color: var(--pico-primary);
+}
+
+.hidden {
+  display: none !important;
+}

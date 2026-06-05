@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator ROI — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>📈 Kalkulator ROI (Return on Investment)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <div class="calc-box">
+        <form id="roi-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="initial">Investasi Awal (IDR)</label>
+            <input type="number" id="initial" value="10000000" required>
+          </div>
+          <div class="form-group">
+            <label for="final">Nilai Akhir (IDR)</label>
+            <input type="number" id="final" value="15000000" required>
+          </div>
+          <div class="form-group">
+            <label for="years">Jangka Waktu Investasi (Tahun - Opsional)</label>
+            <input type="number" id="years" value="2" min="0.1" step="0.1">
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung ROI</button>
+        </form>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Return on Investment (ROI)</span>
+          <div class="calc-result-value" id="roi-value">-</div>
+        </div>
+        <div style="font-size: 0.95rem;">
+          <p>Keuntungan Nominal: <strong id="roi-gain">-</strong></p>
+          <p>Annualized ROI (Tahunan): <strong id="roi-annual">-</strong></p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateROI } from './js/finance-calc.js';
+
+    const slug = 'roi';
+    const calcName = 'Kalkulator ROI';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function formatRupiah(val) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+    }
+
+    function runCalculation() {
+      const init = parseFloat(document.getElementById('initial').value);
+      const final = parseFloat(document.getElementById('final').value);
+      const years = parseFloat(document.getElementById('years').value || '0');
+
+      if (isNaN(init) || isNaN(final)) return;
+
+      const res = calculateROI(init, final, years);
+      if (res) {
+        document.getElementById('roi-value').textContent = res.roi.toFixed(2) + '%';
+        document.getElementById('roi-gain').textContent = formatRupiah(res.gain);
+        document.getElementById('roi-annual').textContent = res.annualizedRoi ? res.annualizedRoi.toFixed(2) + '%' : '-';
+        saveHistoryEntry(slug, calcName, { init, final }, { value: res.roi.toFixed(2) + '%' });
+      }
+    }
+  </script>
+</body>
+</html>

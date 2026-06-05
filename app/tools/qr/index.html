@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT QR — Generator &amp; Scanner QR Code</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/qr.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/version.js"></script>
+</head>
+<body>
+  <script>
+    // Authentication Check
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+
+  <!-- Include TMPT shared app header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container" id="dashboard-page">
+    <div class="qr-container">
+      <!-- Header Actions -->
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.15rem;">Riwayat QR Code</h1>
+          <p class="secondary" style="font-size: 0.9rem; margin-bottom: 0;">Kelola, edit, dan unduh kode QR yang pernah Anda buat.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="generator.html" class="button" style="margin-bottom: 0;">➕ Buat QR</a>
+          <a href="scanner.html" class="button outline secondary" style="margin-bottom: 0;">📷 Scan QR</a>
+          <a href="bulk.html" class="button outline secondary" style="margin-bottom: 0;">📦 Bulk CSV</a>
+        </div>
+      </div>
+
+      <!-- Filters & Search -->
+      <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem; margin-top: 1rem;">
+        <input type="search" id="search-qr" placeholder="Cari berdasarkan judul atau konten..." style="margin-bottom: 0;">
+        <select id="filter-type" style="margin-bottom: 0;">
+          <option value="all">Semua Tipe</option>
+          <option value="favorite">⭐ Terfavorit</option>
+          <option value="url">🌐 URL / Website</option>
+          <option value="text">📝 Teks</option>
+          <option value="email">📧 Email</option>
+          <option value="phone">📞 Telepon</option>
+          <option value="sms">💬 SMS</option>
+          <option value="whatsapp">💚 WhatsApp</option>
+          <option value="location">📍 Lokasi</option>
+          <option value="wifi">📶 WiFi</option>
+          <option value="vcard">👤 vCard</option>
+          <option value="event">📅 Kalender</option>
+          <option value="qris">💳 QRIS</option>
+          <option value="crypto">₿ Crypto</option>
+          <option value="social">🔗 Sosmed</option>
+        </select>
+      </div>
+
+      <!-- History Grid -->
+      <section class="qr-history-grid" id="history-container">
+        <!-- Rendered dynamically by js/qr-app.js -->
+        <p class="secondary" style="grid-column: 1/-1; text-align: center; padding: 2rem;">Memuat riwayat...</p>
+      </section>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dynamic SEO Tag -->
+  <script type="module" src="/shared/seo.js" data-seo-key="tools-qr"></script>
+
+  <!-- Script Modules -->
+  <script type="module" src="./js/qr-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Programmer — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <style>
+    .programmer-panel {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 768px) {
+      .programmer-panel {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .base-list {
+      background: rgba(0,0,0,0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      border: 1px solid var(--calc-card-border);
+    }
+    .base-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--calc-card-border);
+      font-family: monospace;
+      font-size: 1rem;
+    }
+    .base-row strong {
+      color: var(--calc-primary);
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>💻 Kalkulator Programmer (HEX, DEC, OCT, BIN)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="programmer-panel">
+      <div class="calc-box">
+        <h3>Input Nilai</h3>
+        <div class="form-group">
+          <label for="input-base">Sistem Bilangan Input</label>
+          <select id="input-base">
+            <option value="10" selected>Desimal (DEC)</option>
+            <option value="16">Heksadesimal (HEX)</option>
+            <option value="8">Oktal (OCT)</option>
+            <option value="2">Biner (BIN)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="val-input">Nilai</label>
+          <input type="text" id="val-input" placeholder="Masukkan angka..." style="font-family: monospace;" value="255">
+        </div>
+
+        <div class="base-list">
+          <div class="base-row"><span>HEX:</span> <strong id="out-hex">FF</strong></div>
+          <div class="base-row"><span>DEC:</span> <strong id="out-dec">255</strong></div>
+          <div class="base-row"><span>OCT:</span> <strong id="out-oct">377</strong></div>
+          <div class="base-row"><span>BIN:</span> <strong id="out-bin">11111111</strong></div>
+        </div>
+      </div>
+
+      <div class="calc-box">
+        <h3>Operasi Bitwise</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+          <div class="form-group">
+            <label for="bit-op">Operasi</label>
+            <select id="bit-op">
+              <option value="AND">AND (&amp;)</option>
+              <option value="OR">OR (|)</option>
+              <option value="XOR">XOR (^)</option>
+              <option value="NOT">NOT (~)</option>
+              <option value="LSH">Left Shift (&lt;&lt;)</option>
+              <option value="RSH">Right Shift (&gt;&gt;)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="operand-2">Operand Kedua (Desimal)</label>
+            <input type="number" id="operand-2" value="15">
+          </div>
+        </div>
+
+        <button class="btn-navy" id="btn-bitwise" style="width: 100%;">Jalankan Operasi</button>
+
+        <div class="calc-result-box" style="margin-top: 1.5rem;">
+          <span class="calc-result-label">Hasil Operasi (DEC)</span>
+          <div class="calc-result-value" id="bitwise-dec">-</div>
+          <span class="calc-result-badge badge-success" id="bitwise-bin">-</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'programmer';
+    const calcName = 'Kalkulator Programmer';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      const valInput = document.getElementById('val-input');
+      const inputBase = document.getElementById('input-base');
+
+      valInput.addEventListener('input', runConversion);
+      inputBase.addEventListener('change', runConversion);
+      document.getElementById('btn-bitwise').addEventListener('click', runBitwise);
+
+      runConversion();
+    });
+
+    function runConversion() {
+      const valStr = document.getElementById('val-input').value.trim();
+      const base = parseInt(document.getElementById('input-base').value);
+      if (!valStr) return;
+
+      try {
+        const num = parseInt(valStr, base);
+        if (isNaN(num)) throw new Error('Invalid number');
+
+        document.getElementById('out-hex').textContent = num.toString(16).toUpperCase();
+        document.getElementById('out-dec').textContent = num.toString(10);
+        document.getElementById('out-oct').textContent = num.toString(8);
+        document.getElementById('out-bin').textContent = num.toString(2);
+      } catch(e) {
+        document.getElementById('out-hex').textContent = 'Error';
+        document.getElementById('out-dec').textContent = 'Error';
+        document.getElementById('out-oct').textContent = 'Error';
+        document.getElementById('out-bin').textContent = 'Error';
+      }
+    }
+
+    function runBitwise() {
+      const valStr = document.getElementById('val-input').value.trim();
+      const base = parseInt(document.getElementById('input-base').value);
+      const op = document.getElementById('bit-op').value;
+      const op2 = parseInt(document.getElementById('operand-2').value || '0');
+
+      try {
+        const num = parseInt(valStr, base);
+        if (isNaN(num)) return;
+
+        let res = 0;
+        if (op === 'AND') res = num & op2;
+        if (op === 'OR') res = num | op2;
+        if (op === 'XOR') res = num ^ op2;
+        if (op === 'NOT') res = ~num;
+        if (op === 'LSH') res = num << op2;
+        if (op === 'RSH') res = num >> op2;
+
+        document.getElementById('bitwise-dec').textContent = res;
+        document.getElementById('bitwise-bin').textContent = 'BIN: ' + res.toString(2);
+        saveHistoryEntry(slug, calcName, { num, op, op2 }, { value: res });
+      } catch(e) {}
+    }
+  </script>
+</body>
+</html>

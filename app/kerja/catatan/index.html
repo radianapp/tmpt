@@ -251,6 +251,16 @@
     <script src="/shared/license.js"></script>
 </head>
 <body>
+    <script>
+        // Cek otentikasi sebelum merender halaman
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+            if (window.TMPT_Auth.isUnlocked()) {
+                window.TMPT_Auth.setupIdleListeners();
+            }
+        })();
+    </script>
 
     <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
 
@@ -273,10 +283,6 @@
                     <button class="sidebar-menu-item active" id="sidebar-menu-notes" onclick="setSidebarMode('notes')">
                         <span style="font-size: 1.25rem;">📓</span>
                         <span>Catatan</span>
-                    </button>
-                    <button class="sidebar-menu-item" id="sidebar-menu-lists" onclick="setSidebarMode('lists')">
-                        <span style="font-size: 1.25rem;">☑️</span>
-                        <span>Daftar Tugas</span>
                     </button>
                     
                     <div class="sidebar-section">
@@ -347,10 +353,6 @@
                         <button onclick="triggerAddNote()" class="btn-custom-blue">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                             <span>Buat Catatan</span>
-                        </button>
-                        <button onclick="triggerAddTask()" class="btn-custom-yellow">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-                            <span>Daftar Tugas</span>
                         </button>
                     </div>
                 </div>
@@ -933,12 +935,8 @@
                 return matchesTitle || matchesBody || matchesTag;
             });
 
-            // 2. Daftar Tugas
-            const matchingLists = listsData.filter(l => {
-                const matchesName = l.name && l.name.toLowerCase().includes(query);
-                const matchesItem = l.items && l.items.some(i => i.text.toLowerCase().includes(query));
-                return matchesName || matchesItem;
-            });
+            // 2. Daftar Tugas (Dinonaktifkan)
+            const matchingLists = [];
 
             // 3. Arsip
             const matchingArchived = notesData.filter(note => {
@@ -985,17 +983,7 @@
                 `;
             }
 
-            // Section: Daftar Tugas
-            if (matchingLists.length > 0) {
-                html += `
-                    <h5 class="secondary" style="margin-top: 1.5rem; margin-bottom: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px dashed var(--pico-muted-border-color); padding-bottom: 0.5rem;">
-                        <span>☑️ Daftar Tugas (${matchingLists.length})</span>
-                    </h5>
-                    <div class="lists-grid" style="margin-bottom: 2.5rem;">
-                        ${matchingLists.map(l => getListCardHtml(l)).join('')}
-                    </div>
-                `;
-            }
+
 
             // Section: Arsip
             if (matchingArchived.length > 0) {

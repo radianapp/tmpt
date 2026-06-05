@@ -1,0 +1,552 @@
+/* app/tools/pomodoro/css/pomodoro.css */
+
+/* Core Variables & Themes Integration */
+:root {
+  --pomodoro-red: #e74c3c;
+  --pomodoro-red-hover: #c0392b;
+  --pomodoro-red-bg: rgba(231, 76, 60, 0.1);
+  --break-green: #2ecc71;
+  --break-green-hover: #27ae60;
+  --break-green-bg: rgba(46, 204, 113, 0.1);
+  --long-break-blue: #3498db;
+  --long-break-blue-hover: #2980b9;
+  --long-break-blue-bg: rgba(52, 152, 219, 0.1);
+  
+  --ring-bg: var(--pico-muted-border-color);
+  --ring-active: var(--pomodoro-red);
+  
+  --bar-color: rgba(231, 76, 60, 0.5);
+  --accent: var(--pomodoro-red);
+  
+  --transition-speed: 0.3s;
+}
+
+html[data-theme="dark"] {
+  --pomodoro-red: #ff6b6b;
+  --pomodoro-red-hover: #fa5252;
+  --break-green: #51cf66;
+  --break-green-hover: #40c057;
+  --long-break-blue: #339af0;
+  --long-break-blue-hover: #228be6;
+}
+
+/* Page Layout */
+.pomodoro-container {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+  transition: all var(--transition-speed) ease-in-out;
+}
+
+.pomodoro-main-area {
+  flex: 1;
+  min-width: 0;
+  transition: all var(--transition-speed) ease;
+}
+
+/* Sidebar Layout */
+.pomodoro-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--pico-muted-border-color);
+  padding-right: 2rem;
+  display: none; /* Toggled by user preference/state */
+}
+
+.pomodoro-sidebar.active {
+  display: block;
+}
+
+@media (max-width: 992px) {
+  .pomodoro-container {
+    flex-direction: column;
+  }
+  .pomodoro-sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    padding-right: 0;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Timer Display Component */
+.timer-box {
+  text-align: center;
+  margin: 1.5rem auto 2rem auto;
+  max-width: 380px;
+  padding: 2rem;
+  background-color: var(--pico-card-background-color);
+  border-radius: 24px;
+  box-shadow: var(--pico-card-box-shadow, 0 8px 24px rgba(0,0,0,0.05));
+  border: 1px solid var(--pico-muted-border-color);
+  transition: all var(--transition-speed) ease;
+}
+
+.timer-ring-container {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 1.5rem auto;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+}
+
+.timer-text {
+  font-family: monospace, var(--pico-font-family);
+  font-size: 2.8rem;
+  font-weight: 700;
+  fill: var(--pico-color);
+  transition: fill var(--transition-speed) ease;
+}
+
+.timer-mode-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  fill: var(--pico-muted-color);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Timer Control Buttons */
+.timer-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.timer-controls button {
+  border-radius: 12px;
+  font-weight: 600;
+  transition: transform 0.1s ease, background-color 0.2s ease;
+}
+
+.timer-controls button:active {
+  transform: scale(0.95);
+}
+
+.btn-start {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  min-width: 120px;
+}
+
+.btn-start:hover {
+  background-color: var(--pomodoro-red-hover);
+  border-color: var(--pomodoro-red-hover);
+}
+
+/* Session Modes Switcher Tab */
+.session-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 4px;
+  background-color: var(--pico-card-sectioning-background-color);
+  border-radius: 16px;
+}
+
+.session-tab {
+  flex: 1;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: var(--pico-muted-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.session-tab.active {
+  background-color: var(--pico-card-background-color);
+  color: var(--pico-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Sound Adjuster Component */
+.sound-adjuster {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  background-color: var(--pico-card-sectioning-background-color);
+  border-radius: 14px;
+}
+
+.sound-adjuster select {
+  margin-bottom: 0 !important;
+  font-size: 0.9rem;
+  padding: 0.25rem 2rem 0.25rem 0.75rem !important;
+  height: auto;
+  width: auto;
+  border-radius: 8px;
+}
+
+.sound-adjuster input[type="range"] {
+  margin-bottom: 0 !important;
+  flex: 1;
+}
+
+/* Task Selector & Info */
+.task-selector-box {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.task-selector-box label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--pico-muted-color);
+  margin-bottom: 0.5rem;
+}
+
+.task-selector-box select {
+  border-radius: 12px;
+}
+
+.active-task-display {
+  padding: 0.75rem 1rem;
+  border-left: 4px solid var(--accent);
+  background-color: var(--pico-card-sectioning-background-color);
+  border-radius: 0 12px 12px 0;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.active-task-display .task-title {
+  font-weight: 600;
+}
+
+.active-task-display .task-meta {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+}
+
+/* Fullscreen Focus Mode overlay */
+.fullscreen-focus-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--pico-background-color);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-speed) ease;
+  padding: 2rem;
+}
+
+.fullscreen-focus-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fullscreen-timer-text {
+  font-family: monospace, var(--pico-font-family);
+  font-size: 7vw;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+}
+
+.fullscreen-task-title {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  color: var(--pico-muted-color);
+}
+
+.fullscreen-controls {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.fullscreen-exit-tip {
+  position: absolute;
+  bottom: 2rem;
+  font-size: 0.85rem;
+  color: var(--pico-muted-color);
+}
+
+/* Statistics Dashboard Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.stats-card {
+  padding: 1.25rem;
+  background-color: var(--pico-card-background-color);
+  border-radius: 16px;
+  border: 1px solid var(--pico-muted-border-color);
+  text-align: center;
+}
+
+.stats-card-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stats-card-label {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
+}
+
+/* Chart Container */
+.chart-container {
+  background-color: var(--pico-card-background-color);
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 2rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.chart-header h3 {
+  margin-bottom: 0;
+}
+
+.chart-svg-wrapper {
+  width: 100%;
+  height: 220px;
+}
+
+.chart-svg-wrapper svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chart-svg-wrapper .bar {
+  transition: fill 0.2s ease, opacity 0.2s ease;
+  cursor: pointer;
+}
+
+.chart-svg-wrapper .bar:hover {
+  opacity: 0.8;
+}
+
+.chart-svg-wrapper .day-label {
+  font-size: 10px;
+  fill: var(--pico-muted-color);
+}
+
+.chart-svg-wrapper .grid-line {
+  stroke: var(--pico-muted-border-color);
+  stroke-dasharray: 4;
+}
+
+/* Goal Tracker Card */
+.goal-tracker-card {
+  background-color: var(--pico-card-background-color);
+  border-radius: 20px;
+  padding: 1.5rem;
+  border: 1px solid var(--pico-muted-border-color);
+  margin-bottom: 2rem;
+}
+
+.goal-progress-row {
+  margin-bottom: 1.25rem;
+}
+
+.goal-progress-row .label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.goal-progress-row progress {
+  margin-bottom: 0;
+}
+
+/* Achievements List Grid */
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.achievement-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: var(--pico-card-background-color);
+  border-radius: 16px;
+  border: 1px solid var(--pico-muted-border-color);
+  opacity: 0.5;
+  filter: grayscale(100%);
+  transition: all 0.3s ease;
+}
+
+.achievement-card.unlocked {
+  opacity: 1;
+  filter: grayscale(0%);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.1);
+}
+
+.achievement-icon {
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achievement-details h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.achievement-details p {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+  margin-bottom: 0;
+}
+
+/* Sidebar tasks styling */
+.sidebar-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.sidebar-task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-task-item:hover {
+  background-color: var(--pico-card-sectioning-background-color);
+}
+
+.sidebar-task-item.active {
+  background-color: var(--accent-light, var(--pomodoro-red-bg));
+  border-left: 3px solid var(--accent);
+}
+
+.sidebar-task-item .checkbox {
+  flex-shrink: 0;
+}
+
+.sidebar-task-item .title {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-task-item .meta {
+  font-size: 0.75rem;
+  color: var(--pico-muted-color);
+}
+
+/* Settings Panels Layout */
+.settings-layout {
+  display: flex;
+  gap: 2rem;
+}
+
+.settings-nav {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.settings-nav-item {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--pico-muted-color);
+  background: transparent;
+  border: none;
+  text-align: left;
+}
+
+.settings-nav-item.active {
+  background-color: var(--pico-card-sectioning-background-color);
+  color: var(--pico-color);
+}
+
+.settings-content {
+  flex: 1;
+}
+
+.settings-section-pane {
+  display: none;
+}
+
+.settings-section-pane.active {
+  display: block;
+}
+
+.settings-form-row {
+  margin-bottom: 1.25rem;
+}
+
+.settings-form-row label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.35rem;
+}
+
+.settings-form-row input[type="number"],
+.settings-form-row select {
+  border-radius: 8px;
+}
+
+/* Save Status Indicator */
+#save-status {
+  font-size: 0.8rem;
+  color: var(--pico-muted-color);
+  margin-left: 1rem;
+  font-weight: 500;
+}
+
+#save-status.saving {
+  color: var(--long-break-blue);
+}
+
+#save-status.saved {
+  color: var(--break-green);
+}

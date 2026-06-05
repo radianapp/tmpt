@@ -19,6 +19,16 @@
   <script src="/shared/license.js"></script>
 </head>
 <body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
 
   <!-- App Header -->
   <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -148,15 +158,7 @@
         }
       });
 
-      // Autentikasi TMPT
-      if (window.TMPT_Auth) {
-        await window.TMPT_Auth.init();
-        if (!window.TMPT_Auth.isUnlocked()) {
-          window.location.href = '/app/auth/login/';
-          return;
-        }
-        window.TMPT_Auth.setupIdleListeners();
-      }
+
 
       const boardsGrid = document.getElementById('boards-grid');
       const emptyState = document.getElementById('empty-state');

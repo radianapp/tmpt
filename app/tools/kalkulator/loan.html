@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Pinjaman (EMI) — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>💵 Kalkulator Pinjaman (EMI)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <!-- Input -->
+      <div class="calc-box">
+        <form id="loan-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="principal">Jumlah Pinjaman (IDR)</label>
+            <input type="number" id="principal" name="principal" min="100000" value="50000000" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="rate">Suku Bunga Tahunan (%)</label>
+            <input type="number" id="rate" name="rate" min="0.1" step="0.01" value="10" required>
+          </div>
+
+          <div class="form-group">
+            <label for="tenure">Tenor (Bulan)</label>
+            <input type="number" id="tenure" name="tenure" min="1" max="360" value="12" required>
+          </div>
+
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%; margin-top: 1rem;">Hitung Cicilan</button>
+        </form>
+      </div>
+
+      <!-- Result & Amortization -->
+      <div class="calc-box">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Cicilan Per Bulan (EMI)</span>
+          <div class="calc-result-value" id="emi-value">Rp0</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.95rem; margin-bottom: 1.5rem;">
+          <div>
+            <strong>Total Pembayaran:</strong>
+            <p id="total-payment">Rp0</p>
+          </div>
+          <div>
+            <strong>Total Bunga:</strong>
+            <p id="total-interest">Rp0</p>
+          </div>
+        </div>
+
+        <details>
+          <summary style="font-weight: 600; cursor: pointer;">Tampilkan Tabel Amortisasi Lengkap</summary>
+          <div style="overflow-x: auto; max-height: 250px; margin-top: 0.5rem;">
+            <table class="calc-detail-table">
+              <thead>
+                <tr>
+                  <th>Bulan</th>
+                  <th>Saldo Awal</th>
+                  <th>Pokok</th>
+                  <th>Bunga</th>
+                  <th>Saldo Akhir</th>
+                </tr>
+              </thead>
+              <tbody id="amortization-body">
+                <!-- Diisi oleh JS -->
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateLoan } from './js/finance-calc.js';
+
+    const slug = 'loan';
+    const calcName = 'Kalkulator Pinjaman';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          principal: document.getElementById('principal').value,
+          rate: document.getElementById('rate').value,
+          tenure: document.getElementById('tenure').value
+        });
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+
+      const params = getUrlParams();
+      if (params.principal) {
+        document.getElementById('principal').value = params.principal;
+        document.getElementById('rate').value = params.rate;
+        document.getElementById('tenure').value = params.tenure;
+        runCalculation();
+      }
+    });
+
+    function formatRupiah(val) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+    }
+
+    function runCalculation() {
+      const principal = parseFloat(document.getElementById('principal').value);
+      const rate = parseFloat(document.getElementById('rate').value);
+      const tenure = parseInt(document.getElementById('tenure').value);
+
+      if (!principal || !rate || !tenure) return;
+
+      const res = calculateLoan(principal, rate, tenure);
+      if (res) {
+        document.getElementById('emi-value').textContent = formatRupiah(res.emi);
+        document.getElementById('total-payment').textContent = formatRupiah(res.totalPayment);
+        document.getElementById('total-interest').textContent = formatRupiah(res.totalInterest);
+
+        // Amortization Table
+        const tbody = document.getElementById('amortization-body');
+        tbody.innerHTML = res.schedule.map(row => `
+          <tr>
+            <td>${row.month}</td>
+            <td>${formatRupiah(row.beginningBalance)}</td>
+            <td>${formatRupiah(row.principalPaid)}</td>
+            <td>${formatRupiah(row.interestPaid)}</td>
+            <td>${formatRupiah(row.endingBalance)}</td>
+          </tr>
+        `).join('');
+
+        const inputs = { principal, rate, tenure };
+        setUrlParams(inputs);
+        saveHistoryEntry(slug, calcName, inputs, { value: formatRupiah(res.emi) });
+      }
+    }
+  </script>
+</body>
+</html>

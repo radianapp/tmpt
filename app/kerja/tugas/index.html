@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Tugas — Kelola Tugas & Kanban Privat</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./tugas.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+
+  <!-- Global Header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <!-- Main Full-Width Container -->
+  <main id="main-content" class="tugas-container-fluid">
+    <div class="tugas-layout">
+      
+      <!-- Sidebar Kiri -->
+      <aside class="tugas-sidebar" id="tugas-sidebar">
+        <div class="sidebar-header">
+          <button id="btn-quick-add" class="primary" style="width: 100%; margin-bottom: 1rem; border-radius: 12px; font-weight: 600;">
+            ➕ Tugas Baru
+          </button>
+        </div>
+
+        <nav class="sidebar-nav">
+          <ul class="nav-list">
+            <li>
+              <a href="#" class="nav-item active" data-filter="inbox">
+                <span class="nav-icon">📥</span>
+                <span class="nav-label">Inbox</span>
+                <span class="badge" id="badge-inbox">0</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-filter="today">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">Hari Ini</span>
+                <span class="badge" id="badge-today">0</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-filter="starred">
+                <span class="nav-icon">⭐</span>
+                <span class="nav-label">Berbintang</span>
+                <span class="badge" id="badge-starred">0</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-filter="recurring">
+                <span class="nav-icon">🔁</span>
+                <span class="nav-label">Berulang</span>
+                <span class="badge" id="badge-recurring">0</span>
+              </a>
+            </li>
+            <li>
+              <a href="#" class="nav-item" data-filter="done">
+                <span class="nav-icon">✅</span>
+                <span class="nav-label">Selesai</span>
+              </a>
+            </li>
+          </ul>
+
+          <hr>
+
+          <div class="sidebar-section">
+            <div class="section-title">
+              <span>Daftar</span>
+            </div>
+            <ul class="nav-list" id="custom-lists-container">
+              <!-- Diisi dinamis -->
+            </ul>
+            <a href="#" id="btn-add-list-alt" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; padding: 0.5rem 0.85rem; font-size: 0.9rem; font-weight: 600; color: var(--pico-color);">
+              <span>➕</span>
+              <span>Buat daftar baru</span>
+            </a>
+          </div>
+
+          <hr>
+
+          <div class="sidebar-section">
+            <div class="section-title">
+              <span>🏷 Label / Tags</span>
+            </div>
+            <div class="tags-cloud" id="sidebar-tags-container">
+              <!-- Diisi dinamis -->
+            </div>
+          </div>
+
+          <hr>
+
+          <div class="sidebar-section font-small">
+            <button id="btn-show-help" class="outline secondary" style="width: 100%; font-size: 0.8rem; padding: 0.4rem; border-radius: 8px;">⌨️ Keyboard Shortcuts</button>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+              <button id="btn-import" class="outline secondary" style="font-size: 0.75rem; padding: 0.4rem; margin: 0; border-radius: 8px;">📥 Impor</button>
+              <button id="btn-export" class="outline secondary" style="font-size: 0.75rem; padding: 0.4rem; margin: 0; border-radius: 8px;">📤 Ekspor</button>
+            </div>
+          </div>
+        </nav>
+      </aside>
+
+      <!-- Area Utama Tugas -->
+      <section class="tugas-main">
+        <div class="tugas-toolbar">
+          
+          <div class="toolbar-left" style="display: flex; align-items: center; gap: 0.5rem;">
+            <h2 id="current-view-title" style="margin: 0; font-weight: 800;">Inbox</h2>
+            <button id="btn-list-options" class="btn-icon-sm" style="font-size: 1.25rem;" aria-label="Pilihan Daftar">⋮</button>
+            <span id="save-status" class="save-status-indicator" aria-live="polite">Tersimpan ✓</span>
+          </div>
+
+          <div class="toolbar-right">
+            <!-- Search -->
+            <input type="search" id="search-input" placeholder="Cari tugas (Ctrl+Shift+T)..." style="margin: 0; max-width: 260px; height: 42px; border-radius: 10px;">
+            
+            <!-- Filters -->
+            <select id="sort-select" style="margin: 0; max-width: 140px; height: 42px; border-radius: 10px;">
+              <option value="manual">Manual</option>
+              <option value="due_date">Tenggat Waktu</option>
+              <option value="priority">Prioritas</option>
+              <option value="created_at">Tanggal Dibuat</option>
+              <option value="alphabetical">Alfabetis</option>
+            </select>
+
+            <!-- View Toggle -->
+            <div role="group" class="view-toggle-group" style="margin: 0;">
+              <button id="btn-view-list" class="primary" style="margin: 0; padding: 0.5rem 1rem; border-radius: 10px 0 0 10px;" title="Tampilan List">≡ List</button>
+              <button id="btn-view-kanban" class="outline secondary" style="margin: 0; padding: 0.5rem 1rem; border-radius: 0 10px 10px 0;" title="Tampilan Kanban">⊞ Kanban</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Render Target List View -->
+        <div id="list-view-container" class="view-panel">
+          <div class="quick-add-inline">
+            <input type="text" id="inline-add-input" placeholder="➕ Tambahkan tugas" class="inline-add-input">
+          </div>
+          <div id="active-tasks-list" class="tasks-drag-list">
+            <!-- Render task active -->
+          </div>
+          
+          <details id="completed-tasks-details" style="margin-top: 1.5rem;">
+            <summary style="font-weight: bold; font-size: 0.95rem; color: var(--pico-secondary-color); cursor: pointer;">Selesai (<span id="completed-count">0</span>)</summary>
+            <div id="completed-tasks-list">
+              <!-- Render task selesai -->
+            </div>
+          </details>
+        </div>
+
+        <!-- Render Target Kanban View -->
+        <div id="kanban-view-container" class="view-panel hidden">
+          <div class="kanban-board">
+            
+            <!-- Kolom Todo -->
+            <div class="kanban-column" data-status="todo">
+              <div class="column-header">
+                <span class="column-title">📋 Todo</span>
+                <span class="column-badge" id="badge-kanban-todo">0</span>
+              </div>
+              <div class="column-cards" id="kanban-cards-todo"></div>
+              <button class="btn-add-card" data-status="todo">+ Tambah kartu</button>
+            </div>
+
+            <!-- Kolom In Progress -->
+            <div class="kanban-column" data-status="in_progress">
+              <div class="column-header">
+                <span class="column-title">🔄 In Progress</span>
+                <span class="column-badge" id="badge-kanban-inprogress">0</span>
+              </div>
+              <div class="column-cards" id="kanban-cards-inprogress"></div>
+              <button class="btn-add-card" data-status="in_progress">+ Tambah kartu</button>
+            </div>
+
+            <!-- Kolom Done -->
+            <div class="kanban-column" data-status="done">
+              <div class="column-header">
+                <span class="column-title">✅ Selesai</span>
+                <span class="column-badge" id="badge-kanban-done">0</span>
+              </div>
+              <div class="column-cards" id="kanban-cards-done"></div>
+              <button class="btn-add-card" data-status="done">+ Tambah kartu</button>
+            </div>
+
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Modal Editor / Detail Tugas -->
+  <dialog id="task-editor-modal">
+    <article class="modal-card" style="border-radius: 24px; max-width: 500px; width: 95%; padding: 2rem; background-color: var(--pico-card-background-color); border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.12); position: relative;">
+      
+      <!-- Close button absolute at the top right -->
+      <button class="close" aria-label="Tutup" onclick="document.getElementById('task-editor-modal').close()" style="position: absolute; right: 1.5rem; top: 1.5rem; background: transparent; border: none; font-size: 1.25rem; color: var(--pico-secondary-color); padding: 0; width: auto; height: auto; cursor: pointer; z-index: 10;">✕</button>
+
+      <!-- Task Title Input with Star in absolute position -->
+      <div style="position: relative; margin-top: 0.5rem; margin-bottom: 1.25rem;">
+        <button id="modal-task-star" class="star-btn" aria-label="Bintang" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); background: transparent; border: none; font-size: 1.5rem; color: var(--pico-muted-color); padding: 0; width: auto; height: auto; cursor: pointer; z-index: 5;">☆</button>
+        <input type="text" id="modal-task-title" placeholder="Task Title" required style="padding-left: 50px !important; padding-right: 15px !important; font-size: 1.35rem; font-weight: 500; border-radius: 12px; border: 1.5px solid #adcbe3; box-shadow: 0 0 0 3px rgba(173, 203, 227, 0.15); height: 54px; margin: 0; color: #2c3e50;">
+      </div>
+
+      <!-- Description -->
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Description</label>
+        <textarea id="modal-task-description" placeholder="Add details..." rows="3" style="border-radius: 10px; margin: 0; font-size: 0.9rem; border: 1px solid #cbd5e1; resize: none;"></textarea>
+      </div>
+
+      <!-- Sub-tasks -->
+      <div class="subtasks-section" style="margin-bottom: 1.25rem; border-top: none; padding-top: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
+          <strong style="font-size: 0.9rem; font-weight: 500; color: #4a5568;">Sub-tasks</strong>
+          <span id="subtasks-progress" class="font-small text-muted" style="font-size: 0.8rem; color: #718096;">0/0 complete</span>
+        </div>
+        <progress id="subtasks-progressbar" value="0" max="100" class="subtask-progress-bar" style="height: 6px; border-radius: 10px; margin-bottom: 0.75rem; background-color: #e2e8f0; border: none;"></progress>
+        <div id="subtasks-list-container" class="subtasks-list" style="margin-bottom: 0.5rem; max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.4rem;"></div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="text" id="new-subtask-input" placeholder="Add a sub-task..." style="margin: 0; height: 42px; font-size: 0.9rem; border-radius: 10px; border: 1px solid #cbd5e1; flex-grow: 1;">
+          <button id="btn-add-subtask" class="outline secondary" style="margin: 0; padding: 0 1.25rem; height: 42px; font-size: 0.9rem; background-color: #f5efe6; border: 1px solid #e5dac9; color: #6b5c43; border-radius: 10px; font-weight: 500; width: auto; line-height: 1;">Add</button>
+        </div>
+      </div>
+
+      <!-- List & Priority Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">List</label>
+          <select id="modal-task-list" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;"></select>
+        </div>
+        <div>
+          <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Priority</label>
+          <select id="modal-task-priority" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;">
+            <option value="none">🏳️ None</option>
+            <option value="low">🟢 Low</option>
+            <option value="medium">🟡 Medium</option>
+            <option value="high">🟠 High</option>
+            <option value="urgent">🔴 Urgent</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Due Date Grid -->
+      <div style="margin-bottom: 1.25rem;">
+        <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Due Date</label>
+        <div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 0.5rem;">
+          <input type="date" id="modal-task-due-date" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;">
+          <input type="time" id="modal-task-due-time" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;">
+        </div>
+      </div>
+
+      <!-- Repeat & Labels Grid -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Repeat</label>
+          <select id="modal-task-repeat" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;">
+            <option value="none">🔁 No Repeat</option>
+            <option value="daily">Harian</option>
+            <option value="weekly">Mingguan</option>
+            <option value="monthly">Bulanan</option>
+            <option value="yearly">Tahunan</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Labels 🏷️</label>
+          <input type="text" id="modal-task-tags" placeholder="Tags separated by commas" style="margin: 0; border-radius: 10px; font-size: 0.9rem; height: 42px; border: 1px solid #cbd5e1;">
+        </div>
+      </div>
+
+      <!-- Attachments Box -->
+      <div style="margin-bottom: 1.5rem;">
+        <label style="font-weight: 500; margin-bottom: 0.35rem; font-size: 0.9rem; color: #4a5568;">Attachments</label>
+        <div style="border: 1.5px dashed #adcbe3; background-color: rgba(173, 203, 227, 0.08); border-radius: 12px; padding: 1.25rem 1rem; text-align: center;" id="attachments-drop-zone">
+          <span style="font-size: 1.75rem; display: block; margin-bottom: 0.35rem; color: #5c93d4;">📤</span>
+          <span style="font-size: 0.85rem; color: #475569;">Drag files here or <span style="text-decoration: underline; font-weight: 600; color: #3b82f6; cursor: pointer;">browse</span></span>
+          
+          <div style="margin-top: 0.75rem; display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+            <select id="modal-link-doc-select" style="margin: 0; font-size: 0.8rem; height: 34px; padding: 0 0.5rem; max-width: 180px; border-radius: 8px; border: 1px solid #cbd5e1;">
+              <option value="">Pilih Berkas...</option>
+            </select>
+            <button type="button" id="btn-modal-add-link" class="outline primary" style="margin: 0; font-size: 0.75rem; padding: 0.25rem 0.5rem; height: 34px; border-radius: 8px; width: auto; line-height: 1;">Hubungkan</button>
+          </div>
+          <div id="modal-linked-files-list" class="linked-files-list" style="margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center;"></div>
+        </div>
+      </div>
+
+      <div id="modal-source-info" class="source-info hidden" style="margin-bottom: 1.25rem;"></div>
+
+      <!-- Hidden Completed Checkbox (kept for compatibility, managed via save button or autosave logic if needed, but we still bind save actions) -->
+      <input type="checkbox" id="modal-task-completed" class="hidden">
+
+      <!-- Modal Footer Actions -->
+      <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #e2e8f0; padding-top: 1.25rem; margin-top: 1.25rem;">
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="btn-block-calendar" class="outline secondary" style="margin: 0; border-radius: 10px; padding: 0 1rem; font-size: 0.85rem; border: 1px solid #cbd5e1; color: #475569; width: auto; height: 40px; line-height: 1; font-weight: 500; background: #fff;">Block Time</button>
+          <button id="btn-delete-task" class="outline danger" style="margin: 0; border-radius: 10px; padding: 0 1rem; font-size: 0.85rem; width: auto; height: 40px; background-color: #faf5f5; border-color: #ebd5d5; color: #b91c1c; font-weight: 500; line-height: 1;">Delete Task</button>
+        </div>
+        <button id="btn-save-task" class="primary" style="margin: 0; border-radius: 10px; padding: 0 1.5rem; font-size: 0.9rem; font-weight: 500; width: auto; height: 40px; display: flex; align-items: center; gap: 0.35rem; background-color: #5c93d4; border-color: #5c93d4; color: white; line-height: 1;">✓ Save</button>
+      </div>
+
+    </article>
+  </dialog>
+
+  <!-- Modal Impor Data -->
+  <dialog id="import-modal">
+    <article style="border-radius: 16px; max-width: 450px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-weight: 700;">Impor Tugas</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('import-modal').close()">✕</button>
+      </header>
+      <form id="import-form" onsubmit="event.preventDefault();">
+        <label for="import-file">Pilih berkas (.json, .csv, .md)
+          <input type="file" id="import-file" accept=".json,.csv,.md" required>
+        </label>
+        <footer style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('import-modal').close()" style="margin: 0;">Batal</button>
+          <button type="submit" class="primary" style="margin: 0;">Mulai Impor</button>
+        </footer>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Modal Help / Shortcuts -->
+  <dialog id="help-modal">
+    <article style="border-radius: 16px; max-width: 500px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-weight: 700;">Pintasan Keyboard (Shortcuts)</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('help-modal').close()">✕</button>
+      </header>
+      <table class="shortcuts-table">
+        <tbody>
+          <tr><td><kbd>Q</kbd></td><td>Tambah tugas cepat ke list aktif</td></tr>
+          <tr><td><kbd>Ctrl+Shift+T</kbd></td><td>Fokus pencarian / Quick add global</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>Tandai selesai tugas terpilih</td></tr>
+          <tr><td><kbd>Delete</kbd></td><td>Hapus tugas terpilih</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Tutup modal aktif</td></tr>
+        </tbody>
+      </table>
+    </article>
+  </dialog>
+
+  <!-- Modal Ubah Nama Daftar -->
+  <dialog id="list-rename-modal">
+    <article style="border-radius: 16px; max-width: 450px; padding: 2rem; background-color: var(--pico-card-background-color);">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-weight: 700;">Ubah Nama Daftar</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('list-rename-modal').close()">✕</button>
+      </header>
+      <div style="margin-bottom: 1.25rem;">
+        <label for="list-new-name-input" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Nama Daftar Baru</label>
+        <input type="text" id="list-new-name-input" style="border-radius: 10px; border: 1px solid #cbd5e1; height: 42px; margin: 0;">
+      </div>
+      <footer style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="outline secondary" onclick="document.getElementById('list-rename-modal').close()" style="margin: 0; height: 40px; line-height: 1;">Batal</button>
+        <button type="button" id="btn-submit-rename-list" class="primary" style="margin: 0; height: 40px; line-height: 1; background-color: #5c93d4; border-color: #5c93d4;">Simpan</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Modal Pindahkan Tugas Lintas Daftar (Move Tasks) -->
+  <dialog id="list-move-tasks-modal">
+    <article style="border-radius: 16px; max-width: 450px; padding: 2rem; background-color: var(--pico-card-background-color);">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-weight: 700;">Pindahkan Semua Tugas</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('list-move-tasks-modal').close()">✕</button>
+      </header>
+      <p style="font-size: 0.9rem; color: #4a5568; margin-bottom: 1rem;" id="move-tasks-modal-desc">
+        Pindahkan seluruh tugas dari daftar aktif ke daftar tujuan di bawah ini:
+      </p>
+      <div style="margin-bottom: 1.25rem;">
+        <label for="list-target-select" style="font-weight: 500; font-size: 0.9rem; margin-bottom: 0.5rem; display: block;">Pilih Daftar Tujuan</label>
+        <select id="list-target-select" style="border-radius: 10px; border: 1px solid #cbd5e1; height: 42px; margin: 0;"></select>
+      </div>
+      <footer style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+        <button type="button" class="outline secondary" onclick="document.getElementById('list-move-tasks-modal').close()" style="margin: 0; height: 40px; line-height: 1;">Batal</button>
+        <button type="button" id="btn-submit-move-tasks" class="primary" style="margin: 0; height: 40px; line-height: 1; background-color: #5c93d4; border-color: #5c93d4;">Pindahkan</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Dropdown Popover Pilihan Daftar (Dropdown options for active list) -->
+  <dialog id="list-actions-modal">
+    <article style="border-radius: 16px; max-width: 320px; padding: 1.5rem; background-color: var(--pico-card-background-color);">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+        <strong id="list-actions-title" style="font-size: 0.95rem; color: #2d3748;">Pilihan Daftar</strong>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('list-actions-modal').close()" style="background: transparent; border: none; font-size: 1rem; padding: 0; width: auto; height: auto; cursor: pointer;">✕</button>
+      </header>
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <button id="btn-opt-rename-list" class="outline secondary" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #cbd5e1; color: #2d3748; background: #fff;">✏️ Ubah Nama Daftar</button>
+        <button id="btn-opt-move-tasks" class="outline secondary" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #cbd5e1; color: #2d3748; background: #fff;">📦 Pindahkan Semua Tugas</button>
+        <button id="btn-opt-delete-list" class="outline danger" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; background-color: #faf5f5; border-color: #ebd5d5; color: #b91c1c;">🗑️ Hapus Daftar</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Main JavaScript modules -->
+  <script src="/app/kerja/pdf/vendor/sortable.min.js"></script>
+  <script type="module" src="./tugas.js"></script>
+</body>
+</html>

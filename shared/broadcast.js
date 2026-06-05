@@ -29,6 +29,10 @@ function getCurrentApp() {
   if (path.includes('/app/kerja/catatan/')) return 'catatan';
   if (path.includes('/app/kerja/hitung/')) return 'hitung';
   if (path.includes('/app/kerja/vault/')) return 'vault';
+  if (path.includes('/app/kerja/kalender/')) return 'kalender';
+  if (path.includes('/app/kerja/slide/')) return 'slide';
   if (path.includes('/app/dev/markdown/')) return 'markdown';
+  if (path.includes('/app/dev/diagram/')) return 'diagram';
+  if (path.includes('/app/dev/json/')) return 'json';
   return 'unknown';
 }

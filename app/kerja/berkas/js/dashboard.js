@@ -340,7 +340,210 @@ async function syncAllApps() {
     console.error("Gagal sinkronisasi Markdown:", err);
   }
 
-  // 5. Clean up deleted metadata of files that no longer exist in original apps
+  // 5.6. Sync Diagram (tmpt_diagram)
+  try {
+    const diagramDb = await openTmptDB('tmpt_diagram', 2, (database) => {
+      if (!database.objectStoreNames.contains('documents')) {
+        database.createObjectStore('documents', { keyPath: 'id' });
+      }
+    });
+    const diagrams = await dbGetAll(diagramDb, 'documents') || [];
+
+    for (const diag of diagrams) {
+      const key = `diagram-${diag.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = diag.created_at || new Date().toISOString();
+      const updated = diag.updated_at || diag.created_at || new Date().toISOString();
+      
+      const size = new Blob([JSON.stringify(diag.nodes || [])]).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: diag.title || 'Diagram Tanpa Judul',
+          type: 'diagram',
+          app_id: diag.id,
+          app_db: 'tmpt_diagram',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== diag.title || existing.size_bytes !== size) {
+          existing.name = diag.title || 'Diagram Tanpa Judul';
+          existing.size_bytes = size;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    diagramDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Diagram:", err);
+  }
+
+  // 4.5. Sync JSON (tmpt_json)
+  try {
+    const jsonDb = await openTmptDB('tmpt_json', 1, (database) => {
+      if (!database.objectStoreNames.contains('sessions')) {
+        database.createObjectStore('sessions', { keyPath: 'id' });
+      }
+    });
+    const sessions = await dbGetAll(jsonDb, 'sessions') || [];
+
+    for (const session of sessions) {
+      const key = `json-${session.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = session.created_at || new Date().toISOString();
+      const updated = session.updated_at || session.created_at || new Date().toISOString();
+      const size = new Blob([session.content || '']).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: session.title || 'Untitled.json',
+          type: 'json',
+          app_id: session.id,
+          app_db: 'tmpt_json',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== session.title || existing.size_bytes !== size) {
+          existing.name = session.title || 'Untitled.json';
+          existing.size_bytes = size;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    jsonDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi JSON:", err);
+  }
+
+  // 5. Sync Forms (tmpt_forms)
+  try {
+    const formsDb = await openTmptDB('tmpt_forms', 1, (database) => {
+      if (!database.objectStoreNames.contains('forms')) {
+        database.createObjectStore('forms', { keyPath: 'id' });
+      }
+    });
+    const forms = await dbGetAll(formsDb, 'forms') || [];
+
+    for (const form of forms) {
+      const key = `forms-${form.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = form.created_at || new Date().toISOString();
+      const updated = form.updated_at || form.created_at || new Date().toISOString();
+      const size = new Blob([JSON.stringify(form.questions || [])]).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: form.title || 'Formulir Tanpa Judul',
+          type: 'forms',
+          app_id: form.id,
+          app_db: 'tmpt_forms',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: form.status === 'trash' || false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== form.title || existing.size_bytes !== size || existing.trash !== (form.status === 'trash')) {
+          existing.name = form.title || 'Formulir Tanpa Judul';
+          existing.size_bytes = size;
+          existing.trash = form.status === 'trash';
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    formsDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Forms:", err);
+  }
+
+  // 5.5. Sync Slide (tmpt_slides)
+  try {
+    const slidesDb = await openTmptDB('tmpt_slides', 1, (database) => {
+      if (!database.objectStoreNames.contains('presentations')) {
+        database.createObjectStore('presentations', { keyPath: 'id' });
+      }
+    });
+    const presentations = await dbGetAll(slidesDb, 'presentations') || [];
+
+    for (const pres of presentations) {
+      const key = `slide-${pres.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = pres.created_at || new Date().toISOString();
+      const updated = pres.updated_at || pres.created_at || new Date().toISOString();
+      
+      const size = new Blob([JSON.stringify(pres.slides || [])]).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: pres.title || 'Presentasi Tanpa Judul',
+          type: 'slide',
+          app_id: pres.id,
+          app_db: 'tmpt_slides',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== pres.title || existing.size_bytes !== size) {
+          existing.name = pres.title || 'Presentasi Tanpa Judul';
+          existing.size_bytes = size;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    slidesDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Slide:", err);
+  }
+
+  // 6. Clean up deleted metadata of files that no longer exist in original apps
   for (const [key, file] of existingAppMap.entries()) {
     if (file.app_id && !syncedKeys.has(key)) {
       await deleteFileMetadata(file.id);
@@ -458,7 +661,14 @@ async function updateStorageDetails() {
 
   if (progressEl) progressEl.value = percent;
   if (percentEl) percentEl.textContent = `${percent}%`;
-  if (detailsEl) detailsEl.textContent = `${formattedTotal} / Estimasi 1 GB`;
+  
+  if (detailsEl) {
+    if (window.TMPT_I18n) {
+      detailsEl.textContent = window.TMPT_I18n.t('berkas.storage_details_tmpl', { used: formattedTotal, total: "1 GB" });
+    } else {
+      detailsEl.textContent = `${formattedTotal} / Estimasi 1 GB`;
+    }
+  }
 
   // Warn if > 80%
   if (percent > 80 && progressEl) {
@@ -518,25 +728,28 @@ async function refreshContent() {
   const viewContainer = document.getElementById('files-view-container');
   const filesTitleEl = document.getElementById('files-section-title');
 
+  const t = (key, fallback) => window.TMPT_I18n ? window.TMPT_I18n.t(key) : fallback;
+
   if (activeFilter === 'trash') {
-    filesTitleEl.innerHTML = `Tempat Sampah <button id="btn-empty-trash" class="outline" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; margin: 0 0 0 1rem; display: inline-block; width: auto; color: var(--pico-danger-color); border-color: var(--pico-danger-color); border-radius: 8px;">🗑️ Kosongkan Sampah</button>`;
+    const btnText = t('berkas.bulk_delete', 'Hapus');
+    filesTitleEl.innerHTML = `${t('berkas.nav_trash', 'Sampah').replace('🗑️', '').trim()} <button id="btn-empty-trash" class="outline" style="padding: 0.2rem 0.6rem; font-size: 0.8rem; margin: 0 0 0 1rem; display: inline-block; width: auto; color: var(--pico-danger-color); border-color: var(--pico-danger-color); border-radius: 8px;">🗑️ ${btnText}</button>`;
     setTimeout(() => {
       document.getElementById('btn-empty-trash')?.addEventListener('click', handleEmptyTrash);
     }, 0);
   } else if (activeFilter === 'starred') {
-    filesTitleEl.textContent = 'Berkas Berbintang';
+    filesTitleEl.textContent = t('berkas.nav_starred', 'Berbintang').replace('⭐', '').trim();
   } else if (selectedTag) {
     filesTitleEl.textContent = `Tag: #${selectedTag}`;
   } else {
-    filesTitleEl.textContent = 'Berkas';
+    filesTitleEl.textContent = t('berkas.section_files', 'Berkas');
   }
 
   if (results.length === 0) {
     viewContainer.innerHTML = `
       <div class="empty-state">
         <span class="empty-state-icon">📂</span>
-        <h3>Tidak ada berkas</h3>
-        <p class="secondary">Tidak menemukan berkas yang cocok dengan filter atau kata kunci Anda.</p>
+        <h3>${t('common.no_data', 'Tidak ada data')}</h3>
+        <p class="secondary">${window.TMPT_I18n && window.TMPT_I18n.getLang() === 'en' ? 'No files match your filter or keyword.' : 'Tidak menemukan berkas yang cocok dengan filter atau kata kunci Anda.'}</p>
       </div>
     `;
     return;
@@ -555,10 +768,10 @@ async function refreshContent() {
           <thead>
             <tr>
               <th style="width: 40px;"><input type="checkbox" id="select-all-checkbox"></th>
-              <th>Nama</th>
-              <th>Tipe</th>
-              <th>Ukuran</th>
-              <th>Terakhir Diubah</th>
+              <th data-i18n="folder_name_label">${t('berkas.folder_name_label', 'Nama')}</th>
+              <th data-i18n="filter_type">${t('berkas.filter_type', 'Tipe')}</th>
+              <th data-i18n="opt_sort_size_desc">${t('berkas.opt_sort_size_desc', 'Ukuran').replace(/[\(\)]|Terbesar/g, '').trim()}</th>
+              <th data-i18n="opt_sort_newest">${t('berkas.opt_sort_newest', 'Terakhir Diubah').replace(/[\(\)]|Terbaru/g, '').trim()}</th>
             </tr>
           </thead>
           <tbody>
@@ -1134,8 +1347,16 @@ async function handleOpenFile(id) {
     window.location.href = `/app/kerja/hitung/index.html?id=${file.app_id}`;
   } else if (file.type === 'papan') {
     window.location.href = `/app/kerja/papan/editor.html?id=${file.app_id}`;
+  } else if (file.type === 'forms') {
+    window.location.href = `/app/kerja/forms/builder.html?id=${file.app_id}`;
+  } else if (file.type === 'slide') {
+    window.location.href = `/app/kerja/slide/editor.html?id=${file.app_id}`;
   } else if (file.type === 'markdown') {
     window.location.href = `/app/dev/markdown/?id=${file.app_id}`;
+  } else if (file.type === 'diagram') {
+    window.location.href = `/app/dev/diagram/editor.html?id=${file.app_id}`;
+  } else if (file.type === 'json') {
+    window.location.href = `/app/dev/json/index.html?id=${file.app_id}`;
   } else if (file.type === 'pdf' || file.type === 'image') {
     if (file.opfs_path) {
       const blob = await getFileFromOpfs(file.opfs_path);
@@ -1153,6 +1374,9 @@ async function handleOpenFile(id) {
         return;
       } else if (ext === 'txt' || ext === 'md') {
         window.location.href = `/app/kerja/catatan/index.html?import_opfs=${encodeURIComponent(file.opfs_path)}&name=${encodeURIComponent(file.name)}`;
+        return;
+      } else if (ext === 'json') {
+        window.location.href = `/app/dev/json/index.html?import_opfs=${encodeURIComponent(file.opfs_path)}&name=${encodeURIComponent(file.name)}`;
         return;
       }
     }
@@ -1233,17 +1457,23 @@ function triggerBrowserDownload(url, name) {
 // --- Bulk Action Bar ---
 function updateBulkActionBar() {
   const bar = document.getElementById('bulk-bar');
+  const t = (key, vars = {}) => window.TMPT_I18n ? window.TMPT_I18n.t(key, vars) : (vars.count !== undefined ? `${vars.count} terpilih` : key.split('.').pop());
   
   if (selectedFiles.size > 0) {
     bar.style.display = 'flex';
     
     if (activeFilter === 'trash') {
+      const selectedText = t('berkas.bulk_selected', { count: selectedFiles.size });
+      const restoreLabel = t('berkas.ctx_restore');
+      const deletePermLabel = t('berkas.bulk_delete') + ' ' + (window.TMPT_I18n ? (window.TMPT_I18n.getLang() === 'en' ? 'Permanently' : 'Permanen') : 'Permanen');
+      const cancelLabel = t('berkas.bulk_clear');
+
       bar.innerHTML = `
-        <span id="bulk-selected-count">${selectedFiles.size} berkas terpilih</span>
+        <span id="bulk-selected-count">${selectedText}</span>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="outline" id="bulk-btn-restore" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">🔄 Pulihkan</button>
-          <button class="outline secondary" id="bulk-btn-delete-perm" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">🗑️ Hapus Permanen</button>
-          <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">Batal</button>
+          <button class="outline" id="bulk-btn-restore" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${restoreLabel}</button>
+          <button class="outline secondary" id="bulk-btn-delete-perm" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">${deletePermLabel}</button>
+          <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${cancelLabel}</button>
         </div>
       `;
       document.getElementById('bulk-btn-restore')?.addEventListener('click', async () => {
@@ -1254,7 +1484,12 @@ function updateBulkActionBar() {
         await refreshContent();
       });
       document.getElementById('bulk-btn-delete-perm')?.addEventListener('click', async () => {
-        const ok = await window.TMPT_UI.confirm(`Hapus secara permanen ${selectedFiles.size} berkas terpilih dari Tempat Sampah?`);
+        const confirmMsg = window.TMPT_I18n 
+          ? (window.TMPT_I18n.getLang() === 'en' 
+             ? `Permanently delete ${selectedFiles.size} selected files from Trash?` 
+             : `Hapus secara permanen ${selectedFiles.size} berkas terpilih dari Tempat Sampah?`)
+          : `Hapus secara permanen ${selectedFiles.size} berkas terpilih dari Tempat Sampah?`;
+        const ok = await window.TMPT_UI.confirm(confirmMsg);
         if (!ok) return;
         for (const id of selectedFiles) {
           await handleDeleteFile(id, true);
@@ -1267,14 +1502,21 @@ function updateBulkActionBar() {
         refreshContent();
       });
     } else {
+      const selectedText = t('berkas.bulk_selected', { count: selectedFiles.size });
+      const starLabel = t('berkas.bulk_star');
+      const tagLabel = t('berkas.bulk_tag');
+      const moveLabel = t('berkas.bulk_move');
+      const deleteLabel = t('berkas.bulk_delete');
+      const cancelLabel = t('berkas.bulk_clear');
+
       bar.innerHTML = `
-        <span id="bulk-selected-count">${selectedFiles.size} berkas terpilih</span>
+        <span id="bulk-selected-count">${selectedText}</span>
         <div style="display: flex; gap: 0.5rem; align-items: center;">
-          <button class="outline" id="bulk-btn-star" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">⭐ Bintang</button>
-          <button class="outline" id="bulk-btn-tag" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">🏷️ Tag</button>
-          <button class="outline" id="bulk-btn-move" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">📁 Pindahkan</button>
-          <button class="outline secondary" id="bulk-btn-delete" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">🗑️ Hapus</button>
-          <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">Batal</button>
+          <button class="outline" id="bulk-btn-star" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${starLabel}</button>
+          <button class="outline" id="bulk-btn-tag" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${tagLabel}</button>
+          <button class="outline" id="bulk-btn-move" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${moveLabel}</button>
+          <button class="outline secondary" id="bulk-btn-delete" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">${deleteLabel}</button>
+          <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">${cancelLabel}</button>
         </div>
       `;
       document.getElementById('bulk-btn-clear')?.addEventListener('click', () => {
@@ -1696,9 +1938,9 @@ function initEventListeners() {
     openMoveFileModal(Array.from(selectedFiles));
   });
 
-  // Backup & Restore Dialog
+  // Backup & Restore Action Redirect to Settings
   document.getElementById('btn-backup-dialog')?.addEventListener('click', () => {
-    document.getElementById('modal-backup').showModal();
+    window.location.href = '/app/auth/settings/index.html?section=backup';
   });
   document.getElementById('btn-trigger-backup')?.addEventListener('click', async () => {
     const progBar = document.getElementById('backup-progress-bar');
@@ -1715,7 +1957,16 @@ function initEventListeners() {
         statusEl.textContent = status;
       });
       const url = URL.createObjectURL(blob);
-      triggerBrowserDownload(url, `TMPT-Ecosystem-Backup-${new Date().toISOString().split('T')[0]}.tmpt`);
+      let vaultName = "Utama";
+      if (window.TMPT_Vault) {
+        const meta = window.TMPT_Vault.getMetadata();
+        if (meta && meta.name) {
+          vaultName = meta.name;
+        }
+      }
+      const safeVaultName = vaultName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const date = new Date().toISOString().split('T')[0];
+      triggerBrowserDownload(url, `TMTP-Backup-${safeVaultName}-${date}.tmpt`);
     } catch (err) {
       console.error(err);
       if (window.TMPT_UI) window.TMPT_UI.toast("Backup gagal: " + err.message, "error");
@@ -2196,19 +2447,27 @@ function formatBytes(bytes, decimals = 2) {
 function formatRelativeTime(isoString) {
   const diff = Date.now() - new Date(isoString).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'Baru saja';
-  if (mins < 60) return `${mins} menit lalu`;
+  const lang = window.TMPT_I18n ? window.TMPT_I18n.getLang() : 'id';
+
+  if (mins < 1) {
+    return lang === 'en' ? 'Just now' : 'Baru saja';
+  }
+  if (mins < 60) {
+    return lang === 'en' ? `${mins}m ago` : `${mins} menit lalu`;
+  }
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} jam lalu`;
+  if (hours < 24) {
+    return lang === 'en' ? `${hours}h ago` : `${hours} jam lalu`;
+  }
   const days = Math.floor(hours / 24);
-  return `${days} hari lalu`;
+  return lang === 'en' ? `${days}d ago` : `${days} hari lalu`;
 }
 
 function getFileTypeEmoji(type) {
   const emojiMap = {
     document: '📄',
     slide: '🎞',
-    form: '📋',
+    forms: '📋',
     pdf: '📑',
     image: '🖼',
     catat_notes: '📓',
@@ -2216,24 +2475,27 @@ function getFileTypeEmoji(type) {
     papan: '🎨',
     hitung: '📊',
     markdown: '📝',
+    diagram: '📊',
     other: '📦'
   };
   return emojiMap[type] || '📦';
 }
 
 function getFileTypeLabel(type) {
+  const t = (key) => window.TMPT_I18n ? window.TMPT_I18n.t(key) : null;
   const labelMap = {
-    document: 'Dokumen',
-    slide: 'Slide',
-    form: 'Forms',
-    pdf: 'PDF',
-    image: 'Gambar',
-    catat_notes: 'Catatan',
-    catat_lists: 'Tugas',
-    papan: 'Papan Coretan',
+    document: t('berkas.opt_filter_doc') || 'Dokumen',
+    slide: t('berkas.opt_filter_slide') || 'Slide',
+    forms: t('berkas.opt_filter_form') || 'Forms',
+    pdf: t('berkas.opt_filter_pdf') || 'PDF',
+    image: t('berkas.opt_filter_image') || 'Gambar',
+    catat_notes: t('berkas.opt_filter_catat_notes') || 'Catatan',
+    catat_lists: t('berkas.opt_filter_catat_lists') || 'Tugas',
+    papan: t('berkas.new_papan')?.replace(' Baru', '')?.replace('New ', '') || 'Papan Coretan',
     hitung: 'Spreadsheet',
     markdown: 'Markdown',
-    other: 'Lainnya'
+    diagram: 'Diagram',
+    other: t('berkas.opt_filter_other') || 'Lainnya'
   };
   return labelMap[type] || 'Lainnya';
 }

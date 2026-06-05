@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Biaya API LLM — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🤖 LLM Cost Calculator (OpenAI &amp; Lainnya)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <form id="cost-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="ai-model">Model AI</label>
+            <select id="ai-model"></select>
+          </div>
+          <div class="form-group">
+            <label for="prompt-tokens">Token Input (Prompt)</label>
+            <input type="number" id="prompt-tokens" value="1000" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="completion-tokens">Token Output (Completion)</label>
+            <input type="number" id="completion-tokens" value="500" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="volume">Jumlah Permintaan per Hari</label>
+            <input type="number" id="volume" value="100" min="1" required>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung Estimasi Biaya</button>
+        </form>
+
+        <!-- Form Tambah Model Kustom -->
+        <details style="margin-top: 1.5rem;">
+          <summary style="font-weight: 600; cursor: pointer;">➕ Tambah / Sesuaikan Model LLM Baru</summary>
+          <div style="padding-top: 1rem; border-top: 1px solid var(--calc-card-border);">
+            <div class="form-group">
+              <label for="custom-name">Nama Model (misal: Gemini 3.5 / Claude Opus 4.8)</label>
+              <input type="text" id="custom-name" placeholder="Gemini 3.5 (Google)">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div class="form-group">
+                <label for="custom-input-price">Harga Input ($ per 1M token)</label>
+                <input type="number" id="custom-input-price" value="3.00" step="0.001">
+              </div>
+              <div class="form-group">
+                <label for="custom-output-price">Harga Output ($ per 1M token)</label>
+                <input type="number" id="custom-output-price" value="9.00" step="0.001">
+              </div>
+            </div>
+            <button class="secondary" id="btn-add-custom" style="width: 100%;">Simpan Model Baru</button>
+          </div>
+        </details>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="calc-result-box">
+            <span class="calc-result-label">Biaya per Bulan</span>
+            <div class="calc-result-value" id="cost-monthly">$0.00</div>
+          </div>
+
+          <div style="font-size: 0.95rem;">
+            <p>Biaya per Request: <strong id="cost-single">$0.00</strong></p>
+            <p>Biaya per Tahun: <strong id="cost-annual">$0.00</strong></p>
+          </div>
+        </div>
+
+        <!-- Rincian Breakdown Perhitungan -->
+        <div style="margin-top: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.1); border: 1px solid var(--calc-card-border); border-radius: 8px;">
+          <h4 style="font-size: 1rem; margin-bottom: 0.75rem; color: var(--calc-primary);">📋 Rincian Perhitungan</h4>
+          <div style="font-size: 0.85rem; font-family: monospace; line-height: 1.6;">
+            <div>Biaya Input: <span id="calc-input-breakdown">-</span></div>
+            <div>Biaya Output: <span id="calc-output-breakdown">-</span></div>
+            <div>Total per Request: <span id="calc-total-request-breakdown">-</span></div>
+            <hr style="margin: 0.5rem 0; border-color: var(--calc-card-border);">
+            <div>Formula Bulanan: (Total per Request × <span id="calc-vol-breakdown">-</span> req/hari) × 30 hari</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { getAIModels, calculateLLMCost } from './js/ai-calc.js';
+
+    const slug = 'openai-cost';
+    const calcName = 'LLM Cost';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      populateModels();
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+      document.getElementById('btn-add-custom').addEventListener('click', saveCustomModel);
+
+      runCalculation();
+    });
+
+    function populateModels() {
+      const modelSelect = document.getElementById('ai-model');
+      const models = getAIModels();
+      modelSelect.innerHTML = Object.keys(models).map(key => `
+        <option value="${key}">${models[key].name} (Input: $${models[key].inputPrice}, Output: $${models[key].outputPrice})</option>
+      `).join('');
+    }
+
+    function saveCustomModel() {
+      const name = document.getElementById('custom-name').value.trim();
+      const inPrice = parseFloat(document.getElementById('custom-input-price').value || '0');
+      const outPrice = parseFloat(document.getElementById('custom-output-price').value || '0');
+
+      if (!name) {
+        window.toast('Nama model tidak boleh kosong!', 'error');
+        return;
+      }
+
+      const key = 'custom-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const customModels = JSON.parse(localStorage.getItem('tmpt_custom_llm_models') || '{}');
+      
+      customModels[key] = {
+        name: name,
+        inputPrice: inPrice,
+        outputPrice: outPrice
+      };
+
+      localStorage.setItem('tmpt_custom_llm_models', JSON.stringify(customModels));
+      window.toast(`Model "${name}" berhasil disimpan!`, 'success');
+      
+      populateModels();
+      document.getElementById('ai-model').value = key;
+      runCalculation();
+    }
+
+    function runCalculation() {
+      const modelKey = document.getElementById('ai-model').value;
+      const prompt = parseInt(document.getElementById('prompt-tokens').value);
+      const completion = parseInt(document.getElementById('completion-tokens').value);
+      const volume = parseInt(document.getElementById('volume').value);
+
+      if (!prompt || !completion || !volume || !modelKey) return;
+
+      const res = calculateLLMCost(modelKey, prompt, completion, volume * 30);
+      if (res) {
+        document.getElementById('cost-monthly').textContent = `$${(res.singleCost * volume * 30).toFixed(4)}`;
+        document.getElementById('cost-single').textContent = `$${res.singleCost.toFixed(6)}`;
+        document.getElementById('cost-annual').textContent = `$${(res.singleCost * volume * 30 * 12).toFixed(2)}`;
+
+        // Breakdown UI updates
+        const models = getAIModels();
+        const activeModel = models[modelKey];
+        
+        document.getElementById('calc-input-breakdown').textContent = 
+          `(${prompt.toLocaleString('id-ID')} token / 1M) × $${activeModel.inputPrice} = $${res.inputCost.toFixed(6)}`;
+        
+        document.getElementById('calc-output-breakdown').textContent = 
+          `(${completion.toLocaleString('id-ID')} token / 1M) × $${activeModel.outputPrice} = $${res.outputCost.toFixed(6)}`;
+        
+        document.getElementById('calc-total-request-breakdown').textContent = 
+          `$${res.inputCost.toFixed(6)} + $${res.outputCost.toFixed(6)} = $${res.singleCost.toFixed(6)}`;
+        
+        document.getElementById('calc-vol-breakdown').textContent = volume;
+
+        saveHistoryEntry(slug, calcName, { model: modelKey }, { value: `$${(res.singleCost * volume * 30).toFixed(2)}/bln` });
+      }
+    }
+  </script>
+</body>
+</html>

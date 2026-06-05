@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Ilmiah — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <style>
+    .calc-box.sci-calc {
+      max-width: 500px;
+      margin: 0 auto;
+      background: var(--pico-card-background-color);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border: 1px solid var(--calc-card-border);
+      padding: 1.25rem;
+    }
+    .sci-grid-full {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🧪 Kalkulator Ilmiah (Scientific)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-box sci-calc">
+      <div class="sci-display">
+        <div class="sci-history-expr" id="display-expr"></div>
+        <div id="display-val">0</div>
+      </div>
+
+      <div class="sci-grid-full">
+        <!-- Row 1 -->
+        <button class="sci-btn fn" data-val="sin">sin</button>
+        <button class="sci-btn fn" data-val="cos">cos</button>
+        <button class="sci-btn fn" data-val="tan">tan</button>
+        <button class="sci-btn fn" data-val="pi">π</button>
+        <button class="sci-btn operator" data-val="C">C</button>
+
+        <!-- Row 2 -->
+        <button class="sci-btn fn" data-val="log">log</button>
+        <button class="sci-btn fn" data-val="ln">ln</button>
+        <button class="sci-btn fn" data-val="pow">xʸ</button>
+        <button class="sci-btn fn" data-val="e">e</button>
+        <button class="sci-btn operator" data-val="back">⌫</button>
+
+        <!-- Row 3 -->
+        <button class="sci-btn fn" data-val="sqrt">√</button>
+        <button class="sci-btn fn" data-val="factorial">x!</button>
+        <button class="sci-btn fn" data-val="(">(</button>
+        <button class="sci-btn fn" data-val=")">)</button>
+        <button class="sci-btn operator" data-val="/">÷</button>
+
+        <!-- Row 4 -->
+        <button class="sci-btn num" data-val="7">7</button>
+        <button class="sci-btn num" data-val="8">8</button>
+        <button class="sci-btn num" data-val="9">9</button>
+        <button class="sci-btn operator" data-val="*">×</button>
+        <button class="sci-btn operator" data-val="-">-</button>
+
+        <!-- Row 5 -->
+        <button class="sci-btn num" data-val="4">4</button>
+        <button class="sci-btn num" data-val="5">5</button>
+        <button class="sci-btn num" data-val="6">6</button>
+        <button class="sci-btn operator" data-val="+">+</button>
+        <button class="sci-btn operator" data-val="+/-">±</button>
+
+        <!-- Row 6 -->
+        <button class="sci-btn num" data-val="1">1</button>
+        <button class="sci-btn num" data-val="2">2</button>
+        <button class="sci-btn num" data-val="3">3</button>
+        <button class="sci-btn num" data-val="0">0</button>
+        <button class="sci-btn num" data-val=".">.</button>
+
+        <!-- Row 7 -->
+        <button class="sci-btn equals" data-val="=" style="grid-column: span 5;">=</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'scientific';
+    const calcName = 'Kalkulator Ilmiah';
+
+    let displayVal = '0';
+    let expr = '';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.querySelectorAll('.sci-grid-full button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          handleInput(btn.getAttribute('data-val'));
+        });
+      });
+    });
+
+    function handleInput(val) {
+      if (!isNaN(val) || val === '.') {
+        if (displayVal === '0') {
+          displayVal = val;
+        } else {
+          displayVal += val;
+        }
+      } else if (val === 'C') {
+        displayVal = '0';
+        expr = '';
+      } else if (val === 'back') {
+        if (displayVal.length > 1) {
+          displayVal = displayVal.slice(0, -1);
+        } else {
+          displayVal = '0';
+        }
+      } else if (val === 'pi') {
+        displayVal = Math.PI.toString();
+      } else if (val === 'e') {
+        displayVal = Math.E.toString();
+      } else if (val === 'sin') {
+        displayVal = Math.sin(parseFloat(displayVal)).toString();
+      } else if (val === 'cos') {
+        displayVal = Math.cos(parseFloat(displayVal)).toString();
+      } else if (val === 'tan') {
+        displayVal = Math.tan(parseFloat(displayVal)).toString();
+      } else if (val === 'log') {
+        displayVal = Math.log10(parseFloat(displayVal)).toString();
+      } else if (val === 'ln') {
+        displayVal = Math.log(parseFloat(displayVal)).toString();
+      } else if (val === 'sqrt') {
+        displayVal = Math.sqrt(parseFloat(displayVal)).toString();
+      } else if (val === '+/-') {
+        displayVal = (parseFloat(displayVal) * -1).toString();
+      } else if (val === 'factorial') {
+        displayVal = fact(parseInt(displayVal)).toString();
+      } else if (['+', '-', '*', '/', '(', ')'].includes(val)) {
+        if (expr === '' || expr.endsWith(' ')) {
+          expr += displayVal + ' ' + val + ' ';
+        } else {
+          expr += ' ' + val + ' ';
+        }
+        displayVal = '0';
+      } else if (val === 'pow') {
+        expr += displayVal + ' ^ ';
+        displayVal = '0';
+      } else if (val === '=') {
+        let finalExpr = expr + displayVal;
+        try {
+          // simple safe calculation logic
+          let sanitized = finalExpr.replace(/÷/g, '/').replace(/×/g, '*').replace(/\^/g, '**');
+          let res = new Function(`return ${sanitized}`)();
+          displayVal = res.toString();
+          saveHistoryEntry(slug, calcName, { finalExpr }, { value: displayVal });
+          expr = '';
+        } catch(e) {
+          displayVal = 'Error';
+        }
+      }
+      updateDisplay();
+    }
+
+    function fact(n) {
+      if (n < 0) return 0;
+      if (n === 0 || n === 1) return 1;
+      let r = 1;
+      for (let i = 2; i <= n; i++) r *= i;
+      return r;
+    }
+
+    function updateDisplay() {
+      document.getElementById('display-val').textContent = displayVal;
+      document.getElementById('display-expr').textContent = expr;
+    }
+  </script>
+</body>
+</html>

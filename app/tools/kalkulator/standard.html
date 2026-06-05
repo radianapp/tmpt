@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Standar — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <style>
+    .calc-box.standard-calc {
+      max-width: 400px;
+      margin: 0 auto;
+      background: var(--pico-card-background-color);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      border: 1px solid var(--calc-card-border);
+      padding: 1.25rem;
+    }
+    .std-display {
+      text-align: right;
+      padding: 1rem 0.5rem;
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      background: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .std-expr {
+      font-size: 0.95rem;
+      color: var(--pico-muted-color);
+      min-height: 24px;
+      word-break: break-all;
+    }
+    .std-val {
+      font-size: 2.75rem;
+      font-weight: 700;
+      color: var(--pico-color);
+      line-height: 1.1;
+      word-break: break-all;
+      overflow-x: auto;
+    }
+    .mem-bar {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--pico-muted-color);
+    }
+    .mem-btn {
+      cursor: pointer;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+    }
+    .mem-btn:hover {
+      background: rgba(255,255,255,0.05);
+      color: var(--calc-primary);
+    }
+    .mem-btn.disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+    .std-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+    .std-btn {
+      padding: 1.1rem 0.5rem !important;
+      font-size: 1.1rem !important;
+      font-weight: 600;
+      border-radius: 6px !important;
+      border: 1px solid transparent !important;
+      margin-bottom: 0 !important;
+      background: rgba(255,255,255,0.02) !important;
+      color: var(--pico-color) !important;
+      transition: background 0.15s ease;
+    }
+    [data-theme="light"] .std-btn {
+      background: #f1f5f9 !important;
+      border-color: #e2e8f0 !important;
+    }
+    .std-btn:hover {
+      background: rgba(255,255,255,0.08) !important;
+      border-color: var(--calc-card-border) !important;
+    }
+    [data-theme="light"] .std-btn:hover {
+      background: #e2e8f0 !important;
+    }
+    .std-btn.op {
+      background: rgba(255, 255, 255, 0.05) !important;
+      color: var(--calc-primary) !important;
+    }
+    [data-theme="light"] .std-btn.op {
+      background: #e2e8f0 !important;
+    }
+    .std-btn.equal {
+      background: var(--calc-primary) !important;
+      color: #fff !important;
+    }
+    .std-btn.equal:hover {
+      background: var(--calc-primary-hover) !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🧮 Kalkulator Standar </h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-box standard-calc">
+      <div class="std-display">
+        <div class="std-expr" id="display-expr"></div>
+        <div class="std-val" id="display-val">0</div>
+      </div>
+
+      <div class="mem-bar">
+        <span class="mem-btn disabled" id="m-mc">MC</span>
+        <span class="mem-btn disabled" id="m-mr">MR</span>
+        <span class="mem-btn" id="m-mplus">M+</span>
+        <span class="mem-btn" id="m-mminus">M-</span>
+        <span class="mem-btn" id="m-ms">MS</span>
+      </div>
+
+      <div class="std-grid">
+        <!-- Row 1 -->
+        <button class="std-btn op" data-val="%">%</button>
+        <button class="std-btn op" data-val="CE">CE</button>
+        <button class="std-btn op" data-val="C">C</button>
+        <button class="std-btn op" data-val="back">⌫</button>
+
+        <!-- Row 2 -->
+        <button class="std-btn op" data-val="1/x">⅟x</button>
+        <button class="std-btn op" data-val="x2">x²</button>
+        <button class="std-btn op" data-val="sqrt">²√x</button>
+        <button class="std-btn op" data-val="/">÷</button>
+
+        <!-- Row 3 -->
+        <button class="std-btn num" data-val="7">7</button>
+        <button class="std-btn num" data-val="8">8</button>
+        <button class="std-btn num" data-val="9">9</button>
+        <button class="std-btn op" data-val="*">×</button>
+
+        <!-- Row 4 -->
+        <button class="std-btn num" data-val="4">4</button>
+        <button class="std-btn num" data-val="5">5</button>
+        <button class="std-btn num" data-val="6">6</button>
+        <button class="std-btn op" data-val="-">-</button>
+
+        <!-- Row 5 -->
+        <button class="std-btn num" data-val="1">1</button>
+        <button class="std-btn num" data-val="2">2</button>
+        <button class="std-btn num" data-val="3">3</button>
+        <button class="std-btn op" data-val="+">+</button>
+
+        <!-- Row 6 -->
+        <button class="std-btn op" data-val="+/-">±</button>
+        <button class="std-btn num" data-val="0">0</button>
+        <button class="std-btn num" data-val=".">.</button>
+        <button class="std-btn equal" data-val="=">=</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'standard';
+    const calcName = 'Kalkulator Standar';
+
+    let currentVal = '0';
+    let prevVal = null;
+    let currentOp = null;
+    let expr = '';
+    let shouldReset = false;
+    let memoryVal = 0;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Favorite
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      // Keypad Listener
+      document.querySelectorAll('.std-grid button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          handleInput(btn.getAttribute('data-val'));
+        });
+      });
+
+      // Memory buttons
+      document.getElementById('m-ms').addEventListener('click', () => {
+        memoryVal = parseFloat(currentVal);
+        updateMemoryStatus();
+        window.toast(`Disimpan ke Memori: ${memoryVal}`, 'info');
+      });
+      document.getElementById('m-mc').addEventListener('click', () => {
+        memoryVal = 0;
+        updateMemoryStatus();
+      });
+      document.getElementById('m-mr').addEventListener('click', () => {
+        currentVal = memoryVal.toString();
+        updateDisplay();
+      });
+      document.getElementById('m-mplus').addEventListener('click', () => {
+        memoryVal += parseFloat(currentVal);
+        updateMemoryStatus();
+      });
+      document.getElementById('m-mminus').addEventListener('click', () => {
+        memoryVal -= parseFloat(currentVal);
+        updateMemoryStatus();
+      });
+    });
+
+    function updateMemoryStatus() {
+      const mc = document.getElementById('m-mc');
+      const mr = document.getElementById('m-mr');
+      if (memoryVal !== 0) {
+        mc.classList.remove('disabled');
+        mr.classList.remove('disabled');
+      } else {
+        mc.classList.add('disabled');
+        mr.classList.add('disabled');
+      }
+    }
+
+    function handleInput(key) {
+      if (!isNaN(key) || key === '.') {
+        if (shouldReset) {
+          currentVal = '';
+          shouldReset = false;
+        }
+        if (key === '.' && currentVal.includes('.')) return;
+        if (currentVal === '0' && key !== '.') {
+          currentVal = key;
+        } else {
+          currentVal += key;
+        }
+        updateDisplay();
+      } else {
+        handleOp(key);
+      }
+    }
+
+    function handleOp(op) {
+      switch (op) {
+        case 'C':
+          currentVal = '0';
+          prevVal = null;
+          currentOp = null;
+          expr = '';
+          break;
+        case 'CE':
+          currentVal = '0';
+          break;
+        case 'back':
+          if (currentVal.length > 1) {
+            currentVal = currentVal.slice(0, -1);
+          } else {
+            currentVal = '0';
+          }
+          break;
+        case '+/-':
+          currentVal = (parseFloat(currentVal) * -1).toString();
+          break;
+        case '1/x':
+          currentVal = (1 / parseFloat(currentVal)).toString();
+          break;
+        case 'x2':
+          currentVal = Math.pow(parseFloat(currentVal), 2).toString();
+          break;
+        case 'sqrt':
+          currentVal = Math.sqrt(parseFloat(currentVal)).toString();
+          break;
+        case '%':
+          currentVal = (parseFloat(currentVal) / 100).toString();
+          break;
+        case '+':
+        case '-':
+        case '*':
+        case '/':
+          prevVal = parseFloat(currentVal);
+          currentOp = op;
+          expr = prevVal + ' ' + (op === '*' ? '×' : op === '/' ? '÷' : op);
+          shouldReset = true;
+          break;
+        case '=':
+          if (currentOp && prevVal !== null) {
+            const nextVal = parseFloat(currentVal);
+            let res = 0;
+            if (currentOp === '+') res = prevVal + nextVal;
+            if (currentOp === '-') res = prevVal - nextVal;
+            if (currentOp === '*') res = prevVal * nextVal;
+            if (currentOp === '/') res = prevVal / nextVal;
+            
+            expr = `${prevVal} ${currentOp} ${nextVal} =`;
+            currentVal = res.toString();
+            saveHistoryEntry(slug, calcName, { expr }, { value: currentVal });
+            prevVal = null;
+            currentOp = null;
+            shouldReset = true;
+          }
+          break;
+      }
+      updateDisplay();
+    }
+
+    function updateDisplay() {
+      document.getElementById('display-val').textContent = currentVal;
+      document.getElementById('display-expr').textContent = expr;
+    }
+  </script>
+</body>
+</html>

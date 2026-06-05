@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulir — TMPT Forms</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="./forms.css">
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/auth.js"></script>
+  <style>
+    /* Custom font styling mapping */
+    [data-font="Outfit"] { font-family: 'Outfit', sans-serif; }
+    [data-font="Roboto"] { font-family: 'Roboto', sans-serif; }
+    
+    .respond-body {
+      background-color: var(--pico-background-color);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem 1rem;
+      font-size: 0.9rem;
+    }
+    
+    /* Center align container */
+    .respond-container {
+      max-width: 640px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body class="respond-body">
+
+  <div class="respond-container">
+    
+    <!-- Header Image Card -->
+    <div id="form-header-image-container" class="hidden" style="margin-bottom: 1rem; border-radius: 16px; overflow: hidden; border: 1px solid var(--theme-border);">
+      <img id="form-header-img" src="/assets/img/default_form_header.png" alt="Header Gambar" style="width: 100%; display: block; object-fit: cover; max-height: 200px;">
+    </div>
+
+    <!-- Progress Indicator for Slide/Typeform mode -->
+    <div id="progress-container" class="hidden" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.25rem;">
+        <span id="slide-progress-text">Pertanyaan 1 dari 1</span>
+        <span id="slide-progress-percent">0%</span>
+      </div>
+      <progress id="slide-progress-bar" value="0" max="100"></progress>
+    </div>
+
+    <!-- Active Form View -->
+    <form id="respond-form" onsubmit="event.preventDefault();">
+      
+      <!-- Main Form Header & Title (classic view renders title here, slide view can render title on first slide) -->
+      <div class="respond-form-card" id="form-header-view">
+        <h1 id="respond-title" style="margin-bottom: 0.5rem; font-size: 1.5rem; font-weight: 800;">Memuat Formulir...</h1>
+        <p id="respond-desc" class="secondary" style="margin-bottom: 0;"></p>
+      </div>
+
+      <!-- Question cards will be loaded here dynamically -->
+      <div id="respond-questions-container">
+        <!-- Rendered by respond.js -->
+      </div>
+
+      <!-- Submit / Slide Navigation actions -->
+      <div style="display: flex; gap: 1rem; justify-content: space-between; align-items: center; margin-top: 1.5rem;" id="respond-actions">
+        <button type="button" id="btn-prev-slide" class="outline secondary hidden" style="width: auto; margin: 0; border-radius: 8px;">← Kembali</button>
+        <div style="flex-grow: 1;"></div>
+        <button type="submit" id="btn-submit-form" class="primary" style="width: auto; margin: 0; border-radius: 8px;">Kirim Jawaban</button>
+      </div>
+
+    </form>
+
+    <!-- Success / Completion message view -->
+    <div id="success-view" class="respond-form-card hidden" style="text-align: center; padding: 3rem 1.5rem;">
+      <span style="font-size: 4rem; display: block; margin-bottom: 1rem;">✅</span>
+      <h3 style="font-weight: 700; margin-bottom: 0.5rem;">Tanggapan Dikirim!</h3>
+      <p id="success-message-text" class="secondary" style="margin-bottom: 2rem;">Terima kasih! Jawaban Anda telah diterima.</p>
+      <button onclick="window.location.reload()" class="outline secondary" style="width: auto; margin: 0; border-radius: 8px;" id="btn-submit-another">Kirim tanggapan lain</button>
+    </div>
+
+    <footer class="respond-footer" style="margin-top: 2rem;">
+      <p>Didukung oleh <a href="https://tmpt.my.id/app/kerja/forms/" target="_blank" style="color: var(--theme-primary); font-weight: bold; text-decoration: none;">TMPT Forms</a> • Bebas Pelacak & Aman</p>
+    </footer>
+
+  </div>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module" src="./respond.js"></script>
+</body>
+</html>

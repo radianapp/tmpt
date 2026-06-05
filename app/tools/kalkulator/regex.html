@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Regex Tester — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🔍 Regex Tester</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <div class="form-group">
+          <label for="regex-pattern">Ekspresi Reguler (Regex Pattern)</label>
+          <input type="text" id="regex-pattern" value="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}" style="font-family: monospace;">
+        </div>
+
+        <div class="form-group">
+          <label for="regex-flags">Flags</label>
+          <input type="text" id="regex-flags" value="g" placeholder="g, i, m">
+        </div>
+
+        <div class="form-group">
+          <label for="regex-text">Test String</label>
+          <textarea id="regex-text" placeholder="Masukkan teks uji di sini..." style="min-height: 180px;">Kirim email ke kontak@tmpt.my.id atau admin@tmpt.my.id untuk informasi.</textarea>
+        </div>
+
+        <button class="btn-navy" id="btn-test" style="width: 100%;">Uji Regex</button>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column;">
+        <h3>Hasil Pencocokan (Matches)</h3>
+        
+        <div class="calc-result-box" style="margin-bottom: 1rem;">
+          <span class="calc-result-label">Jumlah Match</span>
+          <div class="calc-result-value" id="match-count">0</div>
+        </div>
+
+        <div style="flex-grow: 1; overflow-y: auto; max-height: 250px;">
+          <ul id="match-list" style="padding-left: 0; list-style: none;">
+            <!-- Diisi oleh JS -->
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { testRegex } from './js/dev-calc.js';
+
+    const slug = 'regex';
+    const calcName = 'Regex Tester';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-test').addEventListener('click', runTest);
+      runTest();
+    });
+
+    function runTest() {
+      const pattern = document.getElementById('regex-pattern').value;
+      const flags = document.getElementById('regex-flags').value;
+      const text = document.getElementById('regex-text').value;
+
+      if (!pattern) return;
+
+      const res = testRegex(pattern, flags, text);
+      const countDisplay = document.getElementById('match-count');
+      const listDisplay = document.getElementById('match-list');
+      
+      listDisplay.innerHTML = '';
+
+      if (res.valid) {
+        countDisplay.textContent = res.count;
+        if (res.matches.length === 0) {
+          listDisplay.innerHTML = '<li class="secondary">Tidak ada kecocokan ditemukan.</li>';
+        } else {
+          listDisplay.innerHTML = res.matches.map((m, idx) => `
+            <li style="padding: 0.5rem; background: rgba(59,130,246,0.05); margin-bottom: 0.5rem; border-radius: 6px; border-left: 3px solid var(--calc-primary);">
+              <strong>Match ${idx + 1}:</strong> <code style="font-family: monospace;">${m.value}</code> (Index: ${m.index})
+            </li>
+          `).join('');
+        }
+        saveHistoryEntry(slug, calcName, { pattern }, { value: `${res.count} Match` });
+      } else {
+        countDisplay.textContent = 'Error';
+        listDisplay.innerHTML = `<li style="color: var(--calc-danger);">Sintaks error: ${res.error}</li>`;
+      }
+    }
+  </script>
+</body>
+</html>

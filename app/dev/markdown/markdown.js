@@ -10,6 +10,9 @@ let db = null;
 let filesCache = [];
 let foldersCache = [];
 let currentViewFilter = 'all';
+let isSyncingScroll = false;   // Flag untuk mencegah loop scroll
+let scrollSyncEnabled = true;  // Bisa dinonaktifkan sementara
+
 
 // Emoji Map Sederhana (v1.0 MVP)
 const EMOJI_MAP = {
@@ -346,6 +349,13 @@ function createFileNode(file) {
 }
 
 // === MONACO EDITOR MODULE ===
+function updateMonacoTheme() {
+  if (typeof monaco !== 'undefined' && editorInstance) {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    monaco.editor.setTheme(isDark ? 'vs-dark' : 'vs');
+  }
+}
+
 function initMonaco() {
   if (typeof require === 'undefined') {
     console.error("Monaco loader tidak ditemukan!");
@@ -365,10 +375,12 @@ function initMonaco() {
     const wordWrap = localStorage.getItem('md_word_wrap') !== 'false';
     const lineNumbers = localStorage.getItem('md_line_numbers') !== 'false';
 
+    const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'vs-dark' : 'vs';
+
     editorInstance = monaco.editor.create(host, {
       value: '',
       language: 'markdown',
-      theme: 'vs',
+      theme: currentTheme,
       fontSize: fontSize,
       wordWrap: wordWrap ? 'on' : 'off',
       lineNumbers: lineNumbers ? 'on' : 'off',
@@ -379,6 +391,12 @@ function initMonaco() {
         horizontalScrollbarSize: 8
       }
     });
+
+    // Observer untuk sinkronisasi tema dengan Monaco secara realtime
+    const themeObserver = new MutationObserver(() => {
+      updateMonacoTheme();
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     // Listener Perubahan Teks
     editorInstance.onDidChangeModelContent(() => {
@@ -396,10 +414,12 @@ function initMonaco() {
       }
     });
 
-    // Listener Scroll (Scroll Sync)
+    // Listener Scroll (Scroll Sync: Editor → Preview)
     editorInstance.onDidScrollChange(() => {
-      if (document.getElementById('btn-mode-split').classList.contains('active')) {
-        syncScrollFromEditor();
+      if (!scrollSyncEnabled || isSyncingScroll) return;
+      const splitBtn = document.getElementById('btn-mode-split');
+      if (splitBtn && splitBtn.classList.contains('active')) {
+        syncScrollEditorToPreview();
       }
     });
 
@@ -407,6 +427,9 @@ function initMonaco() {
     if (currentDocId) {
       loadDocContentIntoEditor();
     }
+
+    // Pasang listener scroll preview → editor setelah Monaco ready
+    setTimeout(initPreviewScrollSync, 300);
   });
 }
 
@@ -645,24 +668,186 @@ function loadCSS(href) {
 }
 
 // === SCROLL SYNC MODULE ===
-function syncScrollFromEditor() {
+
+/**
+ * Build a mapping antara baris editor dan elemen heading di preview.
+ * Mengembalikan array: [{ line, el }, ...] diurutkan berdasarkan nomor baris.
+ */
+function buildHeadingMap() {
+  if (!editorInstance) return [];
+  const model = editorInstance.getModel();
+  if (!model) return [];
+
+  const content = model.getValue();
+  const lines = content.split('\n');
+  const previewEl = document.getElementById('preview-html-content');
+  if (!previewEl) return [];
+
+  // Ambil semua heading dari preview (h1-h6) dalam urutan DOM
+  const headingEls = Array.from(previewEl.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+  if (headingEls.length === 0) return [];
+
+  // Buat map: teks heading → nomor baris di editor
+  const map = [];
+  const headingRegex = /^(#{1,6})\s+(.+)$/;
+
+  let headingIdx = 0;
+  for (let i = 0; i < lines.length && headingIdx < headingEls.length; i++) {
+    const match = lines[i].match(headingRegex);
+    if (match) {
+      // Cocokkan dengan heading DOM berdasarkan urutan kemunculan
+      const el = headingEls[headingIdx];
+      map.push({ line: i + 1, el }); // Monaco line numbers are 1-based
+      headingIdx++;
+    }
+  }
+
+  return map;
+}
+
+/**
+ * Sync scroll: Editor → Preview.
+ * Menggunakan interpolasi antara heading-heading terdekat.
+ */
+function syncScrollEditorToPreview() {
   if (!editorInstance) return;
-  const editorScroller = document.querySelector('.workspace-center .monaco-editor .overflow-guard');
-  if (!editorScroller) return;
+  const model = editorInstance.getModel();
+  if (!model) return;
 
   const previewPanel = document.getElementById('preview-panel-host');
   if (!previewPanel) return;
 
-  // Ambil rasio scroll editor
   const visibleRanges = editorInstance.getVisibleRanges();
   if (visibleRanges.length === 0) return;
-  
-  const lineCount = editorInstance.getModel().getLineCount();
-  const visibleLine = visibleRanges[0].startLineNumber;
-  
-  const ratio = visibleLine / lineCount;
-  previewPanel.scrollTop = ratio * (previewPanel.scrollHeight - previewPanel.clientHeight);
+
+  const firstVisibleLine = visibleRanges[0].startLineNumber;
+  const lastVisibleLine = visibleRanges[0].endLineNumber;
+  const totalLines = model.getLineCount();
+  const visibleLines = lastVisibleLine - firstVisibleLine;
+
+  const headingMap = buildHeadingMap();
+
+  isSyncingScroll = true;
+
+  if (headingMap.length >= 2) {
+    // === Heading-based interpolation ===
+    // Cari dua heading yang mengapit baris saat ini
+    let prevEntry = headingMap[0];
+    let nextEntry = headingMap[headingMap.length - 1];
+
+    for (let i = 0; i < headingMap.length - 1; i++) {
+      if (headingMap[i].line <= firstVisibleLine && headingMap[i + 1].line > firstVisibleLine) {
+        prevEntry = headingMap[i];
+        nextEntry = headingMap[i + 1];
+        break;
+      }
+    }
+
+    // Posisi offset heading di preview (relatif ke previewPanel)
+    const prevTop = prevEntry.el.offsetTop - previewPanel.offsetTop;
+    const nextTop = nextEntry.el.offsetTop - previewPanel.offsetTop;
+
+    // Rasio posisi di antara dua heading (0 = di heading sebelumnya, 1 = di heading berikutnya)
+    const sectionLines = Math.max(1, nextEntry.line - prevEntry.line);
+    const t = Math.min(1, Math.max(0, (firstVisibleLine - prevEntry.line) / sectionLines));
+
+    // Interpolasi posisi scroll target
+    const targetScrollTop = prevTop + t * (nextTop - prevTop);
+
+    previewPanel.scrollTo({ top: Math.max(0, targetScrollTop - 20), behavior: 'auto' });
+
+  } else {
+    // === Fallback: rasio baris sederhana (untuk dokumen tanpa heading) ===
+    const scrollableLines = Math.max(1, totalLines - visibleLines);
+    const scrollRatio = Math.min(1, Math.max(0, (firstVisibleLine - 1) / scrollableLines));
+    const maxPreviewScroll = previewPanel.scrollHeight - previewPanel.clientHeight;
+    previewPanel.scrollTop = scrollRatio * maxPreviewScroll;
+  }
+
+  // Release flag setelah satu frame agar preview listener tidak trigger balik
+  requestAnimationFrame(() => { isSyncingScroll = false; });
 }
+
+/**
+ * Sync scroll: Preview → Editor.
+ * Dipanggil saat user men-scroll di panel preview.
+ */
+function syncScrollPreviewToEditor() {
+  if (!editorInstance || isSyncingScroll) return;
+
+  const previewPanel = document.getElementById('preview-panel-host');
+  if (!previewPanel) return;
+
+  const maxScroll = previewPanel.scrollHeight - previewPanel.clientHeight;
+  if (maxScroll <= 0) return;
+
+  const scrollRatio = previewPanel.scrollTop / maxScroll;
+
+  const model = editorInstance.getModel();
+  if (!model) return;
+
+  const totalLines = model.getLineCount();
+  const headingMap = buildHeadingMap();
+
+  isSyncingScroll = true;
+
+  if (headingMap.length >= 2) {
+    // Cari heading yang sesuai dengan posisi scroll preview saat ini
+    const currentPreviewTop = previewPanel.scrollTop;
+    const previewOffset = previewPanel.offsetTop;
+
+    let prevEntry = headingMap[0];
+    let nextEntry = headingMap[headingMap.length - 1];
+
+    for (let i = 0; i < headingMap.length - 1; i++) {
+      const prevTop = headingMap[i].el.offsetTop - previewOffset;
+      const nextTop = headingMap[i + 1].el.offsetTop - previewOffset;
+      if (prevTop <= currentPreviewTop && nextTop > currentPreviewTop) {
+        prevEntry = headingMap[i];
+        nextEntry = headingMap[i + 1];
+        break;
+      }
+    }
+
+    const prevTop = prevEntry.el.offsetTop - previewOffset;
+    const nextTop = nextEntry.el.offsetTop - previewOffset;
+    const sectionHeight = Math.max(1, nextTop - prevTop);
+    const t = Math.min(1, Math.max(0, (currentPreviewTop - prevTop) / sectionHeight));
+
+    const sectionLines = nextEntry.line - prevEntry.line;
+    const targetLine = Math.round(prevEntry.line + t * sectionLines);
+
+    editorInstance.revealLineNearTop(Math.max(1, targetLine));
+
+  } else {
+    // Fallback: rasio sederhana
+    const targetLine = Math.max(1, Math.round(scrollRatio * (totalLines - 1)) + 1);
+    editorInstance.revealLineNearTop(targetLine);
+  }
+
+  requestAnimationFrame(() => { isSyncingScroll = false; });
+}
+
+/** @deprecated Gunakan syncScrollEditorToPreview */
+function syncScrollFromEditor() {
+  syncScrollEditorToPreview();
+}
+
+// Setup listener scroll preview → editor (dipasang sekali saat init)
+function initPreviewScrollSync() {
+  const previewPanel = document.getElementById('preview-panel-host');
+  if (!previewPanel || previewPanel._scrollSyncBound) return;
+
+  previewPanel._scrollSyncBound = true;
+  previewPanel.addEventListener('scroll', () => {
+    if (!scrollSyncEnabled || isSyncingScroll) return;
+    const splitBtn = document.getElementById('btn-mode-split');
+    if (splitBtn && splitBtn.classList.contains('active')) {
+      syncScrollPreviewToEditor();
+    }
+  }, { passive: true });
+}
+
 
 // === AUTOSAVE MODULE ===
 function triggerAutosave(content) {
@@ -823,7 +1008,18 @@ function setupEventListeners() {
   document.getElementById('export-md').addEventListener('click', () => exportFile('md'));
   document.getElementById('export-html').addEventListener('click', () => exportFile('html'));
   document.getElementById('export-html-github').addEventListener('click', () => exportFile('html-github'));
-  document.getElementById('export-pdf').addEventListener('click', () => window.print());
+  document.getElementById('export-pdf').addEventListener('click', async () => {
+    const originalTitle = document.title;
+    if (currentDocId) {
+      const doc = await dbGet('documents', currentDocId);
+      if (doc && doc.title && doc.title !== 'Tanpa Judul') {
+        document.title = doc.title;
+      }
+    }
+    window.print();
+    // Pulihkan judul halaman setelah dialog print ditutup
+    document.title = originalTitle;
+  });
 
   // Exit Focus Mode buttons
   document.getElementById('btn-exit-focus-float').addEventListener('click', () => {
@@ -836,6 +1032,16 @@ function setupEventListeners() {
   // Escape key to exit focus mode
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+      const appContainer = document.getElementById('markdown-app-container');
+      if (appContainer && appContainer.classList.contains('focus-mode')) {
+        setViewMode('split', document.getElementById('btn-mode-split'));
+      }
+    }
+  });
+
+  // Listen to fullscreen changes to sync with focus mode state
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
       const appContainer = document.getElementById('markdown-app-container');
       if (appContainer && appContainer.classList.contains('focus-mode')) {
         setViewMode('split', document.getElementById('btn-mode-split'));
@@ -856,6 +1062,11 @@ function setViewMode(mode, targetBtn) {
   }
 
   // Reset Focus Mode
+  if (appContainer.classList.contains('focus-mode')) {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(err => console.log('Error exiting fullscreen:', err));
+    }
+  }
   appContainer.classList.remove('focus-mode');
   document.body.classList.remove('focus-mode');
 
@@ -869,6 +1080,9 @@ function setViewMode(mode, targetBtn) {
     container.className = 'markdown-content editor-only';
     appContainer.classList.add('focus-mode');
     document.body.classList.add('focus-mode');
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(err => console.log('Error entering fullscreen:', err));
+    }
   }
 
   // Relayout Monaco
@@ -1346,8 +1560,17 @@ async function exportFile(format) {
   const doc = await dbGet('documents', currentDocId);
   if (!doc) return;
 
+  // Sanitasi nama file: hapus karakter yang tidak valid di sistem file
+  const rawTitle = doc.title || 'tanpa-judul';
+  const safeFilename = rawTitle
+    .trim()
+    .replace(/[\\/:\*\?"<>\|]/g, '') // hapus karakter tidak valid di Windows
+    .replace(/\s+/g, '-')             // spasi jadi tanda hubung
+    .replace(/^-+|-+$/g, '')          // hapus tanda hubung di awal/akhir
+    || 'tanpa-judul';
+
   let content = '';
-  let filename = `${doc.title.toLowerCase().replace(/\s+/g, '-')}`;
+  let filename = safeFilename;
 
   if (format === 'md') {
     content = doc.content;
@@ -1370,7 +1593,7 @@ async function exportFile(format) {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>${escapeHtml(doc.title)}</title>
+  <title>${escapeHtml(rawTitle)}</title>
   <style>${cssStyles}</style>
 </head>
 <body>

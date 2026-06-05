@@ -89,7 +89,14 @@ const CryptoModule = {
     },
 
     bufferToBase64(buffer) {
-        return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        const bytes = new Uint8Array(buffer);
+        const len = bytes.byteLength;
+        let binary = '';
+        const chunk = 8192;
+        for (let i = 0; i < len; i += chunk) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+        }
+        return btoa(binary);
     },
 
     base64ToBuffer(base64) {

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Statistika Dasar — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <style>
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      font-size: 0.95rem;
+    }
+    .stats-item {
+      padding: 0.5rem;
+      border-bottom: 1px solid var(--calc-card-border);
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>📊 Kalkulator Statistika Dasar</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <form id="stats-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="numbers">Deret Angka (pisahkan dengan koma atau spasi)</label>
+            <textarea id="numbers" placeholder="Contoh: 10, 20, 15, 30, 25, 40" style="min-height: 150px;">10, 20, 15, 30, 25, 40</textarea>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Analisis Data</button>
+        </form>
+      </div>
+
+      <div class="calc-box">
+        <h3>Hasil Analisis Deskriptif</h3>
+        <div class="stats-grid">
+          <div>
+            <div class="stats-item"><span>Jumlah Angka (N):</span> <strong id="s-count">-</strong></div>
+            <div class="stats-item"><span>Total (Sum):</span> <strong id="s-sum">-</strong></div>
+            <div class="stats-item"><span>Rata-rata (Mean):</span> <strong id="s-mean">-</strong></div>
+            <div class="stats-item"><span>Nilai Tengah (Median):</span> <strong id="s-median">-</strong></div>
+            <div class="stats-item"><span>Modus:</span> <strong id="s-mode">-</strong></div>
+          </div>
+          <div>
+            <div class="stats-item"><span>Jangkauan (Range):</span> <strong id="s-range">-</strong></div>
+            <div class="stats-item"><span>Varians (s²):</span> <strong id="s-variance">-</strong></div>
+            <div class="stats-item"><span>Simpangan Baku (s):</span> <strong id="s-stddev">-</strong></div>
+            <div class="stats-item"><span>Kuartil Bawah (Q1):</span> <strong id="s-q1">-</strong></div>
+            <div class="stats-item"><span>Kuartil Atas (Q3):</span> <strong id="s-q3">-</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { parseNumberList, calculateStatistics } from './js/math-calc.js';
+
+    const slug = 'statistics';
+    const calcName = 'Kalkulator Statistika';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+      runCalculation();
+    });
+
+    function runCalculation() {
+      const raw = document.getElementById('numbers').value;
+      const nums = parseNumberList(raw);
+      if (nums.length === 0) return;
+
+      const res = calculateStatistics(nums);
+      if (res) {
+        document.getElementById('s-count').textContent = res.count;
+        document.getElementById('s-sum').textContent = res.sum.toLocaleString('id-ID');
+        document.getElementById('s-mean').textContent = res.mean.toFixed(4);
+        document.getElementById('s-median').textContent = res.median;
+        document.getElementById('s-mode').textContent = res.mode;
+        document.getElementById('s-range').textContent = res.range;
+        document.getElementById('s-variance').textContent = res.variance.toFixed(4);
+        document.getElementById('s-stddev').textContent = res.stdDev.toFixed(4);
+        document.getElementById('s-q1').textContent = res.q1;
+        document.getElementById('s-q3').textContent = res.q3;
+
+        saveHistoryEntry(slug, calcName, { length: nums.length }, { value: `N=${res.count}` });
+      }
+    }
+  </script>
+</body>
+</html>

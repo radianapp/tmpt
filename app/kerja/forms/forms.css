@@ -1,0 +1,535 @@
+/* app/kerja/forms/forms.css */
+
+/* Core Layout & Tokens */
+:root {
+  --theme-primary: #3b82f6;
+  --theme-primary-hover: #2563eb;
+  --theme-bg: var(--pico-background-color);
+  --theme-card-bg: var(--pico-card-background-color);
+  --theme-border: var(--pico-muted-border-color);
+}
+
+/* Theme presets mapping */
+[data-form-theme="blue"] { --theme-primary: #3b82f6; --theme-primary-hover: #2563eb; }
+[data-form-theme="green"] { --theme-primary: #10b981; --theme-primary-hover: #059669; }
+[data-form-theme="red"] { --theme-primary: #ef4444; --theme-primary-hover: #dc2626; }
+[data-form-theme="purple"] { --theme-primary: #8b5cf6; --theme-primary-hover: #7c3aed; }
+[data-form-theme="orange"] { --theme-primary: #f59e0b; --theme-primary-hover: #d97706; }
+
+/* Dashboard Styles */
+.forms-dashboard-container {
+  padding-top: 1rem;
+}
+
+.forms-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.forms-toolbar h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.forms-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.form-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background-color: var(--theme-card-bg);
+  padding: 1.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.form-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.form-card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-card-meta {
+  font-size: 0.85rem;
+  color: var(--pico-secondary-color);
+  margin-bottom: 1rem;
+}
+
+.form-card-status {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-draft { background-color: var(--pico-code-background-color); color: var(--pico-secondary-color); }
+.status-active { background-color: rgba(16, 185, 129, 0.1); color: #10b981; }
+.status-closed { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+.form-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.form-card-actions button, .form-card-actions a {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  margin: 0;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* Form Builder Styles */
+.builder-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .builder-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.builder-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--theme-border);
+  padding-bottom: 1rem;
+  margin-bottom: 2rem;
+}
+
+.builder-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.builder-header-title input {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  padding: 0.2rem 0.5rem;
+  border-bottom: 2px dashed transparent;
+  border-radius: 0;
+  transition: border-bottom-color 0.2s;
+}
+
+.builder-header-title input:focus {
+  border-bottom-color: var(--theme-primary);
+  box-shadow: none;
+  background-color: var(--pico-code-background-color);
+}
+
+.builder-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.builder-header-actions button, .builder-header-actions a {
+  margin: 0;
+  border-radius: 8px;
+}
+
+.builder-questions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.form-header-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background-color: var(--theme-card-bg);
+  padding: 1.5rem;
+  border-top: 6px solid var(--theme-primary);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.form-header-card input, .form-header-card textarea {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.form-header-card input:focus, .form-header-card textarea:focus {
+  border-bottom-color: var(--theme-primary);
+  box-shadow: none;
+  background-color: var(--pico-code-background-color);
+}
+
+.form-header-card input {
+  font-size: 1.75rem;
+  font-weight: 800;
+}
+
+.form-header-card textarea {
+  font-size: 1rem;
+  margin-bottom: 0;
+  resize: vertical;
+}
+
+/* Question Card Styles */
+.question-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background-color: var(--theme-card-bg);
+  padding: 1.5rem;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.2s;
+}
+
+.question-card:focus-within, .question-card.active {
+  border-color: var(--theme-primary);
+}
+
+.question-card-header {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+  .question-card-header {
+    grid-template-columns: 1fr;
+  }
+}
+
+.question-card-header input {
+  margin: 0;
+  font-weight: 600;
+}
+
+.question-card-header select {
+  margin: 0;
+}
+
+.question-card-options {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.option-row input[type="text"] {
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.9rem;
+}
+
+.option-row button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+  width: auto;
+  margin: 0;
+}
+
+.question-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 1rem;
+  border-top: 1px solid var(--theme-border);
+  padding-top: 0.75rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.question-card-footer label {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.question-card-footer button {
+  padding: 0.25rem 0.5rem;
+  margin: 0;
+  width: auto;
+  font-size: 0.8rem;
+}
+
+.btn-add-question {
+  width: 100%;
+  border-radius: 12px;
+  border: 2px dashed var(--theme-border);
+  background: transparent;
+  color: var(--pico-heading-color);
+  font-weight: 600;
+  padding: 1rem;
+  margin: 0;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.btn-add-question:hover {
+  border-color: var(--theme-primary);
+  background-color: var(--pico-code-background-color);
+}
+
+/* Sidebar Builder Panel */
+.builder-sidebar-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background-color: var(--theme-card-bg);
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1.5rem;
+}
+
+.builder-sidebar-card h4 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.theme-presets {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.theme-color-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.2);
+}
+
+.theme-color-dot.active {
+  border-color: var(--pico-heading-color);
+}
+
+/* Respond Page Styles */
+.respond-body {
+  background-color: var(--pico-background-color);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 1rem;
+}
+
+.respond-container {
+  max-width: 640px;
+  width: 100%;
+}
+
+.respond-form-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 16px;
+  background-color: var(--theme-card-bg);
+  padding: 2rem;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05);
+  border-top: 8px solid var(--theme-primary);
+  margin-bottom: 1.5rem;
+}
+
+.respond-question-group {
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--theme-border);
+  padding-bottom: 1.5rem;
+}
+
+.respond-question-group:last-of-type {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.respond-question-label {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.respond-question-desc {
+  font-size: 0.8rem;
+  color: var(--pico-secondary-color);
+  margin-bottom: 0.75rem;
+  display: block;
+}
+
+.respond-footer {
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--pico-secondary-color);
+}
+
+/* Responses Viewer Styles */
+.responses-tabs {
+  display: flex;
+  gap: 1rem;
+  border-bottom: 1px solid var(--theme-border);
+  margin-bottom: 1.5rem;
+}
+
+.responses-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: var(--pico-heading-color);
+  padding: 0.5rem 1rem;
+  border-radius: 0;
+  margin: 0;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.responses-tab-btn.active {
+  border-bottom-color: var(--theme-primary);
+  color: var(--theme-primary);
+}
+
+.analytics-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 12px;
+  background-color: var(--theme-card-bg);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.analytics-card-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--theme-border);
+  padding-bottom: 0.5rem;
+}
+
+.chart-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chart-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 0.9rem;
+}
+
+.chart-bar-label {
+  width: 140px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.chart-bar-track {
+  flex-grow: 1;
+  background-color: var(--pico-code-background-color);
+  height: 20px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chart-bar-fill {
+  background-color: var(--theme-primary);
+  height: 100%;
+  transition: width 0.3s ease-out;
+}
+
+.chart-bar-count {
+  width: 50px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Linear Scale Chart styling */
+.chart-scale-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 120px;
+  padding-top: 1rem;
+  border-bottom: 1px solid var(--theme-border);
+  margin-bottom: 0.5rem;
+}
+
+.chart-scale-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-grow: 1;
+  gap: 0.5rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.chart-scale-bar {
+  width: 24px;
+  background-color: var(--theme-primary);
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease-out;
+}
+
+.chart-scale-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Logic Rule Builder styling */
+.logic-rule-card {
+  border: 1px solid var(--theme-border);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background-color: var(--pico-code-background-color);
+}
+
+.logic-rule-card select {
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Utility classes */
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}

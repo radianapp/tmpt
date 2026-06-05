@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menghubungkan Google Drive — TMPT</title>
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css">
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/backup.js"></script>
+    <script src="/shared/gdrive-sync.js"></script>
+</head>
+<body>
+    <main class="container" style="display: flex; height: 100vh; align-items: center; justify-content: center;">
+        <article style="text-align: center; max-width: 480px; width: 95%; border-radius: 20px; padding: 2.5rem;">
+            <div style="font-size: 3rem; margin-bottom: 1.5rem; animation: pulse 2s infinite;">☁️</div>
+            <h3 style="font-weight: 800; margin-bottom: 0.75rem;">Menghubungkan Akun</h3>
+            <p class="secondary" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+                Harap tunggu sementara kami memverifikasi otorisasi Anda dari Google dan menyiapkan folder cloud data TMPT Anda.
+            </p>
+            <span aria-busy="true" style="font-size: 1.5rem; display: block; margin: 0 auto;"></span>
+        </article>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            await window.TMPT_Auth.init();
+            
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            const state = params.get('state');
+            const error = params.get('error');
+
+            if (error) {
+                if (window.TMPT_UI) {
+                    window.TMPT_UI.toast("Otorisasi dibatalkan oleh pengguna atau gagal.", "error");
+                }
+                setTimeout(() => { window.location.href = '/app/auth/settings/#section-backup'; }, 2500);
+                return;
+            }
+
+            if (code && state) {
+                await window.GDriveSync.handleCallback(code, state);
+            } else {
+                window.location.href = '/app/auth/settings/#section-backup';
+            }
+        });
+    </script>
+</body>
+</html>

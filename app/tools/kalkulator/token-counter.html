@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Token AI — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🪙 Kalkulator Token AI (Tiktoken Approximation)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Input -->
+      <div class="calc-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">Input Teks</h4>
+          <div>
+            <select id="lang-select" style="margin-bottom: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+              <option value="id">Bahasa Indonesia (~2.5 kar/token)</option>
+              <option value="en">Bahasa Inggris (~4 kar/token)</option>
+            </select>
+          </div>
+        </div>
+        <textarea id="text-input" class="dev-input-textarea" placeholder="Ketik atau paste teks Anda di sini untuk mengestimasi jumlah token LLM..." style="min-height: 350px;"></textarea>
+      </div>
+
+      <!-- Output -->
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="calc-result-box">
+            <span class="calc-result-label">Estimasi Jumlah Token</span>
+            <div class="calc-result-value" id="token-value">0</div>
+            <span class="calc-result-badge badge-success" id="token-status">Aman</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.95rem; margin-top: 1rem;">
+            <div>
+              <strong>Jumlah Karakter:</strong>
+              <p id="char-count" class="secondary">0</p>
+            </div>
+            <div>
+              <strong>Jumlah Kata:</strong>
+              <p id="word-count" class="secondary">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;">
+          <label for="context-window">Utilitas Jendela Konteks (Model 8K)</label>
+          <progress id="context-progress" value="0" max="8192"></progress>
+          <small class="secondary" id="context-percentage">0% terpakai (0 dari 8,192 token)</small>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { countTokensApprox } from './js/ai-calc.js';
+
+    const slug = 'token-counter';
+    const calcName = 'Kalkulator Token AI';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          text: document.getElementById('text-input').value,
+          lang: document.getElementById('lang-select').value
+        });
+      });
+
+      const textInput = document.getElementById('text-input');
+      const langSelect = document.getElementById('lang-select');
+
+      textInput.addEventListener('input', runCount);
+      langSelect.addEventListener('change', runCount);
+
+      const params = getUrlParams();
+      if (params.text) {
+        textInput.value = params.text;
+        langSelect.value = params.lang || 'id';
+        runCount();
+      }
+    });
+
+    let debounceTimer;
+    function runCount() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        const text = document.getElementById('text-input').value;
+        const lang = document.getElementById('lang-select').value;
+
+        const res = countTokensApprox(text, lang);
+        
+        document.getElementById('token-value').textContent = res.tokens;
+        document.getElementById('char-count').textContent = res.characters;
+        document.getElementById('word-count').textContent = res.words;
+
+        // Context window calculation (e.g. 8192 tokens max)
+        const maxTokens = 8192;
+        const progress = document.getElementById('context-progress');
+        progress.value = res.tokens;
+        
+        const pct = Math.min(100, Math.round((res.tokens / maxTokens) * 100));
+        document.getElementById('context-percentage').textContent = `${pct}% terpakai (${res.tokens.toLocaleString()} dari 8,192 token)`;
+
+        const statusBadge = document.getElementById('token-status');
+        if (res.tokens > 8192) {
+          statusBadge.textContent = 'Melebihi Batas';
+          statusBadge.className = 'calc-result-badge badge-danger';
+        } else if (res.tokens > 6000) {
+          statusBadge.textContent = 'Hampir Penuh';
+          statusBadge.className = 'calc-result-badge badge-warning';
+        } else {
+          statusBadge.textContent = 'Aman';
+          statusBadge.className = 'calc-result-badge badge-success';
+        }
+
+        // Save URL params and history
+        if (text) {
+          setUrlParams({ text, lang });
+          saveHistoryEntry(slug, calcName, { length: text.length }, { value: `${res.tokens} Token` });
+        }
+      }, 300);
+    }
+  </script>
+</body>
+</html>

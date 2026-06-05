@@ -9,7 +9,7 @@
   
   <link rel="stylesheet" href="/shared/pico.min.css">
   <link rel="stylesheet" href="/shared/app.css?v=3">
-  <link rel="stylesheet" href="./markdown.css?v=2.7">
+  <link rel="stylesheet" href="./markdown.css?v=2.8">
   
   <script src="/shared/htmx.min.js"></script>
   <script src="/shared/pwa.js"></script>
@@ -30,6 +30,16 @@
   <script type="module" src="/shared/seo.js" data-seo-key="markdown-editor"></script>
 </head>
 <body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
   
   <!-- Global App Header -->
   <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
@@ -340,6 +350,6 @@
   <!-- Float Exit Focus Button -->
   <button class="btn-exit-focus" id="btn-exit-focus-float">Keluar Mode Fokus (Esc)</button>
 
-  <script type="module" src="./markdown.js?v=2.6"></script>
+  <script type="module" src="./markdown.js?v=1.8"></script>
 </body>
 </html>

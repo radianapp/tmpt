@@ -1,0 +1,49 @@
+{
+  "features": [
+    {
+      "name": "Lookbehind Positif / Negatif",
+      "description": "Mencocokkan pola sebelum posisi saat ini (?<=pola) atau (?<!pola).",
+      "javascript": { "supported": true, "note": "Mulai ES2018+" },
+      "python": { "supported": true, "note": "Dukung penuh" },
+      "go_re2": { "supported": false, "note": "RE2 tidak mendukung lookbehind/lookahead" },
+      "java": { "supported": true, "note": "Dukung penuh" },
+      "pcre": { "supported": true, "note": "Dukung penuh" }
+    },
+    {
+      "name": "Named Capture Groups",
+      "description": "Menamai grup tangkapan menggunakan sintaks (?<name>...).",
+      "javascript": { "supported": true, "note": "Mulai ES2018+" },
+      "python": { "supported": true, "note": "Menggunakan sintaks (?P<name>...)" },
+      "go_re2": { "supported": true, "note": "Dukung penuh" },
+      "java": { "supported": true, "note": "Dukung penuh" },
+      "pcre": { "supported": true, "note": "Dukung penuh" }
+    },
+    {
+      "name": "Unicode Property Escapes",
+      "description": "Mencocokkan karakter berdasarkan properti Unicode seperti \\p{L} atau \\p{White_Space}.",
+      "javascript": { "supported": true, "note": "Memerlukan flag 'u' atau 'v'" },
+      "python": { "supported": false, "note": "Memerlukan modul tambahan 'regex'" },
+      "go_re2": { "supported": true, "note": "Dukung penuh" },
+      "java": { "supported": true, "note": "Dukung penuh" },
+      "pcre": { "supported": true, "note": "Dukung penuh" }
+    },
+    {
+      "name": "Backreferences",
+      "description": "Mencocokkan teks yang sama dengan yang ditangkap oleh grup sebelumnya, misalnya \\1.",
+      "javascript": { "supported": true, "note": "Dukung penuh" },
+      "python": { "supported": true, "note": "Dukung penuh" },
+      "go_re2": { "supported": false, "note": "RE2 tidak mendukung backreferences demi jaminan waktu linier" },
+      "java": { "supported": true, "note": "Dukung penuh" },
+      "pcre": { "supported": true, "note": "Dukung penuh" }
+    },
+    {
+      "name": "Possessive Quantifiers",
+      "description": "Quantifier yang tidak menyerahkan kembali kecocokan saat backtracking, misalnya *+ atau ++.",
+      "javascript": { "supported": false, "note": "Tidak didukung secara native" },
+      "python": { "supported": false, "note": "Memerlukan modul 'regex'" },
+      "go_re2": { "supported": false, "note": "Tidak didukung" },
+      "java": { "supported": true, "note": "Dukung penuh" },
+      "pcre": { "supported": true, "note": "Dukung penuh" }
+    }
+  ]
+}

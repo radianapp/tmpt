@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSON Formatter &amp; Validator — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⚙️ JSON Formatter &amp; Validator</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Input Box -->
+      <div class="calc-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">Raw JSON</h4>
+          <div>
+            <select id="indent-select" style="margin-bottom: 0; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+              <option value="2">2 Spasi</option>
+              <option value="4">4 Spasi</option>
+            </select>
+          </div>
+        </div>
+        <textarea id="json-input" class="dev-input-textarea" placeholder='Tulis atau paste JSON di sini... (Contoh: {"nama":"TMPT","aktif":true})' style="min-height: 350px;"></textarea>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+          <button class="btn-navy" id="btn-format">Format JSON</button>
+          <button class="secondary" id="btn-minify">Minify JSON</button>
+        </div>
+      </div>
+
+      <!-- Output Box -->
+      <div class="calc-box" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">Output</h4>
+          <button class="calc-action-btn secondary" id="btn-copy">📋 Copy</button>
+        </div>
+
+        <pre id="json-output" class="dev-output-pane" style="flex-grow: 1; min-height: 350px; white-space: pre-wrap; word-break: break-all;"></pre>
+        
+        <div id="validation-result" class="calc-result-badge badge-success" style="margin-top: 1rem; width: 100%; text-align: center; display: none;">
+          JSON Valid
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { formatJSON, minifyJSON } from './js/dev-calc.js';
+
+    const slug = 'json-formatter';
+    const calcName = 'JSON Formatter';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          raw: document.getElementById('json-input').value
+        });
+      });
+
+      document.getElementById('btn-format').addEventListener('click', () => runFormat(false));
+      document.getElementById('btn-minify').addEventListener('click', () => runFormat(true));
+      
+      document.getElementById('btn-copy').addEventListener('click', () => {
+        const output = document.getElementById('json-output').textContent;
+        if (!output) return;
+        navigator.clipboard.writeText(output).then(() => {
+          window.toast('Output berhasil disalin!', 'success');
+        });
+      });
+
+      const params = getUrlParams();
+      if (params.raw) {
+        document.getElementById('json-input').value = params.raw;
+        runFormat(false);
+      }
+    });
+
+    function runFormat(minify = false) {
+      const input = document.getElementById('json-input').value.trim();
+      const outputBox = document.getElementById('json-output');
+      const badge = document.getElementById('validation-result');
+      
+      if (!input) {
+        outputBox.textContent = '';
+        badge.style.display = 'none';
+        return;
+      }
+
+      let res;
+      if (minify) {
+        res = minifyJSON(input);
+      } else {
+        const space = document.getElementById('indent-select').value;
+        res = formatJSON(input, space);
+      }
+
+      badge.style.display = 'block';
+      if (res.valid) {
+        outputBox.textContent = minify ? res.minified : res.formatted;
+        badge.textContent = '✓ JSON Valid & Terformat';
+        badge.className = 'calc-result-badge badge-success';
+        
+        saveHistoryEntry(slug, calcName, { length: input.length }, { value: 'Valid' });
+      } else {
+        outputBox.textContent = res.error;
+        badge.textContent = '❌ JSON Tidak Valid';
+        badge.className = 'calc-result-badge badge-danger';
+      }
+    }
+  </script>
+</body>
+</html>

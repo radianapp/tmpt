@@ -81,6 +81,19 @@ export const SEO_CONFIG = {
   },
 
   // ── Halaman App (noindex) ────────────────────────────────────────────────
+  'tulis-dashboard': {
+    title: 'TMPT Tulis — Pembuat Dokumen Offline & Privat',
+    desc: 'Tulis dan sunting dokumen secara lokal dan privat. Data Anda tidak pernah dikirim ke server. Bebas dari gangguan iklan dan pelacakan.',
+    canonical: 'https://tmpt.my.id/app/kerja/tulis/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Kerja', url: '/app/kerja/' },
+      { name: 'TMPT Tulis', url: '/app/kerja/tulis/' }
+    ]
+  },
+
   'tulis-editor': {
     title: 'Editor Tulis — TMPT',
     desc: 'Editor dokumen teks offline-first di ekosistem TMPT.',
@@ -109,7 +122,7 @@ export const SEO_CONFIG = {
   },
   'markdown-editor': {
     title: 'TMPT Markdown — Editor Markdown Teknis & Offline',
-    desc: 'Editor Markdown offline-first dengan split live preview, rumus KaTeX, diagram Mermaid, dan penyimpanan local-first yang aman.',
+    desc: 'Editor Markdown offline-first dengan live preview, KaTeX, Mermaid, dan penyimpanan lokal yang aman.',
     canonical: 'https://tmpt.my.id/app/dev/markdown/',
     ogImage: '/assets/og/default-og.png',
     schemas: ['website'],
@@ -117,6 +130,168 @@ export const SEO_CONFIG = {
       { name: 'Beranda', url: '/' },
       { name: 'TMPT Dev', url: '/app/dev/' },
       { name: 'TMPT Markdown', url: '/app/dev/markdown/' }
+    ]
+  },
+  'forms-dashboard': {
+    title: 'TMPT Forms — Pembuat Formulir Mandiri & Privat',
+    desc: 'Buat formulir survei, pendaftaran, dan kuesioner dengan aman secara lokal. Data dan respons tersimpan sepenuhnya di browser Anda.',
+    canonical: 'https://tmpt.my.id/app/kerja/forms/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Kerja', url: '/app/kerja/' },
+      { name: 'TMPT Forms', url: '/app/kerja/forms/' }
+    ]
+  },
+  'forms-builder': {
+    title: 'Editor TMPT Forms — TMPT',
+    desc: 'Editor pembuat formulir offline-first di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'forms-respond': {
+    title: 'Formulir — TMPT',
+    desc: 'Halaman pengisian formulir di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'forms-responses': {
+    title: 'Tanggapan Formulir — TMPT',
+    desc: 'Halaman analisis tanggapan formulir di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'slides-dashboard': {
+    title: 'TMPT Slides — Pembuat Presentasi Offline & Privat',
+    desc: 'Buat, edit, dan tampilkan presentasi slide secara lokal dan privat. Data Anda tidak pernah dikirim ke server.',
+    canonical: 'https://tmpt.my.id/app/kerja/slide/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Kerja', url: '/app/kerja/' },
+      { name: 'TMPT Slides', url: '/app/kerja/slide/' }
+    ]
+  },
+  'slides-editor': {
+    title: 'Editor TMPT Slides — TMPT',
+    desc: 'Editor presentasi offline-first di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'slides-present': {
+    title: 'Presentasi — TMPT',
+    desc: 'Mode Presentasi offline-first di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'diagram-dashboard': {
+    title: 'TMPT Diagram — Visualisasikan Arsitektur & Database',
+    desc: 'Platform visual diagram arsitektur sistem, flowchart, ER diagram, dan diagram as code (Mermaid) yang offline-first dan privat.',
+    canonical: 'https://tmpt.my.id/app/dev/diagram/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Dev', url: '/app/dev/' },
+      { name: 'TMPT Diagram', url: '/app/dev/diagram/' }
+    ]
+  },
+  'diagram-editor': {
+    title: 'Editor TMPT Diagram — TMPT',
+    desc: 'Editor diagram offline-first (Draw, Code, Data, Arch) di ekosistem TMPT.',
+    noindex: true,
+    schemas: []
+  },
+  'json-studio': {
+    title: 'TMPT JSON — Visual Data Studio & Offline REST Client',
+    desc: 'Visual Data Studio all-in-one untuk JSON, YAML, XML, CSV, TOML, dan SQL dengan REST API Tester, validasi schema, dan PII security scan offline.',
+    canonical: 'https://tmpt.my.id/app/dev/json/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Dev', url: '/app/dev/' },
+      { name: 'TMPT JSON', url: '/app/dev/json/' }
+    ]
+  },
+  'regex-studio': {
+    title: 'TMPT Regex — Regex Studio & ReDoS Security Scanner Offline',
+    desc: 'Regex Studio & Tester offline-first lengkap dengan Visual Graph (flowchart), ReDoS Security Scanner, Unit Test Runner, Benchmark, dan Code Generator.',
+    canonical: 'https://tmpt.my.id/app/dev/regex/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Dev', url: '/app/dev/' },
+      { name: 'TMPT Regex', url: '/app/dev/regex/' }
+    ]
+  },
+  'kalkulator-home': {
+    title: 'Kalkulator Online Lengkap & Cepat — Finansial, Sains, Developer | TMPT',
+    desc: 'Platform kalkulator online gratis terpadu. Hitung pinjaman, bunga, pajak, BMI, statistik, token LLM, formatter JSON, regex, dan UUID offline-first.',
+    canonical: 'https://tmpt.my.id/app/tools/kalkulator/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['webapplication-kalkulator', 'faq-kalkulator'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Tools', url: '/app/tools/' },
+      { name: 'Kalkulator', url: '/app/tools/kalkulator/' }
+    ],
+    webApplication: {
+      name: 'TMPT Kalkulator',
+      url: 'https://tmpt.my.id/app/tools/kalkulator/',
+      description: 'Platform kalkulator offline-first terintegrasi untuk pengguna umum, profesional, developer, dan AI practitioner.',
+      category: 'UtilityApplication',
+      subCategory: 'Calculator Platform',
+      featureList: 'Loan Calculator, BMI, JSON Formatter, LLM Cost, Base64, Cron Calculator, UUID Generator'
+    },
+    faqs: [
+      {
+        question: 'Apakah kalkulator di TMPT berjalan offline?',
+        answer: 'Ya, seluruh kalkulasi dilakukan secara client-side di browser Anda. Tidak ada data input atau hasil yang dikirim ke server.'
+      },
+      {
+        question: 'Bagaimana cara membagikan hasil kalkulasi?',
+        answer: 'Setiap kalkulator menyediakan tombol "Salin Tautan" yang mengemas seluruh input Anda ke dalam parameter URL sehingga bisa dibuka langsung oleh orang lain.'
+      }
+    ]
+  },
+  'tools-pomodoro': {
+    title: 'TMPT Pomodoro — Focus Timer & Productivity Tracker Offline',
+    desc: 'Tingkatkan produktivitas Anda menggunakan teknik Pomodoro secara 100% offline dan privat. Terintegrasi dengan TMPT Tugas dan TMPT Kalender.',
+    canonical: 'https://tmpt.my.id/app/tools/pomodoro/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Tools', url: '/app/tools/' },
+      { name: 'Pomodoro', url: '/app/tools/pomodoro/' }
+    ]
+  },
+  'tools-qr': {
+    title: 'TMPT QR — Generator &amp; Scanner QR Code Offline &amp; Kustom Logo',
+    desc: 'Buat dan pindai (scan) QR Code 100% offline dan privat. Kustomisasi desain dengan warna, gradasi, logo tengah, dan bingkai CTA secara gratis.',
+    canonical: 'https://tmpt.my.id/app/tools/qr/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Tools', url: '/app/tools/' },
+      { name: 'QR Tools', url: '/app/tools/qr/' }
+    ]
+  },
+  'tools-base64': {
+    title: 'Base64 Encoder & Decoder Online — TMPT Tools',
+    desc: 'Encode dan decode Base64 gratis dan 100% private. 29 tools: teks, gambar, audio, video, PDF, HEX, Basic Auth, gzip check, validate, repair, dan lebih. Semua berjalan di browser — data tidak pernah dikirim ke server.',
+    canonical: 'https://tmpt.my.id/app/tools/base64/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Tools', url: '/app/tools/' },
+      { name: 'Base64 Tools', url: '/app/tools/base64/' }
     ]
   }
 };

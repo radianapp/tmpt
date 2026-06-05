@@ -15,12 +15,24 @@
   <script src="/shared/vault.js"></script>
   <script src="/shared/auth.js"></script>
   <script src="/shared/ui.js"></script>
+  <script src="/shared/i18n-config.js"></script>
+  <script src="/shared/i18n.js"></script>
+  <script src="./i18n-berkas.js"></script>
   <script src="/shared/license.js"></script>
 </head>
 <body>
-  
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
 
-  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="header-container" hx-get="/shared/app-header.html?v=4" hx-trigger="load" hx-swap="outerHTML"></div>
 
   <main id="main-content" class="container-fluid berkas-container">
     <div class="berkas-layout">
@@ -28,17 +40,17 @@
       <aside class="berkas-sidebar">
         <!-- New Button -->
         <details class="dropdown" id="new-dropdown">
-          <summary class="button btn-navy" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;">
+          <summary class="button btn-navy" style="width: 100%; border-radius: 12px; margin-bottom: 1rem;" data-i18n="berkas.btn_new">
             ➕ Baru
           </summary>
           <ul class="new-menu">
-            <li><a href="#" id="new-doc-btn">📄 Dokumen Baru</a></li>
-            <li><a href="#" id="new-slide-btn">🎞 Presentasi Baru</a></li>
-            <li><a href="#" id="new-form-btn">📋 Formulir Baru</a></li>
-            <li><a href="#" id="new-papan-btn">🎨 Papan Coretan Baru</a></li>
+            <li><a href="#" id="new-doc-btn" data-i18n="berkas.new_doc">📄 Dokumen Baru</a></li>
+            <li><a href="#" id="new-slide-btn" data-i18n="berkas.new_slide">🎞 Presentasi Baru</a></li>
+            <li><a href="#" id="new-form-btn" data-i18n="berkas.new_form">📋 Formulir Baru</a></li>
+            <li><a href="#" id="new-papan-btn" data-i18n="berkas.new_papan">🎨 Papan Coretan Baru</a></li>
             <li><hr style="margin: 0.5rem 0;"></li>
-            <li><a href="#" id="new-folder-btn">📁 Folder Baru</a></li>
-            <li><a href="#" id="upload-file-btn">📤 Unggah File</a></li>
+            <li><a href="#" id="new-folder-btn" data-i18n="berkas.new_folder">📁 Folder Baru</a></li>
+            <li><a href="#" id="upload-file-btn" data-i18n="berkas.upload_file">📤 Unggah File</a></li>
             <input type="file" id="file-picker-input" style="display: none;" multiple>
           </ul>
         </details>
@@ -47,16 +59,16 @@
         <nav class="sidebar-nav">
           <ul>
             <li>
-              <strong>Pintasan</strong>
+              <strong data-i18n="berkas.nav_shortcut">Pintasan</strong>
               <ul>
-                <li><a href="#" class="nav-link active" data-view="all">🕐 Semua Berkas</a></li>
-                <li><a href="#" class="nav-link" data-view="starred">⭐ Berbintang</a></li>
-                <li><a href="#" class="nav-link" data-view="trash">🗑️ Sampah</a></li>
+                <li><a href="#" class="nav-link active" data-view="all" data-i18n="berkas.nav_all_files">🕐 Semua Berkas</a></li>
+                <li><a href="#" class="nav-link" data-view="starred" data-i18n="berkas.nav_starred">⭐ Berbintang</a></li>
+                <li><a href="#" class="nav-link" data-view="trash" data-i18n="berkas.nav_trash">🗑️ Sampah</a></li>
               </ul>
             </li>
             <li>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-                <strong>Folder Saya</strong>
+                <strong data-i18n="berkas.nav_my_folders">Folder Saya</strong>
                 <button class="outline" id="sidebar-add-folder" aria-label="Tambah Folder" style="padding: 0.1rem 0.4rem; font-size: 0.8rem; margin: 0; width: auto; border-radius: 6px;">+</button>
               </div>
               <ul id="sidebar-folders-list" class="folder-tree">
@@ -64,7 +76,7 @@
               </ul>
             </li>
             <li>
-              <strong>Tag</strong>
+              <strong data-i18n="berkas.nav_tags">Tag</strong>
               <div id="sidebar-tags-list" class="tags-container">
                 <!-- Dinamis diisi JS -->
               </div>
@@ -75,7 +87,7 @@
         <!-- Storage Manager Indicator -->
         <div class="storage-card" id="storage-indicator">
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; margin-bottom: 0.25rem;">
-            <strong>Penyimpanan Lokal</strong>
+            <strong data-i18n="berkas.storage_title">Penyimpanan Lokal</strong>
             <span id="storage-percent">0%</span>
           </div>
           <progress id="storage-progress" value="0" max="100" style="margin-bottom: 0.5rem;"></progress>
@@ -83,8 +95,8 @@
             0 B / Estimasi 1 GB
           </div>
           <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-            <button class="outline" id="btn-backup-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;">Backup/Restore</button>
-            <button class="outline" id="btn-local-folder-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;">Folder Lokal</button>
+            <button class="outline" id="btn-backup-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;" data-i18n="berkas.btn_backup">Backup/Restore</button>
+            <button class="outline" id="btn-local-folder-dialog" style="padding: 0.25rem 0.5rem; font-size: 0.75rem; margin: 0; flex: 1; border-radius: 8px;" data-i18n="berkas.btn_local_folder">Folder Lokal</button>
           </div>
         </div>
       </aside>
@@ -96,36 +108,36 @@
           <!-- Left: Breadcrumbs -->
           <nav aria-label="breadcrumb" class="toolbar-breadcrumbs">
             <ul id="breadcrumbs-list">
-              <li><a href="#" data-folder-id="root">Utama</a></li>
+              <li><a href="#" data-folder-id="root" data-i18n="berkas.breadcrumb_root">Utama</a></li>
             </ul>
           </nav>
 
           <!-- Right: Search & View Options -->
           <div class="toolbar-actions">
-            <div class="search-box">
-              <input type="search" id="search-input" placeholder="Cari berkas..." aria-label="Cari Berkas" style="margin-bottom: 0; border-radius: 10px; padding-right: 2rem;">
+            <div class="search-box" style="display: none;">
+              <input type="search" id="search-input" data-i18n-placeholder="berkas.search_placeholder" placeholder="Cari berkas..." aria-label="Cari Berkas" style="margin-bottom: 0; border-radius: 10px; padding-right: 2rem;">
             </div>
-            <select id="filter-type" aria-label="Filter Tipe Berkas" style="margin-bottom: 0; border-radius: 10px; width: auto;">
-              <option value="all">Semua Tipe</option>
-              <option value="document">Dokumen</option>
-              <option value="slide">Presentasi</option>
-              <option value="form">Formulir</option>
-              <option value="catat_notes">Catatan</option>
-              <option value="catat_lists">Tugas</option>
-              <option value="pdf">PDF</option>
-              <option value="image">Gambar</option>
-              <option value="other">Lainnya</option>
+            <select id="filter-type" data-i18n-aria="berkas.filter_type" aria-label="Filter Tipe Berkas" style="margin-bottom: 0; border-radius: 10px; width: auto;">
+              <option value="all" data-i18n="berkas.opt_filter_all">Semua Tipe</option>
+              <option value="document" data-i18n="berkas.opt_filter_doc">Dokumen</option>
+              <option value="slide" data-i18n="berkas.opt_filter_slide">Presentasi</option>
+              <option value="form" data-i18n="berkas.opt_filter_form">Formulir</option>
+              <option value="catat_notes" data-i18n="berkas.opt_filter_catat_notes">Catatan</option>
+              <option value="catat_lists" data-i18n="berkas.opt_filter_catat_lists">Tugas</option>
+              <option value="pdf" data-i18n="berkas.opt_filter_pdf">PDF</option>
+              <option value="image" data-i18n="berkas.opt_filter_image">Gambar</option>
+              <option value="other" data-i18n="berkas.opt_filter_other">Lainnya</option>
             </select>
             <div class="view-toggles">
-              <button id="btn-view-grid" class="outline" aria-label="Grid View" title="Tampilan Grid" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></button>
-              <button id="btn-view-list" class="outline secondary" aria-label="List View" title="Tampilan List" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
+              <button id="btn-view-grid" class="outline" data-i18n-aria="berkas.view_grid" data-i18n-title="berkas.view_grid" aria-label="Grid View" title="Tampilan Grid" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="6" height="6" rx="1"></rect><rect x="14" y="4" width="6" height="6" rx="1"></rect><rect x="4" y="14" width="6" height="6" rx="1"></rect><rect x="14" y="14" width="6" height="6" rx="1"></rect></svg></button>
+              <button id="btn-view-list" class="outline secondary" data-i18n-aria="berkas.view_list" data-i18n-title="berkas.view_list" aria-label="List View" title="Tampilan List" style="margin: 0; padding: 0.5rem; border-radius: 8px;"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg></button>
             </div>
-            <select id="sort-by" aria-label="Urutkan" style="margin-bottom: 0; border-radius: 10px; width: auto;">
-              <option value="updated_at-desc">Terakhir Diubah (Terbaru)</option>
-              <option value="updated_at-asc">Terakhir Diubah (Terlama)</option>
-              <option value="name-asc">Nama (A-Z)</option>
-              <option value="name-desc">Nama (Z-A)</option>
-              <option value="size-desc">Ukuran (Terbesar)</option>
+            <select id="sort-by" data-i18n-aria="berkas.sort_by" aria-label="Urutkan" style="margin-bottom: 0; border-radius: 10px; width: auto;">
+              <option value="updated_at-desc" data-i18n="berkas.opt_sort_newest">Terakhir Diubah (Terbaru)</option>
+              <option value="updated_at-asc" data-i18n="berkas.opt_sort_oldest">Terakhir Diubah (Terlama)</option>
+              <option value="name-asc" data-i18n="berkas.opt_sort_name_asc">Nama (A-Z)</option>
+              <option value="name-desc" data-i18n="berkas.opt_sort_name_desc">Nama (Z-A)</option>
+              <option value="size-desc" data-i18n="berkas.opt_sort_size_desc">Ukuran (Terbesar)</option>
             </select>
           </div>
 
@@ -135,18 +147,18 @@
         <div class="bulk-action-bar" id="bulk-bar" style="display: none;">
           <span id="bulk-selected-count">0 terpilih</span>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <button class="outline" id="bulk-btn-star" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">⭐ Bintang</button>
-            <button class="outline" id="bulk-btn-tag" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">🏷️ Tag</button>
-            <button class="outline" id="bulk-btn-move" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">📁 Pindahkan</button>
-            <button class="outline secondary" id="bulk-btn-delete" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">🗑️ Hapus</button>
-            <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;">Batal</button>
+            <button class="outline" id="bulk-btn-star" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;" data-i18n="berkas.bulk_star">⭐ Bintang</button>
+            <button class="outline" id="bulk-btn-tag" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;" data-i18n="berkas.bulk_tag">🏷️ Tag</button>
+            <button class="outline" id="bulk-btn-move" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;" data-i18n="berkas.bulk_move">📁 Pindahkan</button>
+            <button class="outline secondary" id="bulk-btn-delete" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px; color: var(--pico-danger-color); border-color: var(--pico-danger-color);" data-i18n="berkas.bulk_delete">🗑️ Hapus</button>
+            <button class="outline secondary" id="bulk-btn-clear" style="padding: 0.25rem 0.5rem; margin: 0; font-size: 0.8rem; border-radius: 6px;" data-i18n="berkas.bulk_clear">Batal</button>
           </div>
         </div>
 
         <!-- Drag and Drop Overlay -->
         <div class="drag-overlay" id="drag-overlay">
           <div class="drag-message">
-            <span>📤 Lepaskan berkas di sini untuk mengunggah</span>
+            <span data-i18n="berkas.drag_overlay_msg">📤 Lepaskan berkas di sini untuk mengunggah</span>
           </div>
         </div>
 
@@ -154,13 +166,13 @@
         <div id="berkas-content-area" class="berkas-content-grid">
           <!-- Folder Section -->
           <div class="section-container" id="folders-section" style="display: none;">
-            <h5 class="section-title">Folder</h5>
+            <h5 class="section-title" data-i18n="berkas.section_folders">Folder</h5>
             <div class="folder-grid" id="folders-grid"></div>
           </div>
 
           <!-- Files Section -->
           <div class="section-container" id="files-section-container">
-            <h5 class="section-title" id="files-section-title">Berkas</h5>
+            <h5 class="section-title" id="files-section-title" data-i18n="berkas.section_files">Berkas</h5>
             <div class="files-container" id="files-view-container">
               <!-- Grid or List Content loaded dynamically -->
             </div>
@@ -174,83 +186,39 @@
   <dialog id="modal-preview">
     <article style="max-width: 900px; width: 95%; height: 85vh; display: flex; flex-direction: column; border-radius: 16px; padding: 1.5rem;">
       <header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 0.5rem; border-bottom: 1px solid var(--pico-muted-border-color); margin-bottom: 1rem;">
-        <h4 id="preview-title" style="margin-bottom: 0; font-weight: 700;">Pratinjau Berkas</h4>
+        <h4 id="preview-title" style="margin-bottom: 0; font-weight: 700;" data-i18n="berkas.preview_title">Pratinjau Berkas</h4>
         <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-preview').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; color: var(--pico-secondary-color); width: auto; height: auto; margin-bottom: 0;">✕</button>
       </header>
       <div id="preview-content-body" style="flex-grow: 1; overflow: auto; background: var(--pico-card-sectioning-background-color); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
         <!-- Preview Content (Iframe / Img / Video) -->
       </div>
       <footer style="margin-top: 1rem; text-align: right; border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.75rem;">
-        <button class="outline secondary" onclick="document.getElementById('modal-preview').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
-        <button class="btn-navy" id="preview-download-btn" style="margin: 0; border-radius: 8px;">Unduh Berkas</button>
+        <button class="outline secondary" onclick="document.getElementById('modal-preview').close()" style="margin: 0; border-radius: 8px;" data-i18n="berkas.btn_close">Tutup</button>
+        <button class="btn-navy" id="preview-download-btn" style="margin: 0; border-radius: 8px;" data-i18n="berkas.btn_download">Unduh Berkas</button>
       </footer>
     </article>
   </dialog>
 
-  <!-- Dialog: Backup & Restore -->
-  <dialog id="modal-backup">
-    <article style="max-width: 550px; width: 95%; border-radius: 16px; padding: 2rem;">
-      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h3 style="margin-bottom: 0; font-weight: 700;">Backup &amp; Pemulihan Ekosistem</h3>
-        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-backup').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
-      </header>
-      <div>
-        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;">Unduh semua data lokal Anda (termasuk Catatan, Hitung, serta berkas biner di OPFS) dalam satu paket `.tmpt` terkompresi, atau pulihkan data Anda dari backup sebelumnya.</p>
-        
-        <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
-          <div style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; background: rgba(30, 64, 175, 0.05); display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;">
-            <div>
-              <strong style="color: var(--pico-primary-color); display: block;">Unduh Backup (.tmpt)</strong>
-              <span class="secondary" style="font-size: 0.75rem;">Bundel seluruh data lokal di browser Anda</span>
-            </div>
-            <button id="btn-trigger-backup" class="btn-navy" style="margin: 0; padding: 0.4rem 1rem; font-size: 0.85rem; border-radius: 8px;">Unduh Backup</button>
-          </div>
 
-          <div style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; text-align: center;">
-            <strong style="display: block; margin-bottom: 0.5rem;">Pulihkan dari Backup</strong>
-            <p class="secondary" style="font-size: 0.75rem; margin-bottom: 1rem;">Unggah file .tmpt untuk mengembalikan data Anda.</p>
-            <input type="file" id="restore-file-input" accept=".tmpt" style="display: none;">
-            <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; margin-bottom: 1rem;">
-              <label style="font-size: 0.8rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 0.25rem;"><input type="radio" name="restore-mode" value="merge" checked style="margin:0;"> Gabungkan</label>
-              <label style="font-size: 0.8rem; cursor: pointer; margin: 0; display: flex; align-items: center; gap: 0.25rem;"><input type="radio" name="restore-mode" value="overwrite" style="margin:0;"> Timpa Semua</label>
-            </div>
-            <button id="btn-trigger-restore" class="outline" style="margin: 0; border-radius: 8px; font-size: 0.85rem; padding: 0.4rem 1rem;">Pilih Berkas .tmpt</button>
-          </div>
-        </div>
-
-        <!-- Progress bar for Backup/Restore -->
-        <div id="backup-progress-container" style="display: none; margin-bottom: 1rem;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 0.25rem;">
-            <span id="backup-progress-status">Memproses...</span>
-            <span id="backup-progress-percent">0%</span>
-          </div>
-          <progress id="backup-progress-bar" value="0" max="100" style="margin:0;"></progress>
-        </div>
-      </div>
-      <footer style="text-align: right; border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.75rem;">
-        <button class="outline secondary" onclick="document.getElementById('modal-backup').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
-      </footer>
-    </article>
-  </dialog>
 
   <!-- Dialog: Local Folder Settings -->
   <dialog id="modal-local-folder">
     <article style="max-width: 500px; width: 95%; border-radius: 16px; padding: 2rem;">
       <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h3 style="margin-bottom: 0; font-weight: 700;">Folder Lokal (FSAA Mode)</h3>
+        <h3 style="margin-bottom: 0; font-weight: 700;" data-i18n="berkas.fsaa_title">Folder Lokal (FSAA Mode)</h3>
         <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-local-folder').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
       </header>
       <div>
-        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;">Hubungkan TMPT ke folder di komputer Anda. Dokumen yang dibuat akan otomatis tersimpan sebagai file nyata di penyimpanan komputer Anda. (Hanya didukung di Chrome / Edge)</p>
+        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1.5rem;" data-i18n="berkas.fsaa_desc">Hubungkan TMPT ke folder di komputer Anda. Dokumen yang dibuat akan otomatis tersimpan sebagai file nyata di penyimpanan komputer Anda. (Hanya didukung di Chrome / Edge)</p>
         
         <div id="fsaa-status-box" style="border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 12px; margin-bottom: 1.5rem; background: var(--pico-card-sectioning-background-color);">
-          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;">Status Hubungan:</div>
-          <div id="fsaa-status-text">🔴 Tidak Terhubung</div>
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem;" data-i18n="berkas.fsaa_status_title">Status Hubungan:</div>
+          <div id="fsaa-status-text" data-i18n="berkas.fsaa_status_disconnected">🔴 Tidak Terhubung</div>
         </div>
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end;">
-          <button class="outline secondary" id="btn-fsaa-disconnect" style="margin:0; border-radius: 8px; display: none;">Putus Hubungan</button>
-          <button class="btn-navy" id="btn-fsaa-connect" style="margin:0; border-radius: 8px;">Pilih Folder Lokal...</button>
+          <button class="outline secondary" id="btn-fsaa-disconnect" style="margin:0; border-radius: 8px; display: none;" data-i18n="berkas.btn_fsaa_disconnect">Putus Hubungan</button>
+          <button class="btn-navy" id="btn-fsaa-connect" style="margin:0; border-radius: 8px;" data-i18n="berkas.btn_fsaa_connect">Pilih Folder Lokal...</button>
         </div>
       </div>
     </article>
@@ -260,17 +228,17 @@
   <dialog id="modal-folder-crud">
     <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
       <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h4 id="folder-crud-title" style="margin-bottom: 0; font-weight: 700;">Buat Folder Baru</h4>
+        <h4 id="folder-crud-title" style="margin-bottom: 0; font-weight: 700;" data-i18n="berkas.folder_new_title">Buat Folder Baru</h4>
         <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-folder-crud').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
       </header>
       <form id="form-folder-crud" onsubmit="event.preventDefault();">
         <input type="hidden" id="folder-crud-id">
         <div style="margin-bottom: 1rem;">
-          <label for="folder-name-input">Nama Folder</label>
-          <input type="text" id="folder-name-input" placeholder="Masukkan nama folder..." required autocomplete="off">
+          <label for="folder-name-input" data-i18n="berkas.folder_name_label">Nama Folder</label>
+          <input type="text" id="folder-name-input" data-i18n-placeholder="berkas.folder_name_placeholder" placeholder="Masukkan nama folder..." required autocomplete="off">
         </div>
         <div style="margin-bottom: 1rem;">
-          <label for="folder-color-input">Warna Folder</label>
+          <label for="folder-color-input" data-i18n="berkas.folder_color_label">Warna Folder</label>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;" id="folder-color-options">
             <span class="color-dot selected" data-color="#3b82f6" style="background:#3b82f6; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white; box-shadow: 0 0 0 1px #ccc;"></span>
             <span class="color-dot" data-color="#10b981" style="background:#10b981; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; border: 2px solid white;"></span>
@@ -283,8 +251,8 @@
           <input type="hidden" id="folder-color-input" value="#3b82f6">
         </div>
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
-          <button type="button" class="outline secondary" onclick="document.getElementById('modal-folder-crud').close()" style="margin:0; border-radius: 8px;">Batal</button>
-          <button type="submit" class="btn-navy" id="btn-save-folder" style="margin:0; border-radius: 8px;">Simpan</button>
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-folder-crud').close()" style="margin:0; border-radius: 8px;" data-i18n="berkas.bulk_clear">Batal</button>
+          <button type="submit" class="btn-navy" id="btn-save-folder" style="margin:0; border-radius: 8px;" data-i18n="berkas.btn_save">Simpan</button>
         </div>
       </form>
     </article>
@@ -294,17 +262,17 @@
   <dialog id="modal-move-file">
     <article style="max-width: 450px; width: 95%; border-radius: 16px; padding: 1.5rem;">
       <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h4 style="margin-bottom: 0; font-weight: 700;">Pindahkan ke Folder</h4>
+        <h4 style="margin-bottom: 0; font-weight: 700;" data-i18n="berkas.move_title">Pindahkan ke Folder</h4>
         <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-move-file').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
       </header>
       <div>
-        <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;">Pilih folder tujuan untuk memindahkan berkas terpilih.</p>
+        <p class="secondary" style="font-size: 0.85rem; margin-bottom: 1rem;" data-i18n="berkas.move_desc">Pilih folder tujuan untuk memindahkan berkas terpilih.</p>
         <div id="move-folders-tree" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--pico-muted-border-color); border-radius: 8px; padding: 0.5rem; margin-bottom: 1.5rem;">
           <!-- JS dynamic hierarchy -->
         </div>
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button class="outline secondary" onclick="document.getElementById('modal-move-file').close()" style="margin:0; border-radius: 8px;">Batal</button>
-          <button class="btn-navy" id="btn-confirm-move" style="margin:0; border-radius: 8px;">Pindahkan Ke Sini</button>
+          <button class="outline secondary" onclick="document.getElementById('modal-move-file').close()" style="margin:0; border-radius: 8px;" data-i18n="berkas.bulk_clear">Batal</button>
+          <button class="btn-navy" id="btn-confirm-move" style="margin:0; border-radius: 8px;" data-i18n="berkas.btn_move_confirm">Pindahkan Ke Sini</button>
         </div>
       </div>
     </article>
@@ -314,25 +282,25 @@
   <dialog id="modal-tag-file">
     <article style="max-width: 400px; width: 95%; border-radius: 16px; padding: 1.5rem;">
       <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-        <h4 style="margin-bottom: 0; font-weight: 700;">Tambahkan Tag</h4>
+        <h4 style="margin-bottom: 0; font-weight: 700;" data-i18n="berkas.tag_title">Tambahkan Tag</h4>
         <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-tag-file').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
       </header>
       <div>
         <div style="margin-bottom: 1rem;">
-          <label for="tag-name-input">Nama Tag Baru (atau pilih di bawah)</label>
+          <label for="tag-name-input" data-i18n="berkas.tag_name_label">Nama Tag Baru (atau pilih di bawah)</label>
           <div style="display:flex; gap: 0.5rem;">
-            <input type="text" id="tag-name-input" placeholder="Nama tag..." autocomplete="off" style="margin:0;">
+            <input type="text" id="tag-name-input" data-i18n-placeholder="berkas.tag_name_placeholder" placeholder="Nama tag..." autocomplete="off" style="margin:0;">
             <button class="btn-navy" id="btn-add-new-tag" style="margin:0; padding:0 1rem; border-radius: 8px;">+</button>
           </div>
         </div>
         <div style="margin-bottom: 1.5rem;">
-          <label>Daftar Tag Berkas</label>
+          <label data-i18n="berkas.tag_list_label">Daftar Tag Berkas</label>
           <div id="file-tags-select-container" style="display: flex; gap: 0.5rem; flex-wrap: wrap; max-height: 150px; overflow-y: auto; padding: 0.25rem;">
             <!-- JS dynamic list -->
           </div>
         </div>
         <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
-          <button class="outline secondary" onclick="document.getElementById('modal-tag-file').close()" style="margin:0; border-radius: 8px;">Tutup</button>
+          <button class="outline secondary" onclick="document.getElementById('modal-tag-file').close()" style="margin:0; border-radius: 8px;" data-i18n="berkas.btn_close">Tutup</button>
         </div>
       </div>
     </article>
@@ -341,17 +309,17 @@
   <!-- Context Menu (Right Click) dropdown -->
   <div id="berkas-context-menu" class="context-menu" style="display: none; position: absolute; z-index: 120000;">
     <ul>
-      <li><a href="#" id="ctx-open">📂 Buka</a></li>
-      <li><a href="#" id="ctx-preview">👁️ Pratinjau</a></li>
-      <li><a href="#" id="ctx-rename">✏️ Rename</a></li>
-      <li><a href="#" id="ctx-star">⭐ Tambah Bintang</a></li>
-      <li><a href="#" id="ctx-tag">🏷️ Kelola Tag</a></li>
-      <li><a href="#" id="ctx-move">📁 Pindahkan ke Folder</a></li>
-      <li><a href="#" id="ctx-duplicate">📋 Duplikat</a></li>
-      <li><a href="#" id="ctx-download">📥 Export / Unduh</a></li>
-      <li><a href="#" id="ctx-restore" style="display: none;">🔄 Pulihkan</a></li>
+      <li><a href="#" id="ctx-open" data-i18n="berkas.ctx_open">📂 Buka</a></li>
+      <li><a href="#" id="ctx-preview" data-i18n="berkas.ctx_preview">👁️ Pratinjau</a></li>
+      <li><a href="#" id="ctx-rename" data-i18n="berkas.ctx_rename">✏️ Rename</a></li>
+      <li><a href="#" id="ctx-star" data-i18n="berkas.ctx_star_add">⭐ Tambah Bintang</a></li>
+      <li><a href="#" id="ctx-tag" data-i18n="berkas.ctx_tag">🏷️ Kelola Tag</a></li>
+      <li><a href="#" id="ctx-move" data-i18n="berkas.ctx_move">📁 Pindahkan ke Folder</a></li>
+      <li><a href="#" id="ctx-duplicate" data-i18n="berkas.ctx_duplicate">📋 Duplikat</a></li>
+      <li><a href="#" id="ctx-download" data-i18n="berkas.ctx_download">📥 Export / Unduh</a></li>
+      <li><a href="#" id="ctx-restore" style="display: none;" data-i18n="berkas.ctx_restore">🔄 Pulihkan</a></li>
       <li><hr style="margin: 0.25rem 0;"></li>
-      <li><a href="#" id="ctx-delete" style="color: var(--pico-danger-color);">🗑️ Hapus</a></li>
+      <li><a href="#" id="ctx-delete" style="color: var(--pico-danger-color);" data-i18n="berkas.ctx_delete">🗑️ Hapus</a></li>
     </ul>
   </div>
 
@@ -370,5 +338,75 @@
 
   <!-- Script Modules -->
   <script type="module" src="./js/dashboard.js"></script>
+
+  <script>
+    function updateHeaderSettings() {
+      const nameEl = document.getElementById('header-app-name');
+      const t = (key, fallback) => window.TMPT_I18n ? window.TMPT_I18n.t(key) : fallback;
+      if (nameEl) {
+        nameEl.textContent = t('berkas.title', 'Berkas');
+      }
+      const searchEl = document.getElementById('header-search');
+      if (searchEl) {
+        searchEl.placeholder = t('berkas.search_placeholder', 'Cari berkas...');
+      }
+    }
+
+    // Polling berkala untuk memastikan header ter-update begitu elemennya masuk ke DOM
+    const headerCheckInterval = setInterval(() => {
+      const nameEl = document.getElementById('header-app-name');
+      const searchEl = document.getElementById('header-search');
+      if (nameEl && searchEl) {
+        updateHeaderSettings();
+        clearInterval(headerCheckInterval);
+      }
+    }, 50);
+
+    // Batasi polling maksimal 5 detik
+    setTimeout(() => clearInterval(headerCheckInterval), 5000);
+
+    document.addEventListener('htmx:afterSwap', () => {
+      updateHeaderSettings();
+    });
+
+    // Meneruskan input pencarian dari shared header ke input lokal yang tersembunyi
+    document.addEventListener('input', (e) => {
+      if (e.target && e.target.id === 'header-search') {
+        const localSearch = document.getElementById('search-input');
+        if (localSearch) {
+          localSearch.value = e.target.value;
+          // Picu event input secara manual agar dashboard.js mengetahuinya
+          localSearch.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }
+    });
+
+    // Sidebar toggle delegation untuk halaman Berkas
+    document.addEventListener('click', (e) => {
+      const toggleBtn = e.target.closest('#header-sidebar-toggle');
+      if (toggleBtn) {
+        const sidebar = document.querySelector('.berkas-sidebar');
+        if (sidebar) {
+          const isMobile = window.innerWidth <= 768;
+          if (isMobile) {
+            sidebar.classList.toggle('show');
+            let overlay = document.querySelector('.sidebar-overlay');
+            if (!overlay) {
+              overlay = document.createElement('div');
+              overlay.className = 'sidebar-overlay';
+              document.body.appendChild(overlay);
+              overlay.addEventListener('click', () => {
+                sidebar.classList.remove('show');
+                overlay.classList.remove('active');
+              });
+            }
+            overlay.classList.toggle('active');
+          } else {
+            sidebar.classList.toggle('collapsed');
+          }
+        }
+      }
+    });
+  </script>
 </body>
 </html>

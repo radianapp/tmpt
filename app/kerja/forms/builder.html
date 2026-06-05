@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor Formulir — TMPT Forms</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./forms.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body data-form-theme="blue">
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+  
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main id="main-content" class="container forms-dashboard-container">
+    
+    <div class="builder-header">
+      <div class="builder-header-title">
+        <a href="./index.html" style="font-size: 1.5rem; text-decoration: none;" aria-label="Kembali ke Dashboard">←</a>
+        <input type="text" id="form-file-title" value="Formulir Tanpa Judul" aria-label="Judul Formulir">
+      </div>
+      <div class="builder-header-actions">
+        <span id="save-status" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-right: 0.5rem;">Tersimpan ✓</span>
+        <button id="btn-preview" class="outline secondary">👁️ Preview</button>
+        <button id="btn-publish" class="primary">📤 Bagikan</button>
+      </div>
+    </div>
+
+    <div class="builder-layout">
+      <!-- Main Builder Area -->
+      <section style="display: flex; flex-direction: column; gap: 1.5rem;">
+        
+        <!-- Header Card -->
+        <div class="form-header-card">
+          <input type="text" id="form-display-title" placeholder="Judul Formulir" aria-label="Judul Tampilan Formulir">
+          <textarea id="form-display-desc" placeholder="Deskripsi formulir (opsional)" rows="2" aria-label="Deskripsi Formulir"></textarea>
+        </div>
+
+        <!-- Question Cards Container -->
+        <div id="questions-container" class="builder-questions-list">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Add Question Button -->
+        <button id="btn-add-question" class="btn-add-question">➕ Tambah Pertanyaan</button>
+
+      </section>
+
+      <!-- Sidebar Settings Panel -->
+      <aside>
+        
+        <!-- Theme & Styling -->
+        <div class="builder-sidebar-card">
+          <h4>🎨 Desain & Tema</h4>
+          <label>Warna Utama</label>
+          <div class="theme-presets">
+            <span class="theme-color-dot active" data-color="blue" style="background-color: #3b82f6;"></span>
+            <span class="theme-color-dot" data-color="green" style="background-color: #10b981;"></span>
+            <span class="theme-color-dot" data-color="red" style="background-color: #ef4444;"></span>
+            <span class="theme-color-dot" data-color="purple" style="background-color: #8b5cf6;"></span>
+            <span class="theme-color-dot" data-color="orange" style="background-color: #f59e0b;"></span>
+          </div>
+          
+          <label for="select-font">Font</label>
+          <select id="select-font" style="font-size: 0.85rem; margin-bottom: 0;">
+            <option value="Inter">Inter (Sans-Serif)</option>
+            <option value="Outfit">Outfit (Rounded)</option>
+            <option value="Roboto">Roboto</option>
+          </select>
+
+          <label for="input-header-image" style="margin-top: 1rem;">URL Gambar Header</label>
+          <input type="url" id="input-header-image" placeholder="https://example.com/banner.png" style="font-size: 0.85rem; margin-bottom: 0;">
+        </div>
+
+        <!-- Settings -->
+        <div class="builder-sidebar-card">
+          <h4>⚙️ Pengaturan Form</h4>
+          
+          <label for="success-msg-input">Pesan Sukses Kirim</label>
+          <textarea id="success-msg-input" style="font-size: 0.85rem;" rows="2" placeholder="Jawaban Anda telah diterima."></textarea>
+          
+          <label for="select-layout-mode">Mode Tampilan</label>
+          <select id="select-layout-mode" style="font-size: 0.85rem; margin-bottom: 0;">
+            <option value="classic">Klasik (Semua Sekaligus)</option>
+            <option value="slide">Satu Per Satu (Typeform Style)</option>
+          </select>
+        </div>
+
+      </aside>
+    </div>
+
+  </main>
+
+  <!-- Dialog Bagikan / Publish -->
+  <dialog id="publish-modal">
+    <article style="max-width: 550px; width: 95%; border-radius: 16px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0; font-weight: 700;">Bagikan Formulir</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('publish-modal').close()" style="background: transparent; border: none; font-size: 1.5rem; padding: 0; cursor: pointer; width: auto; height: auto; margin-bottom: 0;">✕</button>
+      </header>
+      <div>
+        <label for="select-publish-mode">Metode Pengumpulan Respons</label>
+        <select id="select-publish-mode" style="margin-bottom: 1.5rem;">
+          <option value="local">Lokal Only (IndexedDB peranti ini)</option>
+          <option value="formspree">Formspree (Pengiriman ke Email Anda)</option>
+          <option value="google_sheets">Google Sheets (Apps Script Webhook)</option>
+          <option value="custom">Custom API Endpoint (Developer)</option>
+        </select>
+
+        <!-- Formspree Config UI -->
+        <div id="config-formspree" class="hidden">
+          <label for="formspree-url">Formspree Endpoint URL</label>
+          <input type="url" id="formspree-url" placeholder="https://formspree.io/f/xxxxx" style="margin-bottom: 1rem;">
+          <p class="secondary" style="font-size: 0.75rem;">Dapatkan endpoint gratis dengan mendaftar di <a href="https://formspree.io/" target="_blank" rel="noopener">Formspree.io</a>.</p>
+        </div>
+
+        <!-- Google Sheets Config UI -->
+        <div id="config-google-sheets" class="hidden">
+          <label for="sheets-script-url">Google Apps Script Web App URL</label>
+          <input type="url" id="sheets-script-url" placeholder="https://script.google.com/macros/s/xxxxx/exec" style="margin-bottom: 1rem;">
+          
+          <details style="margin-bottom: 1rem; font-size: 0.8rem;">
+            <summary style="font-weight: 600;">Petunjuk Setup Google Sheets (5 Menit)</summary>
+            <ol style="margin-top: 0.5rem; padding-left: 1.25rem;">
+              <li>Buat Spreadsheet baru di Google Sheets.</li>
+              <li>Buka <strong>Extensions</strong> → <strong>Apps Script</strong>.</li>
+              <li>Hapus kode bawaan, lalu salin-tempel kode Apps Script berikut:
+                <pre style="font-size: 0.7rem; max-height: 120px; overflow: auto; padding: 0.5rem; margin-top: 0.25rem;">
+const SHEET_NAME = 'Responses';
+function doPost(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME) || SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_NAME);
+    const data = JSON.parse(e.postData.contents);
+    if (sheet.getLastRow() === 0) {
+      const headers = ['Timestamp', ...Object.keys(data.answers)];
+      sheet.appendRow(headers);
+    }
+    const row = [new Date().toISOString(), ...Object.values(data.answers)];
+    sheet.appendRow(row);
+    return ContentService.createTextOutput(JSON.stringify({ status: 'ok' })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: 'error', message: err.message })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function doGet(e) {
+  return ContentService.createTextOutput('TMPT Forms OK');
+}
+                </pre>
+              </li>
+              <li>Klik <strong>Deploy</strong> → <strong>New deployment</strong>.</li>
+              <li>Pilih tipe <strong>Web app</strong>. Atur <i>Execute as</i>: <strong>Me</strong>, dan <i>Who has access</i>: <strong>Anyone</strong>.</li>
+              <li>Klik Deploy, berikan otorisasi, lalu salin <strong>Web app URL</strong> dan tempel di atas.</li>
+            </ol>
+          </details>
+        </div>
+
+        <!-- Custom API Config UI -->
+        <div id="config-custom-api" class="hidden">
+          <label for="custom-api-url">Custom Endpoint URL (POST)</label>
+          <input type="url" id="custom-api-url" placeholder="https://api.domain.com/submit" style="margin-bottom: 1rem;">
+        </div>
+
+        <div style="border-top: 1px solid var(--theme-border); padding-top: 1rem; margin-top: 1.5rem;">
+          <label>Tautan Pengisian Formulir</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="respond-link-url" readonly style="margin: 0; font-size: 0.85rem;" aria-label="Tautan Form">
+            <button id="btn-copy-link" style="margin: 0; padding: 0.5rem 1rem; width: auto; font-size: 0.85rem; white-space: nowrap;">Salin Link</button>
+          </div>
+        </div>
+      </div>
+      <footer style="text-align: right; border-top: 1px solid var(--theme-border); padding-top: 0.75rem; margin-top: 1.5rem;">
+        <button class="outline secondary" onclick="document.getElementById('publish-modal').close()" style="margin: 0; border-radius: 8px;">Tutup</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dialog Konfirmasi -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="./builder.js"></script>
+</body>
+</html>

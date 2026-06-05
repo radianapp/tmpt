@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confidence Interval — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>📊 Confidence Interval Calculator</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <form id="ci-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="sample-mean">Mean Sampel (x̄)</label>
+            <input type="number" id="sample-mean" value="50" step="any" required>
+          </div>
+          <div class="form-group">
+            <label for="sample-size">Ukuran Sampel (n)</label>
+            <input type="number" id="sample-size" value="100" required>
+          </div>
+          <div class="form-group">
+            <label for="std-dev">Standar Deviasi (s)</label>
+            <input type="number" id="std-dev" value="10" step="any" required>
+          </div>
+          <div class="form-group">
+            <label for="conf-level">Tingkat Kepercayaan (%)</label>
+            <select id="conf-level">
+              <option value="90">90% (Z = 1.645)</option>
+              <option value="95" selected>95% (Z = 1.96)</option>
+              <option value="99">99% (Z = 2.576)</option>
+            </select>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung Interval Kepercayaan</button>
+        </form>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Confidence Interval</span>
+          <div class="calc-result-value" id="ci-result">-</div>
+        </div>
+        <p style="text-align: center; font-size: 0.95rem;">
+          Rentang batas: <strong id="ci-bounds">-</strong>
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'confidence-interval';
+    const calcName = 'Confidence Interval';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function runCalculation() {
+      const mean = parseFloat(document.getElementById('sample-mean').value);
+      const n = parseInt(document.getElementById('sample-size').value);
+      const s = parseFloat(document.getElementById('std-dev').value);
+      const confidence = parseFloat(document.getElementById('conf-level').value);
+
+      if (isNaN(mean) || !n || isNaN(s) || n <= 0) return;
+
+      const zScores = { 90: 1.645, 95: 1.96, 99: 2.576 };
+      const Z = zScores[confidence] || 1.96;
+
+      const error = Z * (s / Math.sqrt(n));
+      const lower = mean - error;
+      const upper = mean + error;
+
+      document.getElementById('ci-result').textContent = `${mean.toFixed(2)} ± ${error.toFixed(4)}`;
+      document.getElementById('ci-bounds').textContent = `${lower.toFixed(4)} s/d ${upper.toFixed(4)}`;
+
+      saveHistoryEntry(slug, calcName, { mean, n }, { value: `${lower.toFixed(2)} - ${upper.toFixed(2)}` });
+    }
+  </script>
+</body>
+</html>

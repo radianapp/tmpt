@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Usia — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>📅 Kalkulator Usia</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <!-- Input -->
+      <div class="calc-box">
+        <form id="age-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="birthdate">Tanggal Lahir</label>
+            <input type="date" id="birthdate" name="birthdate" required>
+          </div>
+
+          <div class="form-group">
+            <label for="targetdate">Hitung Usia Pada Tanggal (Opsional)</label>
+            <input type="date" id="targetdate" name="targetdate">
+          </div>
+
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%; margin-top: 1rem;">Hitung Usia</button>
+        </form>
+      </div>
+
+      <!-- Result -->
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Usia Anda saat ini</span>
+          <div class="calc-result-value" id="age-value" style="font-size: 2rem;">-</div>
+        </div>
+
+        <div style="margin-top: 1rem; font-size: 0.95rem;">
+          <ul>
+            <li>Hari Lahir: <strong id="birth-day-name">-</strong></li>
+            <li>Hari Hidup: <strong id="days-lived">-</strong> hari</li>
+            <li>Ulang Tahun Berikutnya: <strong id="days-to-birthday">-</strong> hari lagi</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateAge } from './js/date-calc.js';
+
+    const slug = 'age';
+    const calcName = 'Kalkulator Usia';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set today's date as default target date
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('targetdate').value = today;
+
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          birthdate: document.getElementById('birthdate').value,
+          targetdate: document.getElementById('targetdate').value
+        });
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+
+      const params = getUrlParams();
+      if (params.birthdate) {
+        document.getElementById('birthdate').value = params.birthdate;
+        document.getElementById('targetdate').value = params.targetdate || today;
+        runCalculation();
+      }
+    });
+
+    function runCalculation() {
+      const birthdate = document.getElementById('birthdate').value;
+      const targetdate = document.getElementById('targetdate').value;
+
+      if (!birthdate) return;
+
+      const res = calculateAge(birthdate, targetdate);
+      if (res) {
+        document.getElementById('age-value').textContent = `${res.years} Tahun, ${res.months} Bulan, ${res.days} Hari`;
+        document.getElementById('birth-day-name').textContent = res.birthDayOfWeek;
+        document.getElementById('days-lived').textContent = res.daysLived.toLocaleString('id-ID');
+        document.getElementById('days-to-birthday').textContent = res.daysToNextBD;
+
+        const inputs = { birthdate, targetdate };
+        setUrlParams(inputs);
+        saveHistoryEntry(slug, calcName, inputs, { value: `${res.years} Thn` });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TMPT Slides — Presentasi Offline & Privat</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./css/slides.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <!-- SEO injection tag -->
+  <script data-seo-key="slides-dashboard" src="/shared/seo.js" type="module"></script>
+</head>
+<body>
+  <script>
+    // Check auth before rendering
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <!-- Global Header TMPT -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" style="padding-left: 2rem; padding-right: 2rem;" id="main-content">
+    <!-- Header App / Title Area -->
+    <header class="app-page-header">
+      <div class="title-area">
+        <h1>🎞 TMPT Slides</h1>
+        <p class="secondary">Buat presentasi interaktif secara offline, aman, dan privat di browser Anda.</p>
+      </div>
+      <div class="actions-area">
+        <button id="import-json-btn" class="outline secondary">📥 Impor JSON</button>
+        <button id="new-blank-btn" class="btn-navy">➕ Presentasi Baru</button>
+        <input type="file" id="import-json-input" accept=".json" style="display: none;">
+      </div>
+    </header>
+
+    <!-- Template Starter Gallery -->
+    <section class="template-gallery-section">
+      <div class="section-title">
+        <h3>Mulai dengan Template</h3>
+      </div>
+      <div class="template-grid">
+        <div class="template-card" data-template="blank">
+          <div class="template-preview blank-preview">➕</div>
+          <span class="template-name">Kosong</span>
+        </div>
+        <div class="template-card" data-template="minimalist">
+          <div class="template-preview minimalist-preview">Minimalis</div>
+          <span class="template-name">Minimalis</span>
+        </div>
+        <div class="template-card" data-template="corporate">
+          <div class="template-preview corporate-preview">Korporat</div>
+          <span class="template-name">Corporate</span>
+        </div>
+        <div class="template-card" data-template="education">
+          <div class="template-preview education-preview">Edukasi</div>
+          <span class="template-name">Edukasi</span>
+        </div>
+        <div class="template-card" data-template="pitch">
+          <div class="template-preview pitch-preview">Pitch Deck</div>
+          <span class="template-name">Pitch Deck</span>
+        </div>
+        <div class="template-card" data-template="report">
+          <div class="template-preview report-preview">Laporan</div>
+          <span class="template-name">Laporan</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Recent Presentations Section -->
+    <section class="presentations-list-section">
+      <div class="filter-bar">
+        <div class="search-box">
+          <input type="search" id="search-input" placeholder="Cari presentasi..." autocomplete="off">
+        </div>
+        <div class="view-toggle">
+          <button id="grid-view-btn" class="outline square-btn active" aria-label="Grid View">⊞</button>
+          <button id="list-view-btn" class="outline square-btn secondary" aria-label="List View">≡</button>
+        </div>
+      </div>
+
+      <div id="presentations-container" class="grid-view">
+        <!-- Rendered by JS -->
+        <div class="loading-state">Memuat presentasi...</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>

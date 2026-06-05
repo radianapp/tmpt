@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Bunga Majemuk — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>💰 Kalkulator Bunga Majemuk</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <div class="calc-box">
+        <form id="compound-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="principal">Modal Awal (IDR)</label>
+            <input type="number" id="principal" value="10000000" required>
+          </div>
+          <div class="form-group">
+            <label for="monthly">Kontribusi Bulanan (IDR)</label>
+            <input type="number" id="monthly" value="500000">
+          </div>
+          <div class="form-group">
+            <label for="rate">Suku Bunga Tahunan (%)</label>
+            <input type="number" id="rate" value="8" step="0.1" required>
+          </div>
+          <div class="form-group">
+            <label for="years">Tenor / Jangka Waktu (Tahun)</label>
+            <input type="number" id="years" value="10" required>
+          </div>
+          <div class="form-group">
+            <label for="frequency">Frekuensi Bunga Berbunga</label>
+            <select id="frequency">
+              <option value="monthly" selected>Bulanan</option>
+              <option value="yearly">Tahunan</option>
+            </select>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung Pertumbuhan</button>
+        </form>
+      </div>
+
+      <div class="calc-box">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Nilai Akhir Investasi</span>
+          <div class="calc-result-value" id="final-balance-val">Rp0</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.95rem; margin-bottom: 1.5rem;">
+          <div>
+            <strong>Total Kontribusi:</strong>
+            <p id="total-contrib-val">Rp0</p>
+          </div>
+          <div>
+            <strong>Total Bunga Diperoleh:</strong>
+            <p id="total-interest-val">Rp0</p>
+          </div>
+        </div>
+
+        <details>
+          <summary style="font-weight: 600; cursor: pointer;">Tampilkan Rincian Tahunan</summary>
+          <div style="overflow-x: auto; max-height: 250px; margin-top: 0.5rem;">
+            <table class="calc-detail-table">
+              <thead>
+                <tr>
+                  <th>Tahun</th>
+                  <th>Total Kontribusi</th>
+                  <th>Total Bunga</th>
+                  <th>Saldo Akhir</th>
+                </tr>
+              </thead>
+              <tbody id="breakdown-body"></tbody>
+            </table>
+          </div>
+        </details>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateCompoundInterest } from './js/finance-calc.js';
+
+    const slug = 'compound-interest';
+    const calcName = 'Bunga Majemuk';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function formatRupiah(val) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+    }
+
+    function runCalculation() {
+      const p = parseFloat(document.getElementById('principal').value);
+      const monthly = parseFloat(document.getElementById('monthly').value || '0');
+      const rate = parseFloat(document.getElementById('rate').value);
+      const years = parseInt(document.getElementById('years').value);
+      const freq = document.getElementById('frequency').value;
+
+      if (isNaN(p) || isNaN(rate) || isNaN(years)) return;
+
+      const res = calculateCompoundInterest(p, rate, years, freq, monthly);
+      if (res) {
+        document.getElementById('final-balance-val').textContent = formatRupiah(res.finalBalance);
+        document.getElementById('total-contrib-val').textContent = formatRupiah(res.totalContribution);
+        document.getElementById('total-interest-val').textContent = formatRupiah(res.totalInterest);
+
+        const tbody = document.getElementById('breakdown-body');
+        tbody.innerHTML = res.breakdown.map(row => `
+          <tr>
+            <td>Tahun ${row.year}</td>
+            <td>${formatRupiah(row.totalContribution)}</td>
+            <td>${formatRupiah(row.totalInterest)}</td>
+            <td>${formatRupiah(row.balance)}</td>
+          </tr>
+        `).join('');
+
+        saveHistoryEntry(slug, calcName, { p, rate, years }, { value: formatRupiah(res.finalBalance) });
+      }
+    }
+  </script>
+</body>
+</html>

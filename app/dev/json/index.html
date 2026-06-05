@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT JSON — Visual Data Studio & Offline REST Client</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./css/json.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  
+  <!-- Monaco Editor Loader -->
+  <script src="/app/dev/code/vendor/monaco/vs/loader.js"></script>
+  
+  <script type="module" src="/shared/seo.js" data-seo-key="json-studio"></script>
+</head>
+<body class="json-studio-active">
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+  
+  <!-- Global App Header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <div class="json-app-container" id="json-app-root">
+    
+    <!-- Sidebar Kiri: Sesi & Riwayat -->
+    <aside class="json-sidebar" id="sidebar-panel">
+      <div class="sidebar-header">
+        <span class="sidebar-brand">⚙️ TMPT JSON</span>
+        <button id="btn-toggle-sidebar" class="sidebar-toggle-btn" aria-label="Sembunyikan Sidebar" title="Sembunyikan Sidebar">
+          ✕
+        </button>
+      </div>
+
+      <div class="sidebar-actions">
+        <button id="btn-new-session" class="primary">+ Sesi Baru</button>
+      </div>
+
+      <div class="sidebar-section-title">SESI AKTIF</div>
+      <div class="sidebar-sessions" id="sessions-list">
+        <!-- Diisi dinamis oleh JS -->
+      </div>
+
+      <div class="sidebar-section-title">RIWAYAT PERUBAHAN</div>
+      <div class="sidebar-history" id="history-list">
+        <!-- Diisi dinamis oleh JS -->
+      </div>
+
+      <div class="sidebar-footer">
+        <button id="btn-import-file" class="outline btn-sm">📥 Impor File</button>
+        <input type="file" id="file-uploader" accept=".json,.yaml,.yml,.xml,.csv,.toml" style="display: none;">
+      </div>
+    </aside>
+
+    <!-- Area Utama -->
+    <main class="json-main-content">
+      
+      <!-- Toolbar Atas -->
+      <section class="json-toolbar">
+        <div class="toolbar-left">
+          <button id="tool-format" title="Format/Beautify JSON" class="toolbar-btn">✨ Format</button>
+          <button id="tool-minify" title="Minify JSON (Hapus Whitespace)" class="toolbar-btn">⚡ Minify</button>
+          <button id="tool-repair" title="Perbaiki Sintaks JSON yang Rusak" class="toolbar-btn">🩹 Repair</button>
+          
+          <span class="toolbar-divider"></span>
+          
+          <button id="tool-validate" title="Validasi JSON Schema & Sintaks" class="toolbar-btn">✅ Validate</button>
+          <button id="tool-diff" title="Bandingkan Dua JSON Side-by-Side" class="toolbar-btn">⚖️ Diff</button>
+          <button id="tool-query" title="Kueri JSONPath/JMESPath/jq" class="toolbar-btn">🔍 Query</button>
+          <button id="tool-transform" title="Transformasi Data dengan JSONata" class="toolbar-btn">🌀 Transform</button>
+          
+          <span class="toolbar-divider"></span>
+          
+          <button id="tool-convert" title="Konversi CSV/YAML/XML/TOML" class="toolbar-btn">🔄 Convert</button>
+          <button id="tool-api" title="Penguji REST API Offline" class="toolbar-btn">📡 API Tester</button>
+          <button id="tool-security" title="Pindai Data Sensitif & PII" class="toolbar-btn">🛡️ Security</button>
+          <button id="tool-generator" title="Buat Data Dummy Realistis" class="toolbar-btn">🎲 Generator</button>
+        </div>
+
+        <div class="toolbar-right">
+          <details class="dropdown" id="export-dropdown" style="margin: 0;">
+            <summary class="button outline" style="margin: 0; padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: 8px;">Ekspor ▾</summary>
+            <ul dir="rtl" style="text-align: left; right: 0; left: auto; padding: 0.5rem 0;">
+              <li><a href="#" class="export-opt" data-type="json">📄 JSON</a></li>
+              <li><a href="#" class="export-opt" data-type="yaml">📄 YAML</a></li>
+              <li><a href="#" class="export-opt" data-type="xml">📄 XML</a></li>
+              <li><a href="#" class="export-opt" data-type="csv">📄 CSV</a></li>
+              <li><a href="#" class="export-opt" data-type="toml">📄 TOML</a></li>
+              <li><a href="#" class="export-opt" data-type="sql">🗄️ SQL Insert</a></li>
+              <li><a href="#" class="export-opt" data-type="gzip">📦 Gzip (.gz)</a></li>
+              <li><a href="#" class="export-opt" data-type="br">📦 Brotli (.br)</a></li>
+            </ul>
+          </details>
+        </div>
+      </section>
+
+      <!-- Workspace Area: Editor & Tool Output Panel -->
+      <section class="json-workspace">
+        
+        <!-- Area Editor (Kiri) -->
+        <div class="editor-pane" id="editor-pane-container">
+          
+          <!-- Tab & View Mode bar -->
+          <div class="workspace-tabs-bar">
+            <div class="session-tabs-container" id="tabs-headers">
+              <!-- Tab sessions diisi dinamis -->
+            </div>
+            
+            <div class="view-mode-selector">
+              <button class="view-mode-btn active" data-mode="text">Teks</button>
+              <button class="view-mode-btn" data-mode="tree">Pohon (Tree)</button>
+              <button class="view-mode-btn" data-mode="table">Tabel</button>
+              <button class="view-mode-btn" data-mode="split">Split</button>
+            </div>
+          </div>
+
+          <!-- Content hosts -->
+          <div class="workspace-content-host">
+            <!-- Text Mode Host -->
+            <div class="content-view-panel" id="view-text">
+              <div id="monaco-editor-host" style="width:100%; height:100%;"></div>
+            </div>
+            
+            <!-- Tree Mode Host -->
+            <div class="content-view-panel hidden" id="view-tree">
+              <div class="tree-toolbar">
+                <input type="search" id="tree-search" placeholder="Cari kunci/nilai di pohon...">
+                <button id="btn-tree-expand" class="outline btn-sm">Buka Semua</button>
+                <button id="btn-tree-collapse" class="outline btn-sm">Tutup Semua</button>
+              </div>
+              <div class="tree-breadcrumb-bar" id="tree-breadcrumb">root</div>
+              <div class="tree-interactive-container" id="tree-root-host"></div>
+            </div>
+
+            <!-- Table Mode Host -->
+            <div class="content-view-panel hidden" id="view-table">
+              <div class="table-toolbar">
+                <span>Tabel spreadsheet otomatis terbuat untuk Array.</span>
+                <button id="btn-table-export-csv" class="outline btn-sm">Ekspor ke CSV</button>
+              </div>
+              <div class="table-view-container" id="table-view-host"></div>
+            </div>
+            
+            <!-- Split Mode Host (Handles layout internally by sharing panels) -->
+            <div class="content-view-panel hidden" id="view-split">
+              <div class="split-view-container">
+                <div class="split-left" id="split-editor-host"></div>
+                <div class="split-resizer" id="split-resizer-bar"></div>
+                <div class="split-right" id="split-visual-host"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Output / Kontrol Alat di Kanan -->
+        <aside class="tool-panel collapsed" id="tool-panel-right">
+          <div class="tool-panel-header">
+            <span class="tool-panel-title" id="active-tool-title">PILIH ALAT</span>
+            <button id="btn-close-tool-panel" class="close-btn" aria-label="Tutup Panel">✕</button>
+          </div>
+          <div class="tool-panel-body" id="tool-panel-content">
+            
+            <!-- Default Welcome / Info Panel -->
+            <div class="tool-content active" id="tool-content-none">
+              <div class="welcome-tool-box">
+                <h4>Selamat datang di TMPT JSON</h4>
+                <p>Silakan pilih alat pengolah di toolbar atas untuk melihat detail analisis, menjalankan kueri, membandingkan dokumen, atau menguji API.</p>
+                <table style="font-size: 0.85rem;">
+                  <tr><td><b>Format:</b></td><td id="stat-format-info">JSON</td></tr>
+                  <tr><td><b>Ukuran:</b></td><td id="stat-size-info">0 B</td></tr>
+                  <tr><td><b>Baris:</b></td><td id="stat-line-info">0</td></tr>
+                  <tr><td><b>Status:</b></td><td id="stat-status-info">Valid</td></tr>
+                </table>
+              </div>
+            </div>
+
+            <!-- Validate Tool -->
+            <div class="tool-content" id="tool-content-validate">
+              <label for="validation-schema-select">Draft JSON Schema</label>
+              <select id="validation-schema-select">
+                <option value="draft-07">Draft-07 (Default)</option>
+                <option value="draft-2019-09">Draft 2019-09</option>
+                <option value="draft-2020-12">Draft 2020-12</option>
+              </select>
+              
+              <label for="schema-editor-input">Dokumen Schema (JSON)</label>
+              <textarea id="schema-editor-input" placeholder="Masukkan JSON Schema Anda di sini..."></textarea>
+              
+              <button id="btn-run-schema-validation" class="primary">Jalankan Validasi</button>
+              
+              <div class="tool-result-box" id="validate-results">
+                <!-- Hasil validasi -->
+              </div>
+            </div>
+
+            <!-- Diff Tool -->
+            <div class="tool-content" id="tool-content-diff">
+              <div class="diff-options">
+                <label><input type="checkbox" id="diff-opt-order"> Abaikan Urutan Array</label>
+                <label><input type="checkbox" id="diff-opt-case"> Abaikan Huruf Besar/Kecil</label>
+              </div>
+              
+              <label>Pilih JSON Pembanding B</label>
+              <button id="btn-select-diff-b" class="outline btn-sm">Pilih Dokumen Sesi Pembanding...</button>
+              <span id="diff-b-name" class="secondary" style="font-size:0.8rem; display:block; margin: 0.25rem 0 1rem 0;">Belum ada sesi terpilih</span>
+
+              <button id="btn-run-diff" class="primary">Bandingkan JSON A vs B</button>
+              
+              <div class="tool-result-box" id="diff-results">
+                <!-- Hasil diff -->
+              </div>
+            </div>
+
+            <!-- Query Tool -->
+            <div class="tool-content" id="tool-content-query">
+              <label for="query-engine-select">Engine Kueri</label>
+              <select id="query-engine-select">
+                <option value="jsonpath">JSONPath</option>
+                <option value="jmespath">JMESPath</option>
+                <option value="jq">jq subset</option>
+                <option value="js">JS Filter/Map</option>
+              </select>
+              
+              <label for="query-expression-input">Ekspresi Kueri</label>
+              <input type="text" id="query-expression-input" placeholder="misal: $.users[*].name">
+              
+              <button id="btn-run-query" class="primary">Jalankan Kueri</button>
+              
+              <div class="tool-result-box" id="query-results">
+                <!-- Hasil kueri -->
+              </div>
+            </div>
+
+            <!-- Transform Tool -->
+            <div class="tool-content" id="tool-content-transform">
+              <label for="transform-expr-input">Ekspresi JSONata / Pemetaan JS</label>
+              <textarea id="transform-expr-input" style="height: 120px;" placeholder="misal: { 'name': first_name & ' ' & last_name }"></textarea>
+              
+              <button id="btn-run-transform" class="primary">Transformasikan</button>
+              
+              <div class="tool-result-box" id="transform-results">
+                <!-- Hasil transformasi -->
+              </div>
+            </div>
+
+            <!-- Convert Tool -->
+            <div class="tool-content" id="tool-content-convert">
+              <label for="convert-format-select">Format Target / Sumber</label>
+              <select id="convert-format-select">
+                <option value="yaml">YAML</option>
+                <option value="xml">XML</option>
+                <option value="csv">CSV</option>
+                <option value="toml">TOML</option>
+                <option value="sql">SQL Insert Table</option>
+                <option value="mongodb">MongoDB Query</option>
+              </select>
+
+              <div id="csv-options-box" class="hidden">
+                <label><input type="checkbox" id="csv-opt-header" checked> Baris Pertama adalah Header</label>
+              </div>
+
+              <div id="sql-options-box" class="hidden">
+                <label for="sql-table-name">Nama Tabel SQL</label>
+                <input type="text" id="sql-table-name" value="users">
+              </div>
+
+              <div style="display:flex; gap:0.5rem; margin-top: 1rem;">
+                <button id="btn-convert-to-json" style="flex:1;" class="outline btn-sm">Ke JSON ↙</button>
+                <button id="btn-convert-from-json" style="flex:1;" class="primary btn-sm">Dari JSON ↗</button>
+              </div>
+              
+              <div class="tool-result-box" id="convert-results">
+                <!-- Hasil konversi -->
+              </div>
+            </div>
+
+            <!-- REST API Tester Tool -->
+            <div class="tool-content" id="tool-content-api">
+              <div class="api-request-row">
+                <select id="api-method" style="width:100px; margin:0;">
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="PATCH">PATCH</option>
+                </select>
+                <input type="url" id="api-url" placeholder="https://api.example.com/users" style="flex:1; margin:0;">
+                <button id="btn-api-send" class="primary" style="margin:0;">Kirim</button>
+              </div>
+              
+              <details class="api-params-details" open>
+                <summary>Headers &amp; Auth</summary>
+                <div style="padding: 0.5rem 0;">
+                  <label for="api-auth-type">Autentikasi</label>
+                  <select id="api-auth-type">
+                    <option value="none">Tanpa Auth</option>
+                    <option value="bearer">Bearer Token</option>
+                    <option value="basic">Basic Auth</option>
+                  </select>
+                  <div id="api-auth-bearer-box" class="hidden">
+                    <input type="text" id="api-auth-token" placeholder="Bearer token...">
+                  </div>
+                  <div id="api-auth-basic-box" class="hidden" style="display:flex; gap:0.25rem;">
+                    <input type="text" id="api-auth-user" placeholder="Username" style="flex:1;">
+                    <input type="password" id="api-auth-pass" placeholder="Password" style="flex:1;">
+                  </div>
+                  
+                  <div style="margin-top:0.5rem;">
+                    <small>Headers Tambahan (Format JSON)</small>
+                    <textarea id="api-headers-json" placeholder='{ "Accept": "application/json" }' style="height:60px; font-size:0.75rem;"></textarea>
+                  </div>
+                </div>
+              </details>
+              
+              <div class="tool-result-box" id="api-results">
+                <!-- Hasil respons API -->
+              </div>
+            </div>
+
+            <!-- Security Tool -->
+            <div class="tool-content" id="tool-content-security">
+              <button id="btn-run-security-scan" class="primary">Pindai Data Sensitif (PII)</button>
+              <button id="btn-run-security-mask" class="outline secondary">Masking Data &amp; Salin</button>
+              
+              <div class="tool-result-box" id="security-results">
+                <!-- Hasil security scan -->
+              </div>
+            </div>
+
+            <!-- Generator Tool -->
+            <div class="tool-content" id="tool-content-generator">
+              <label for="gen-count">Jumlah Baris Data Dummy</label>
+              <input type="number" id="gen-count" value="10" min="1" max="1000">
+
+              <label for="gen-template">Template JSON Dummy</label>
+              <textarea id="gen-template" style="height: 120px; font-size:0.75rem;">{
+  "id": "{{uuid}}",
+  "name": "{{name}}",
+  "email": "{{email}}",
+  "active": "{{boolean}}"
+}</textarea>
+              
+              <button id="btn-run-generate" class="primary">Buat Dummy Data</button>
+              
+              <div class="tool-result-box" id="generator-results">
+                <!-- Hasil generator -->
+              </div>
+            </div>
+
+          </div>
+        </aside>
+      </section>
+
+      <!-- Status Bar Bawah -->
+      <footer class="json-statusbar">
+        <div class="statusbar-left">
+          <span id="stat-valid">Valid JSON</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-size">0 B</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-lines">0 baris</span>
+        </div>
+        <div class="statusbar-right">
+          <span id="save-status">Tersimpan ✓</span>
+          <span class="statusbar-divider">|</span>
+          <span id="stat-cursor">Baris 1, Kolom 1</span>
+        </div>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Dialog: Pilih Sesi Pembanding -->
+  <dialog id="modal-select-session">
+    <article style="border-radius:16px; padding:1.5rem; max-width:400px; width:90vw;">
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h4 style="margin-bottom:0;">Pilih Sesi Pembanding</h4>
+        <button class="close" onclick="document.getElementById('modal-select-session').close()" style="background:transparent; border:none; font-size:1.5rem; width:auto; height:auto; margin:0;">✕</button>
+      </header>
+      <div id="modal-session-options" style="display:flex; flex-direction:column; gap:0.5rem; max-height:250px; overflow-y:auto;">
+        <!-- Pilihan sesi -->
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Opsi Transform/Merge -->
+  <dialog id="modal-merge-strategy">
+    <article style="border-radius:16px; padding:1.5rem; max-width:400px; width:90vw;">
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h4 style="margin-bottom:0;">Merge JSON</h4>
+        <button class="close" onclick="document.getElementById('modal-merge-strategy').close()" style="background:transparent; border:none; font-size:1.5rem; width:auto; height:auto; margin:0;">✕</button>
+      </header>
+      <label for="merge-strategy-select">Strategi Penggabungan</label>
+      <select id="merge-strategy-select">
+        <option value="deep">Deep Merge (Gabung Rekursif)</option>
+        <option value="override">Override (B menimpa A)</option>
+        <option value="keep">Keep (Pertahankan A)</option>
+      </select>
+      <button id="btn-confirm-merge" class="primary">Gabungkan &amp; Ganti</button>
+    </article>
+  </dialog>
+
+  <!-- Dialog: Konfirmasi Overwrite -->
+  <dialog id="modal-confirm-overwrite">
+    <article style="border-radius:16px; padding:1.5rem; max-width:400px; width:90vw;">
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h4 style="margin-bottom:0;">Konfirmasi</h4>
+        <button class="close" onclick="document.getElementById('modal-confirm-overwrite').close()" style="background:transparent; border:none; font-size:1.5rem; width:auto; height:auto; margin:0;">✕</button>
+      </header>
+      <p>Editor memiliki konten. Apakah Anda ingin menimpa konten yang ada dengan data dummy?</p>
+      <footer style="display:flex; gap:0.5rem; justify-content:flex-end; margin-top:1rem;">
+        <button class="secondary outline" onclick="document.getElementById('modal-confirm-overwrite').close()" style="margin:0; padding:0.5rem 1rem;">Tidak</button>
+        <button id="btn-confirm-overwrite-yes" class="primary" style="margin:0; padding:0.5rem 1rem;">Ya</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Script Koordinasi Utama -->
+  <script type="module" src="./js/json-app.js"></script>
+</body>
+</html>

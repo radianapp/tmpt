@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor Slides — TMPT</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./css/editor.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <!-- SEO injection tag -->
+  <script data-seo-key="slides-editor" src="/shared/seo.js" type="module"></script>
+</head>
+<body class="editor-body">
+  <script>
+    // Check auth
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <!-- Top Navigation & Title Bar -->
+  <header class="editor-header">
+    <div class="header-left">
+      <button id="sidebar-toggle-btn" class="outline secondary" style="padding: 0; margin: 0 0.75rem 0 0; border: none; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: transparent; cursor: pointer; color: var(--pico-color);" aria-label="Toggle Sidebar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; margin-right: 0.75rem;">
+        <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img" style="height: 28px;">
+      </a>
+      <a href="./index.html" class="back-link" style="margin-right: 0.75rem;">← Kembali</a>
+      <input type="text" id="presentation-title" value="Presentasi Tanpa Judul" placeholder="Judul Presentasi..." class="title-input">
+      <span id="save-status" class="save-status">Tersimpan ✓</span>
+    </div>
+    <div class="header-right">
+      <button id="undo-btn" class="outline secondary inline-btn" title="Undo (Ctrl+Z)" disabled>↩</button>
+      <button id="redo-btn" class="outline secondary inline-btn" title="Redo (Ctrl+Y)" disabled>↪</button>
+      <button id="present-btn" class="outline secondary inline-btn">▶ Tampilkan</button>
+      <details class="dropdown" id="export-dropdown">
+        <summary class="btn-navy">Ekspor ▾</summary>
+        <ul dir="rtl">
+          <li><a href="#" id="export-pptx-btn">PowerPoint (.pptx)</a></li>
+          <li><a href="#" id="export-pdf-btn">Cetak PDF (.pdf)</a></li>
+          <li><a href="#" id="export-html-btn">Halaman Web (.html)</a></li>
+          <li><a href="#" id="export-json-btn">Berkas Cadangan (.json)</a></li>
+        </ul>
+      </details>
+    </div>
+  </header>
+
+  <!-- Toolbar: Insert & Format Options -->
+  <section class="editor-toolbar">
+    <!-- Insert Section -->
+    <div class="toolbar-group">
+      <span class="group-label">Sisipkan:</span>
+      <button id="add-text-btn" class="outline secondary text-btn">T Teks</button>
+      <button id="add-image-btn" class="outline secondary text-btn">🖼 Gambar</button>
+      <input type="file" id="image-loader-input" accept="image/*" style="display: none;">
+      
+      <details class="dropdown" id="shape-dropdown">
+        <summary class="outline secondary text-btn" style="margin: 0;">▭ Shape</summary>
+        <ul>
+          <li><a href="#" data-shape="rectangle">Kotak (Rectangle)</a></li>
+          <li><a href="#" data-shape="circle">Lingkaran (Circle)</a></li>
+          <li><a href="#" data-shape="triangle">Segitiga (Triangle)</a></li>
+          <li><a href="#" data-shape="star">Bintang (Star)</a></li>
+          <li><a href="#" data-shape="arrow-right">Panah Kanan</a></li>
+          <li><a href="#" data-shape="arrow-left">Panah Kiri</a></li>
+        </ul>
+      </details>
+      
+      <button id="add-line-btn" class="outline secondary text-btn">╱ Garis</button>
+      <button id="add-table-btn" class="outline secondary text-btn">田 Tabel</button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Format Text Section (Conditionally shown/enabled) -->
+    <div class="toolbar-group" id="format-text-group">
+      <span class="group-label">Format:</span>
+      <select id="font-family-select" class="inline-select">
+        <option value="Arial, sans-serif">Arial</option>
+        <option value="'Times New Roman', serif">Times New Roman</option>
+        <option value="Georgia, serif">Georgia</option>
+        <option value="'Courier New', monospace">Courier New</option>
+        <option value="Verdana, sans-serif">Verdana</option>
+        <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+        <option value="'Comic Sans MS', cursive">Comic Sans</option>
+        <option value="Impact, sans-serif">Impact</option>
+      </select>
+      
+      <select id="font-size-select" class="inline-select">
+        <option value="12">12pt</option>
+        <option value="14">14pt</option>
+        <option value="16">16pt</option>
+        <option value="18">18pt</option>
+        <option value="20">20pt</option>
+        <option value="24">24pt</option>
+        <option value="28">28pt</option>
+        <option value="32">32pt</option>
+        <option value="36">36pt</option>
+        <option value="40">40pt</option>
+        <option value="48">48pt</option>
+        <option value="60">60pt</option>
+        <option value="72">72pt</option>
+      </select>
+
+      <button id="bold-btn" class="outline secondary format-toggle" title="Bold">B</button>
+      <button id="italic-btn" class="outline secondary format-toggle" title="Italic"><i>I</i></button>
+      <button id="align-left-btn" class="outline secondary format-toggle" title="Rata Kiri">⫷</button>
+      <button id="align-center-btn" class="outline secondary format-toggle" title="Rata Tengah">⫸⫷</button>
+      <button id="align-right-btn" class="outline secondary format-toggle" title="Rata Kanan">⫸</button>
+      
+      <input type="color" id="text-color-picker" title="Warna Teks" value="#000000" class="color-picker-input">
+      <input type="color" id="bg-color-picker" title="Warna Latar Kotak" value="#ffffff" class="color-picker-input">
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <!-- Arrange Layer Section -->
+    <div class="toolbar-group" id="arrange-group">
+      <span class="group-label">Lapisan:</span>
+      <button id="layer-up-btn" class="outline secondary" title="Naikkan Lapisan" disabled>▲</button>
+      <button id="layer-down-btn" class="outline secondary" title="Turunkan Lapisan" disabled>▼</button>
+      <button id="delete-element-btn" class="outline danger" title="Hapus Elemen (Del)" disabled>🗑️</button>
+    </div>
+  </section>
+
+  <!-- 3-Panel Layout Container -->
+  <div class="editor-main-container">
+    <!-- Panel Kiri: Daftar Slide (Slide Panel) -->
+    <aside class="slide-panel">
+      <div class="slide-list" id="slide-thumbnails-container">
+        <!-- Filled by JS -->
+      </div>
+      <div class="panel-footer">
+        <button id="add-slide-btn" class="outline primary" style="width: 100%; margin: 0;">➕ Tambah Slide</button>
+      </div>
+    </aside>
+
+    <!-- Panel Tengah: Canvas Workspace -->
+    <section class="canvas-workspace">
+      <!-- Grid/Scale wrapper -->
+      <div class="canvas-scaler" id="canvas-scaler-wrapper">
+        <div class="slide-canvas" id="editor-slide-canvas">
+          <!-- Background layer -->
+          <div class="slide-bg" id="canvas-slide-bg"></div>
+          <!-- Element rendering layer -->
+          <div class="slide-elements-layer" id="canvas-elements-layer"></div>
+          <!-- Guide Overlays -->
+          <svg class="guides-overlay" id="guides-overlay" style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
+            <line id="guide-x" x1="0" y1="270" x2="960" y2="270" stroke="#ff4444" stroke-width="1" stroke-dasharray="4,4"/>
+            <line id="guide-y" x1="480" y1="0" x2="480" y2="540" stroke="#ff4444" stroke-width="1" stroke-dasharray="4,4"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Canvas zoom control & slide counter -->
+      <div class="canvas-footer">
+        <span id="slide-counter">Slide 1 dari 1</span>
+        <div class="zoom-controls">
+          <button id="zoom-out-btn" class="outline secondary square-btn" style="width: 32px; height: 32px;">-</button>
+          <span id="zoom-label">100%</span>
+          <button id="zoom-in-btn" class="outline secondary square-btn" style="width: 32px; height: 32px;">+</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Panel Kanan: Properties & Notes Panel -->
+    <aside class="properties-panel">
+      <!-- Section: Background Slide -->
+      <section class="properties-section">
+        <h4>Latar Belakang Slide</h4>
+        <div class="property-row">
+          <label>Warna Latar:</label>
+          <input type="color" id="slide-bg-color-picker" value="#ffffff">
+        </div>
+      </section>
+
+      <!-- Section: Slide Transition -->
+      <section class="properties-section">
+        <h4>Transisi Slide</h4>
+        <div class="property-row">
+          <select id="slide-transition-select">
+            <option value="none">Tanpa Transisi</option>
+            <option value="fade">Memudar (Fade)</option>
+            <option value="slide-left">Geser Kiri</option>
+            <option value="slide-up">Geser Atas</option>
+            <option value="zoom">Zoom</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Section: Element Details (Shown when element is selected) -->
+      <section class="properties-section" id="element-properties-section" style="display: none;">
+        <h4>Properti Elemen</h4>
+        <div class="property-grid">
+          <div class="property-item">
+            <label>Lebar (W):</label>
+            <input type="number" id="prop-width" min="10" max="960">
+          </div>
+          <div class="property-item">
+            <label>Tinggi (H):</label>
+            <input type="number" id="prop-height" min="10" max="540">
+          </div>
+          <div class="property-item">
+            <label>Posisi X:</label>
+            <input type="number" id="prop-x">
+          </div>
+          <div class="property-item">
+            <label>Posisi Y:</label>
+            <input type="number" id="prop-y">
+          </div>
+        </div>
+        <div class="property-row" style="margin-top: 0.5rem;">
+          <label>Rotasi (°):</label>
+          <input type="range" id="prop-rotation" min="-180" max="180" value="0" style="margin: 0; flex-grow: 1;">
+          <span id="prop-rotation-label" style="font-size: 0.8rem; min-width: 35px; text-align: right;">0°</span>
+        </div>
+        <div class="property-row" style="margin-top: 0.5rem;">
+          <label>Transparansi:</label>
+          <input type="range" id="prop-opacity" min="0" max="100" value="100" style="margin: 0; flex-grow: 1;">
+          <span id="prop-opacity-label" style="font-size: 0.8rem; min-width: 35px; text-align: right;">100%</span>
+        </div>
+      </section>
+
+      <!-- Section: Speaker Notes -->
+      <section class="properties-section speaker-notes-section">
+        <h4>Catatan Pembicara</h4>
+        <textarea id="speaker-notes-input" placeholder="Masukkan catatan pembicara untuk slide ini..."></textarea>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Table size modal dialog -->
+  <dialog id="table-size-dialog">
+    <article style="border-radius: 12px; max-width: 320px;">
+      <h3>Masukkan Ukuran Tabel</h3>
+      <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+        <div>
+          <label>Baris:</label>
+          <input type="number" id="table-rows-input" min="1" max="10" value="3">
+        </div>
+        <div>
+          <label>Kolom:</label>
+          <input type="number" id="table-cols-input" min="1" max="10" value="3">
+        </div>
+      </div>
+      <footer>
+        <button class="outline secondary" id="table-cancel-btn" style="margin:0;">Batal</button>
+        <button class="btn-navy" id="table-confirm-btn" style="margin:0;">Buat</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <!-- Load interact.js -->
+  <script src="./vendor/interact.min.js"></script>
+  <!-- Load editor modules -->
+  <script type="module" src="./js/editor/editor.js"></script>
+</body>
+</html>

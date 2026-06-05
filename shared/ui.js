@@ -30,6 +30,67 @@ const UIModule = {
     },
 
     /**
+     * Show a global loading overlay with a message
+     */
+    showLoader(message = 'Memuat...') {
+        let overlay = document.getElementById('tmpt-loader-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'tmpt-loader-overlay';
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background: rgba(0, 0, 0, 0.4);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+                color: white;
+                font-weight: 600;
+                backdrop-filter: blur(4px);
+                transition: opacity 0.2s ease;
+            `;
+            
+            const spinner = document.createElement('article');
+            spinner.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
+                padding: 2rem;
+                border-radius: 20px;
+                background: var(--pico-card-background-color);
+                box-shadow: var(--pico-box-shadow);
+                color: var(--pico-color);
+                margin: 0;
+            `;
+            spinner.innerHTML = `
+                <span aria-busy="true" style="font-size: 2rem; display: block; margin: 0 auto;"></span>
+                <span id="tmpt-loader-text" style="font-size: 0.95rem;">${message}</span>
+            `;
+            overlay.appendChild(spinner);
+            document.body.appendChild(overlay);
+        } else {
+            const textEl = document.getElementById('tmpt-loader-text');
+            if (textEl) textEl.textContent = message;
+        }
+    },
+
+    /**
+     * Hide the global loading overlay
+     */
+    hideLoader() {
+        const overlay = document.getElementById('tmpt-loader-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+    },
+
+    /**
      * Show/Hide loading state on a button or element
      */
     setLoading(selector, isLoading) {
@@ -282,6 +343,11 @@ const UIModule = {
     },
 
     async updateProfileUI() {
+        // Helper to check if i18n is loaded and translate
+        const t = (key, vars = {}) => {
+            return window.TMPT_I18n ? window.TMPT_I18n.t(key, vars) : (vars.name || vars.plan || key.split('.').pop());
+        };
+
         // Get license/pro status
         const isPro = window.TMPT_License && window.TMPT_License.isPro();
         const proStatus = window.TMPT_License ? window.TMPT_License.getProStatus() : null;
@@ -290,7 +356,7 @@ const UIModule = {
         const isUnlocked = window.TMPT_Auth && window.TMPT_Auth.isUnlocked();
         
         // Active Vault name
-        let vaultName = "Tamu (Guest)";
+        let vaultName = window.TMPT_I18n ? t('profile.hello_guest').replace('Halo, ', '').replace('.', '') : "Tamu";
         let initial = "G";
         let emailStr = "belum_login@tmpt.my.id";
         
@@ -316,20 +382,31 @@ const UIModule = {
         // Update title/subtitles
         const titleEls = document.querySelectorAll('#tmpt-profile-title, .tmpt-profile-title-class');
         titleEls.forEach(el => {
-            el.textContent = isUnlocked ? `Halo, ${vaultName}.` : "Halo, Tamu.";
+            if (isUnlocked) {
+                el.textContent = window.TMPT_I18n ? t('profile.hello_user', { name: vaultName }) : `Halo, ${vaultName}.`;
+            } else {
+                el.textContent = window.TMPT_I18n ? t('profile.hello_guest') : "Halo, Tamu.";
+            }
         });
         const subtitleEls = document.querySelectorAll('#tmpt-profile-subtitle, .tmpt-profile-subtitle-class');
         subtitleEls.forEach(el => {
-            el.textContent = isUnlocked ? "Tmpt terbuka" : "Tmpt terkunci";
+            if (isUnlocked) {
+                el.textContent = window.TMPT_I18n ? t('profile.status_unlocked') : "Tmpt terbuka";
+            } else {
+                el.textContent = window.TMPT_I18n ? t('profile.status_locked') : "Tmpt terkunci";
+            }
         });
         
         // Update status badge
         const badgeEls = document.querySelectorAll('#tmpt-profile-status-badge, .tmpt-profile-status-badge-class');
         badgeEls.forEach(badgeEl => {
             if (isPro) {
-                badgeEl.innerHTML = `<span style="background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 20px; letter-spacing: 0.05em; display: inline-block;">TMPT PRO (${(proStatus && proStatus.plan) ? proStatus.plan.toUpperCase() : 'AKTIF'})</span>`;
+                const planName = (proStatus && proStatus.plan) ? proStatus.plan.toUpperCase() : 'AKTIF';
+                const badgeText = window.TMPT_I18n ? t('profile.license_pro', { plan: planName }) : `TMPT PRO (${planName})`;
+                badgeEl.innerHTML = `<span style="background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.75rem; font-weight: 800; padding: 0.25rem 0.75rem; border-radius: 20px; letter-spacing: 0.05em; display: inline-block;">${badgeText}</span>`;
             } else {
-                badgeEl.innerHTML = `<span style="background: var(--pico-muted-border-color); color: var(--pico-secondary-color); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 20px; display: inline-block;">Edisi Standar Gratis</span>`;
+                const badgeText = window.TMPT_I18n ? t('profile.license_free') : "Edisi Standar Gratis";
+                badgeEl.innerHTML = `<span style="background: var(--pico-muted-border-color); color: var(--pico-secondary-color); font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 20px; display: inline-block;">${badgeText}</span>`;
             }
         });
         
@@ -341,7 +418,7 @@ const UIModule = {
             if (isUnlocked) {
                 const titleHeader = document.createElement('div');
                 titleHeader.style.cssText = "font-size: 0.8rem; font-weight: 600; color: var(--pico-secondary-color); margin-bottom: 0.25rem;";
-                titleHeader.textContent = "Daftar Tmpt (Vault):";
+                titleHeader.textContent = window.TMPT_I18n ? t('profile.vault_list') : "Daftar Tmpt (Vault):";
                 listEl.appendChild(titleHeader);
                 
                 const vaults = window.TMPT_Vault ? window.TMPT_Vault.listVaults() : [];
@@ -354,7 +431,7 @@ const UIModule = {
                         item.style.fontWeight = "700";
                         item.innerHTML = `
                             <span>🟢 ${vault.name}</span>
-                            <span style="font-size: 0.7rem; background: var(--pico-primary); color: white; padding: 0.1rem 0.35rem; border-radius: 4px;">Aktif</span>
+                            <span style="font-size: 0.7rem; background: var(--pico-primary); color: white; padding: 0.1rem 0.35rem; border-radius: 4px;" data-i18n="common.active">${window.TMPT_I18n ? t('common.active') : 'Aktif'}</span>
                         `;
                     } else {
                         // Switch on click if Pro
@@ -372,7 +449,7 @@ const UIModule = {
                                 if (confirmModal) {
                                     const confirmMsg = document.getElementById('vault-confirm-message');
                                     const confirmBtn = document.getElementById('vault-confirm-btn');
-                                    if (confirmMsg) confirmMsg.innerHTML = `Apakah Anda yakin ingin beralih ke Tmpt <strong>"${vault.name}"</strong>? Sesi Tmpt yang sedang terbuka saat ini akan otomatis dikunci.`;
+                                    if (confirmMsg) confirmMsg.innerHTML = window.TMPT_I18n ? t('profile.confirm_switch_message', { name: vault.name }) : `Apakah Anda yakin ingin beralih ke Tmpt <strong>"${vault.name}"</strong>? Sesi Tmpt yang sedang terbuka saat ini akan otomatis dikunci.`;
                                     if (confirmBtn) {
                                         confirmBtn.onclick = () => {
                                             window.TMPT_Vault.switchVault(vault.id);
@@ -383,14 +460,14 @@ const UIModule = {
                                     window.TMPT_Vault.switchVault(vault.id);
                                 }
                             } else {
-                                alert("Fitur Ganti Tmpt (Multi-Vault) memerlukan akun TMPT Pro!");
+                                alert(window.TMPT_I18n ? t('profile.pro_required') : "Fitur Ganti Tmpt (Multi-Vault) memerlukan akun TMPT Pro!");
                             }
                         };
                     }
                     listEl.appendChild(item);
                 });
             } else {
-                listEl.innerHTML = '<div style="font-size: 0.8rem; text-align: center; color: var(--pico-secondary-color); padding: 0.5rem 0;">Buka Tmpt untuk melihat profil.</div>';
+                listEl.innerHTML = `<div style="font-size: 0.8rem; text-align: center; color: var(--pico-secondary-color); padding: 0.5rem 0;">${window.TMPT_I18n ? t('profile.guest_prompt') : 'Buka Tmpt untuk melihat profil.'}</div>`;
             }
         });
         
@@ -398,14 +475,14 @@ const UIModule = {
         const actionEls = document.querySelectorAll('#tmpt-profile-action-btn, .tmpt-profile-action-btn-class');
         actionEls.forEach(actionBtn => {
             if (isUnlocked) {
-                actionBtn.textContent = "Kunci Tmpt";
+                actionBtn.textContent = window.TMPT_I18n ? t('profile.action_lock') : "Kunci Tmpt";
                 actionBtn.className = "outline secondary";
                 actionBtn.onclick = () => {
                     if (window.TMPT_lockVault) window.TMPT_lockVault();
                     else if (window.TMPT_Auth) window.TMPT_Auth.lock();
                 };
             } else {
-                actionBtn.textContent = "Buka Tmpt";
+                actionBtn.textContent = window.TMPT_I18n ? t('profile.action_unlock') : "Buka Tmpt";
                 actionBtn.className = "outline primary";
                 actionBtn.onclick = () => {
                     window.location.href = '/app/auth/login/';
@@ -416,6 +493,7 @@ const UIModule = {
         // Update settings button in profile dropdown
         const settingsEls = document.querySelectorAll('#tmpt-profile-settings-btn, .tmpt-profile-settings-btn-class');
         settingsEls.forEach(settingsBtn => {
+            settingsBtn.textContent = window.TMPT_I18n ? t('common.settings') : "Setelan";
             settingsBtn.style.display = isUnlocked ? 'block' : 'none';
         });
     },
@@ -439,6 +517,18 @@ const UIModule = {
                 ]
             };
         }
+
+        const favorites = JSON.parse(localStorage.getItem('tmpt_favorite_apps') || '[]');
+        const favoritedApps = [];
+        ['kerja', 'dev', 'tools'].forEach(cat => {
+            if (rawData[cat]) {
+                rawData[cat].forEach(app => {
+                    if (favorites.includes(app.name)) {
+                        favoritedApps.push(app);
+                    }
+                });
+            }
+        });
 
         const renderAppItems = (items) => {
             if (!items) return '';
@@ -465,10 +555,26 @@ const UIModule = {
         const menus = document.querySelectorAll('.tmpt-app-launcher-menu-class, #tmpt-app-launcher-menu');
         menus.forEach(menu => {
             menu.style.setProperty('width', '380px', 'important');
+            menu.style.setProperty('max-height', '80vh', 'important');
+            menu.style.setProperty('overflow-y', 'auto', 'important');
+            
+            let favoriteBlockHtml = '';
+            if (favoritedApps.length > 0) {
+                favoriteBlockHtml = `
+                    <!-- TMPT Favorit (Card Wrapper) -->
+                    <div style="background-color: rgba(245, 158, 11, 0.05); border-radius: 20px; padding: 0.75rem; margin-bottom: 0.85rem; border: 1px solid rgba(245, 158, 11, 0.25);">
+                        <div style="font-size: 0.7rem; font-weight: 800; color: #d97706; margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 0.25rem;">⭐ Aplikasi Favorit</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem 0.15rem; text-align: center;">
+                            ${renderAppItems(favoritedApps)}
+                        </div>
+                    </div>
+                `;
+            }
+
             menu.innerHTML = `
                 <h4 style="font-size: 0.95rem; font-weight: 800; margin-top: 0; margin-bottom: 0.75rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; color: var(--pico-h1-color); text-align: left;">Aplikasi TMPT</h4>
                 <div style="display: block; text-align: left;">
-                    
+                    ${favoriteBlockHtml}
                     <!-- TMPT Kerja (Card Wrapper) -->
                     <div style="background-color: var(--pico-card-sectioning-background-color); border-radius: 20px; padding: 0.75rem; margin-bottom: 0.85rem; border: 1px solid var(--pico-muted-border-color);">
                         <div style="font-size: 0.7rem; font-weight: 800; color: var(--pico-muted-color); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em; padding-left: 0.25rem;">Tmpt Kerja</div>
@@ -576,7 +682,7 @@ const UIModule = {
                     "QR Tools":         "background-color: #4b5563; border-color: #4b5563;",
                     "QR":               "background-color: #4b5563; border-color: #4b5563;",
                     "Pomodoro":         "background-color: #ef4444; border-color: #ef4444;",
-                    "Konversi":         "background-color: #f59e0b; border-color: #f59e0b;",
+                    "Kalkulator & Konversi": "background-color: #2563eb; border-color: #2563eb;",
                     "Favicon Generator":"background-color: #06b6d4; border-color: #06b6d4;"
                 };
 
@@ -597,7 +703,7 @@ const UIModule = {
                     "QR Tools":         "linear-gradient(135deg, rgba(75, 85, 99, 0.1) 0%, rgba(55, 65, 81, 0.1) 100%)",
                     "QR":               "linear-gradient(135deg, rgba(75, 85, 99, 0.1) 0%, rgba(55, 65, 81, 0.1) 100%)",
                     "Pomodoro":         "linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(185, 28, 28, 0.1) 100%)",
-                    "Konversi":         "linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%)",
+                    "Kalkulator & Konversi": "linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, rgba(29, 78, 216, 0.1) 100%)",
                     "Favicon Generator":"linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(8, 145, 178, 0.1) 100%)"
                 };
 

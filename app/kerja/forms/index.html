@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Forms — Pembuat Formulir Mandiri & Privat</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./forms.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+  
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main id="main-content" class="container forms-dashboard-container">
+    
+    <div class="forms-toolbar">
+      <div>
+        <h1>📋 TMPT Forms</h1>
+        <p class="secondary" style="margin: 0;">Buat formulir survei & kuis privat yang diproses sepenuhnya secara lokal.</p>
+      </div>
+      <div style="display: flex; gap: 0.5rem; align-items: center;">
+        <input type="search" id="search-forms" placeholder="Cari formulir..." aria-label="Cari formulir" style="margin: 0; border-radius: 8px;">
+        <button id="btn-create-blank" class="primary" style="margin: 0; white-space: nowrap; border-radius: 8px;">➕ Form Baru</button>
+      </div>
+    </div>
+
+    <!-- Template Section -->
+    <section class="analytics-card" style="margin-bottom: 2rem;">
+      <h4 style="margin-top: 0; margin-bottom: 1rem;">Mulai dari Template</h4>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem;">
+        <article class="text-center" style="padding: 1rem; cursor: pointer; border-radius: 8px; margin: 0;" onclick="createFromTemplate('blank')">
+          <span style="font-size: 2rem;">➕</span>
+          <h6 style="margin-top: 0.5rem; margin-bottom: 0;">Kosong</h6>
+        </article>
+        <article class="text-center" style="padding: 1rem; cursor: pointer; border-radius: 8px; margin: 0;" onclick="createFromTemplate('survey-satisfaction')">
+          <span style="font-size: 2rem;">📊</span>
+          <h6 style="margin-top: 0.5rem; margin-bottom: 0;">Survei Kepuasan</h6>
+        </article>
+        <article class="text-center" style="padding: 1rem; cursor: pointer; border-radius: 8px; margin: 0;" onclick="createFromTemplate('event-registration')">
+          <span style="font-size: 2rem;">📅</span>
+          <h6 style="margin-top: 0.5rem; margin-bottom: 0;">Pendaftaran Event</h6>
+        </article>
+        <article class="text-center" style="padding: 1rem; cursor: pointer; border-radius: 8px; margin: 0;" onclick="createFromTemplate('contact-form')">
+          <span style="font-size: 2rem;">✉️</span>
+          <h6 style="margin-top: 0.5rem; margin-bottom: 0;">Formulir Kontak</h6>
+        </article>
+      </div>
+    </section>
+
+    <!-- Forms List Section -->
+    <section>
+      <h4 style="margin-bottom: 1rem;">Semua Formulir</h4>
+      
+      <div id="forms-empty-state" class="tmpt-empty-state hidden" style="text-align: center; padding: 3rem 1rem;">
+        <span style="font-size: 3rem;">📋</span>
+        <h3>Belum ada formulir</h3>
+        <p>Mulai dengan membuat formulir baru atau pilih salah satu template di atas.</p>
+      </div>
+
+      <div class="forms-grid" id="forms-list-container">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dialog Konfirmasi -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="./forms.js"></script>
+</body>
+</html>

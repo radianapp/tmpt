@@ -547,10 +547,8 @@
             try {
                 const authOk = await window.TMPT_Auth.init();
                 console.log("[BRANKAS] Auth init selesai. Key restored:", authOk);
-
+                window.TMPT_Auth.requireAuth();
                 if (!window.TMPT_Auth.isUnlocked()) {
-                    console.warn("[BRANKAS] Vault terkunci, redirect ke login...");
-                    window.location.href = '/app/auth/login/';
                     return;
                 }
 

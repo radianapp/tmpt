@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Perbandingan Biaya LLM — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⚖️ Multi-Provider LLM Comparator</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Input -->
+      <div class="calc-box">
+        <form id="compare-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="prompt-tokens">Token Input (Prompt)</label>
+            <input type="number" id="prompt-tokens" value="1000" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="completion-tokens">Token Output (Completion)</label>
+            <input type="number" id="completion-tokens" value="500" min="1" required>
+          </div>
+          <div class="form-group">
+            <label for="volume">Jumlah Permintaan per Bulan</label>
+            <input type="number" id="volume" value="10000" min="1" required>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Bandingkan Biaya</button>
+        </form>
+
+        <!-- Form Tambah Model Kustom -->
+        <details style="margin-top: 1.5rem;">
+          <summary style="font-weight: 600; cursor: pointer;">➕ Tambah / Sesuaikan Model LLM Baru</summary>
+          <div style="padding-top: 1rem; border-top: 1px solid var(--calc-card-border);">
+            <div class="form-group">
+              <label for="custom-name">Nama Model (misal: Gemini 3.5 / Claude Opus 4.8)</label>
+              <input type="text" id="custom-name" placeholder="Gemini 3.5 (Google)">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <div class="form-group">
+                <label for="custom-input-price">Harga Input ($ per 1M token)</label>
+                <input type="number" id="custom-input-price" value="3.00" step="0.001">
+              </div>
+              <div class="form-group">
+                <label for="custom-output-price">Harga Output ($ per 1M token)</label>
+                <input type="number" id="custom-output-price" value="9.00" step="0.001">
+              </div>
+            </div>
+            <button class="secondary" id="btn-add-custom" style="width: 100%;">Simpan Model Baru</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- Result Table -->
+      <div class="calc-box">
+        <h3>Peringkat Biaya (Termurah s/d Termahal)</h3>
+        <div style="overflow-x: auto;">
+          <table class="calc-detail-table">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Biaya per Request</th>
+                <th>Biaya per Bulan</th>
+              </tr>
+            </thead>
+            <tbody id="compare-body">
+              <!-- Diisi oleh JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { compareLLMProviders } from './js/ai-calc.js';
+
+    const slug = 'llm-comparator';
+    const calcName = 'LLM Compare';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runComparison);
+      document.getElementById('btn-add-custom').addEventListener('click', saveCustomModel);
+      runComparison();
+    });
+
+    function saveCustomModel() {
+      const name = document.getElementById('custom-name').value.trim();
+      const inPrice = parseFloat(document.getElementById('custom-input-price').value || '0');
+      const outPrice = parseFloat(document.getElementById('custom-output-price').value || '0');
+
+      if (!name) {
+        window.toast('Nama model tidak boleh kosong!', 'error');
+        return;
+      }
+
+      const key = 'custom-' + name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const customModels = JSON.parse(localStorage.getItem('tmpt_custom_llm_models') || '{}');
+      
+      customModels[key] = {
+        name: name,
+        inputPrice: inPrice,
+        outputPrice: outPrice
+      };
+
+      localStorage.setItem('tmpt_custom_llm_models', JSON.stringify(customModels));
+      window.toast(`Model "${name}" berhasil ditambahkan ke komparator!`, 'success');
+      
+      // Clean inputs
+      document.getElementById('custom-name').value = '';
+      
+      runComparison();
+    }
+
+    function runComparison() {
+      const prompt = parseInt(document.getElementById('prompt-tokens').value);
+      const completion = parseInt(document.getElementById('completion-tokens').value);
+      const volume = parseInt(document.getElementById('volume').value);
+
+      if (!prompt || !completion || !volume) return;
+
+      const res = compareLLMProviders(prompt, completion, volume);
+      const tbody = document.getElementById('compare-body');
+      
+      tbody.innerHTML = res.map((row, index) => {
+        const isCheapest = index === 0;
+        const style = isCheapest ? 'font-weight: bold; color: var(--calc-success);' : '';
+        return `
+          <tr style="${style}">
+            <td>${row.name} ${isCheapest ? '🏆' : ''}</td>
+            <td>$${row.singleCost.toFixed(6)}</td>
+            <td>$${row.monthlyCost.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      saveHistoryEntry(slug, calcName, { prompt, completion }, { value: `Compare Done` });
+    }
+  </script>
+</body>
+</html>

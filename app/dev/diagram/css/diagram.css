@@ -1,0 +1,377 @@
+/* app/dev/diagram/css/diagram.css */
+
+:root {
+  --diagram-bg: var(--pico-body-background-color);
+  --diagram-border: var(--pico-muted-border-color);
+  --grid-color: rgba(0, 0, 0, 0.05);
+  --accent-color: var(--pico-primary);
+  --selection-color: rgba(74, 144, 217, 0.2);
+  --selection-border: #4A90D9;
+}
+
+[data-theme="dark"] {
+  --grid-color: rgba(255, 255, 255, 0.04);
+}
+
+body.diagram-editor-active {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dashboard styles */
+.diagram-dashboard {
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+.template-card {
+  border: 1px solid var(--pico-muted-border-color);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.template-card:hover, .diagram-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+/* Editor layout styling */
+.editor-layout {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 50px);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Sidebar Shape Library */
+.editor-sidebar {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  border-right: 1px solid var(--diagram-border);
+  background-color: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transition: transform 0.2s;
+}
+
+.editor-sidebar.collapsed {
+  transform: translateX(-250px);
+  margin-right: -250px;
+}
+
+.sidebar-header {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--diagram-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-title-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--pico-heading-color);
+}
+
+.sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem;
+}
+
+/* Shape Categories & Items */
+.shape-category {
+  margin-bottom: 1rem;
+}
+
+.shape-category-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--pico-heading-color);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.shape-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.shape-item {
+  border: 1px solid var(--diagram-border);
+  border-radius: 8px;
+  padding: 0.4rem;
+  text-align: center;
+  cursor: grab;
+  background-color: var(--pico-background-color);
+  font-size: 0.75rem;
+  transition: background-color 0.15s, border-color 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  user-select: none;
+}
+
+.shape-item:hover {
+  background-color: var(--pico-card-sectioning-background-color);
+  border-color: var(--accent-color);
+}
+
+.shape-item svg {
+  width: 32px;
+  height: 32px;
+  stroke: var(--pico-color);
+  fill: none;
+}
+
+/* Center Workspace / SVG Canvas */
+.workspace-center {
+  flex: 1;
+  position: relative;
+  background-color: var(--diagram-bg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.canvas-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  outline: none;
+  cursor: default;
+}
+
+.canvas-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* SVG grid patterns */
+.grid-pattern {
+  fill: none;
+  stroke: var(--grid-color);
+  stroke-width: 0.5;
+}
+.grid-pattern-major {
+  fill: none;
+  stroke: var(--grid-color);
+  stroke-width: 1;
+}
+
+/* SVG Element styles */
+.diagram-node {
+  cursor: move;
+}
+.diagram-node.selected rect,
+.diagram-node.selected ellipse,
+.diagram-node.selected polygon,
+.diagram-node.selected path {
+  stroke: var(--selection-border) !important;
+  stroke-width: 2px !important;
+}
+
+/* Node port indicators */
+.port-indicator {
+  fill: white;
+  stroke: var(--accent-color);
+  stroke-width: 1.5px;
+  cursor: crosshair;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.diagram-node:hover .port-indicator {
+  opacity: 1;
+}
+
+/* Edges & paths */
+.diagram-edge path {
+  fill: none;
+  stroke: var(--pico-color);
+  stroke-width: 1.5px;
+  transition: stroke 0.15s;
+}
+.diagram-edge.selected path {
+  stroke: var(--selection-border) !important;
+  stroke-width: 2.5px !important;
+}
+
+.diagram-edge:hover path {
+  stroke: var(--accent-color);
+}
+
+/* Rubber band selection box */
+.selection-box {
+  fill: var(--selection-color);
+  stroke: var(--selection-border);
+  stroke-width: 1px;
+  stroke-dasharray: 4 4;
+}
+
+/* Right split-panel: Code Editor / Properties Panel */
+.workspace-right {
+  width: 500px;
+  min-width: 400px;
+  max-width: 800px;
+  border-left: 1px solid var(--diagram-border);
+  background-color: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.workspace-right.collapsed {
+  display: none;
+}
+
+.panel-header {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--diagram-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--pico-card-sectioning-background-color);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--pico-heading-color);
+}
+
+.panel-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.monaco-host-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Floating Properties Panel */
+.floating-properties {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 280px;
+  background-color: var(--pico-card-background-color);
+  border: 1px solid var(--diagram-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  z-index: 50;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.floating-properties-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--diagram-border);
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.25rem;
+}
+
+.floating-properties-header strong {
+  font-size: 0.82rem;
+}
+
+/* Toolbar buttons formatting */
+.icon-btn {
+  padding: 0.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--pico-color);
+  margin-bottom: 0;
+  border-radius: 6px;
+  transition: background-color 0.15s;
+}
+
+.icon-btn:hover {
+  background-color: var(--pico-card-sectioning-background-color);
+  color: var(--pico-heading-color);
+}
+
+.icon-svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Status Bar */
+.editor-statusbar {
+  height: 28px;
+  border-top: 1px solid var(--diagram-border);
+  background-color: var(--pico-card-sectioning-background-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  font-size: 0.72rem;
+  color: var(--pico-color);
+  z-index: 10;
+}
+
+/* Minimap styling */
+.minimap-container {
+  display: none;
+  position: absolute;
+  bottom: 3rem;
+  right: 1rem;
+  width: 150px;
+  height: 100px;
+  background-color: var(--pico-card-background-color);
+  border: 1px solid var(--diagram-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  overflow: hidden;
+  z-index: 40;
+}
+
+.minimap-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.minimap-viewport {
+  position: absolute;
+  border: 1px solid #4a90d9;
+  background-color: rgba(74, 144, 217, 0.15);
+  pointer-events: none;
+}

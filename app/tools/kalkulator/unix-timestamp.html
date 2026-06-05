@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unix Timestamp Converter — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⏱️ Unix Timestamp Converter</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <!-- Live epoch clock -->
+    <div class="calc-result-box" style="margin-bottom: 2rem;">
+      <span class="calc-result-label">Epoch Timestamp Saat Ini (Detik)</span>
+      <div class="calc-result-value" id="current-epoch">0</div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Timestamp to Date -->
+      <div class="calc-box">
+        <h3>Timestamp ➔ Tanggal Manusia</h3>
+        <div class="form-group">
+          <label for="ts-val">Epoch Timestamp (detik atau milidetik)</label>
+          <input type="text" id="ts-val" value="1717462800" style="font-family: monospace;">
+        </div>
+        <button class="btn-navy" id="btn-to-date" style="width: 100%;">Konversi Ke Tanggal</button>
+        <p style="margin-top: 1rem;">Hasil: <strong id="date-output">-</strong></p>
+      </div>
+
+      <!-- Date to Timestamp -->
+      <div class="calc-box">
+        <h3>Tanggal ➔ Unix Timestamp</h3>
+        <div class="form-group">
+          <label for="date-val">Pilih Tanggal &amp; Waktu</label>
+          <input type="datetime-local" id="date-val">
+        </div>
+        <button class="btn-navy" id="btn-to-ts" style="width: 100%;">Konversi Ke Epoch</button>
+        <p style="margin-top: 1rem;">Detik: <strong id="ts-out-sec">-</strong></p>
+        <p>Milidetik: <strong id="ts-out-ms">-</strong></p>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { convertTimestamp, dateToTimestamp } from './js/dev-calc.js';
+
+    const slug = 'unix-timestamp';
+    const calcName = 'Epoch Converter';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set default datetime to now
+      const now = new Date();
+      const localStr = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('date-val').value = localStr;
+
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      // Live clock
+      setInterval(() => {
+        document.getElementById('current-epoch').textContent = Math.floor(Date.now() / 1000);
+      }, 1000);
+
+      document.getElementById('btn-to-date').addEventListener('click', () => {
+        const ts = document.getElementById('ts-val').value.trim();
+        const res = convertTimestamp(ts);
+        document.getElementById('date-output').textContent = res;
+        saveHistoryEntry(slug, calcName, { ts }, { value: 'Date' });
+      });
+
+      document.getElementById('btn-to-ts').addEventListener('click', () => {
+        const dateStr = document.getElementById('date-val').value;
+        const res = dateToTimestamp(dateStr);
+        if (res) {
+          document.getElementById('ts-out-sec').textContent = res.seconds;
+          document.getElementById('ts-out-ms').textContent = res.ms;
+          saveHistoryEntry(slug, calcName, { dateStr }, { value: res.seconds });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

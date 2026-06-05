@@ -1,0 +1,612 @@
+/* app/kerja/slide/css/editor.css */
+
+body.editor-body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--pico-card-sectioning-background-color);
+  overflow: hidden;
+}
+
+.editor-header {
+  height: 56px;
+  background-color: var(--pico-card-background-color);
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  flex-shrink: 0;
+}
+
+.header-left, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.back-link {
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+}
+
+.title-input {
+  border: none !important;
+  background: transparent !important;
+  font-weight: 700;
+  font-size: 1.15rem;
+  margin: 0 !important;
+  padding: 0.25rem 0.5rem !important;
+  width: 250px;
+  color: var(--pico-heading-color);
+}
+
+.title-input:focus {
+  background-color: var(--pico-muted-border-color) !important;
+  border-radius: 6px;
+}
+
+.save-status {
+  font-size: 0.75rem;
+  color: var(--pico-secondary-color);
+  opacity: 0.75;
+  background-color: var(--pico-muted-border-color);
+  padding: 0.15rem 0.5rem;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.inline-btn {
+  margin: 0;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  width: auto;
+}
+
+#export-dropdown summary {
+  margin: 0;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 8px;
+}
+
+.editor-toolbar {
+  height: 48px;
+  background-color: var(--pico-card-background-color);
+  border-bottom: 1px solid var(--pico-muted-border-color);
+  display: flex;
+  align-items: center;
+  padding: 0 1.25rem;
+  gap: 1rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.group-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--pico-muted-color);
+  text-transform: uppercase;
+  margin-right: 0.25rem;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--pico-muted-border-color);
+}
+
+.text-btn {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.inline-select {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 1.5rem 0.25rem 0.5rem !important;
+  margin: 0 !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+.format-toggle {
+  font-size: 0.75rem !important;
+  padding: 0.25rem 0.5rem !important;
+  margin: 0 !important;
+  width: 30px !important;
+  height: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.format-toggle.active {
+  background-color: var(--pico-primary) !important;
+  color: white !important;
+  border-color: var(--pico-primary) !important;
+}
+
+.color-picker-input {
+  width: 30px !important;
+  height: 30px !important;
+  padding: 0 !important;
+  border: 1px solid var(--pico-muted-border-color) !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  margin: 0 !important;
+}
+
+.editor-main-container {
+  display: flex;
+  flex-grow: 1;
+  height: calc(100vh - 104px);
+  overflow: hidden;
+}
+
+/* Panel Kiri: Daftar Slide */
+.slide-panel {
+  width: 200px;
+  border-right: 1px solid var(--pico-muted-border-color);
+  background-color: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.slide-list {
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.slide-thumb-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  cursor: pointer;
+}
+
+.slide-number {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--pico-secondary-color);
+  width: 16px;
+  text-align: right;
+}
+
+.slide-thumb {
+  flex-grow: 1;
+  aspect-ratio: 16/9;
+  border-radius: 8px;
+  border: 2px solid var(--pico-muted-border-color);
+  background-color: white;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  position: relative;
+}
+
+.slide-thumb-wrapper.active .slide-thumb {
+  border-color: var(--pico-primary);
+  box-shadow: 0 0 0 1px var(--pico-primary);
+}
+
+.slide-thumb-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.slide-thumb-elements {
+  position: absolute;
+  inset: 0;
+  transform: scale(0.125); /* 120px / 960px = 0.125 */
+  transform-origin: top left;
+  pointer-events: none;
+  width: 960px;
+  height: 540px;
+}
+
+.delete-slide-btn {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  background-color: rgba(239, 68, 68, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  padding: 0;
+  margin: 0;
+}
+
+.slide-thumb-wrapper:hover .delete-slide-btn {
+  display: flex;
+}
+
+.panel-footer {
+  padding: 0.75rem;
+  border-top: 1px solid var(--pico-muted-border-color);
+}
+
+/* Panel Tengah: Canvas Workspace */
+.canvas-workspace {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--pico-card-sectioning-background-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.canvas-scaler {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 2rem;
+}
+
+.slide-canvas {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  background-color: white;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.02);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.slide-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-size: cover;
+  background-position: center;
+}
+
+.slide-elements-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas-footer {
+  height: 40px;
+  background-color: var(--pico-card-background-color);
+  border-top: 1px solid var(--pico-muted-border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1.25rem;
+  font-size: 0.75rem;
+  color: var(--pico-secondary-color);
+  flex-shrink: 0;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.zoom-controls span {
+  font-weight: 600;
+  min-width: 40px;
+  text-align: center;
+}
+
+/* Panel Kanan: Properties Panel */
+.properties-panel {
+  width: 260px;
+  border-left: 1px solid var(--pico-muted-border-color);
+  background-color: var(--pico-card-background-color);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+.properties-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--pico-muted-border-color);
+}
+
+.properties-section h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  color: var(--pico-heading-color);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.property-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  gap: 0.5rem;
+}
+
+.property-row label {
+  font-size: 0.8rem;
+  margin: 0;
+  color: var(--pico-secondary-color);
+}
+
+.property-row input, .property-row select {
+  margin: 0;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  height: auto;
+  width: auto;
+}
+
+.property-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.property-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.property-item label {
+  font-size: 0.75rem;
+  margin: 0;
+  color: var(--pico-secondary-color);
+}
+
+.property-item input {
+  margin: 0;
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  height: auto;
+}
+
+.speaker-notes-section {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: none;
+}
+
+.speaker-notes-section textarea {
+  flex-grow: 1;
+  font-size: 0.8rem;
+  resize: none;
+  min-height: 120px;
+  margin: 0;
+  padding: 0.5rem;
+}
+
+/* Slide Canvas Elements */
+.slide-element {
+  position: absolute;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.slide-element:hover {
+  outline: 1px dashed var(--pico-primary);
+}
+
+.slide-element.selected {
+  outline: 2px solid var(--pico-primary);
+}
+
+.element-content-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Handles styling for interactjs resizing */
+.slide-element.selected .resize-handle {
+  width: 8px;
+  height: 8px;
+  background-color: white;
+  border: 1px solid var(--pico-primary);
+  position: absolute;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+.slide-element.selected .resize-handle.nw { left: -4px; top: -4px; cursor: nwse-resize; }
+.slide-element.selected .resize-handle.ne { right: -4px; top: -4px; cursor: nesw-resize; }
+.slide-element.selected .resize-handle.se { right: -4px; bottom: -4px; cursor: nwse-resize; }
+.slide-element.selected .resize-handle.sw { left: -4px; bottom: -4px; cursor: nesw-resize; }
+.slide-element.selected .resize-handle.n { left: calc(50% - 4px); top: -4px; cursor: ns-resize; }
+.slide-element.selected .resize-handle.s { left: calc(50% - 4px); bottom: -4px; cursor: ns-resize; }
+.slide-element.selected .resize-handle.e { right: -4px; top: calc(50% - 4px); cursor: ew-resize; }
+.slide-element.selected .resize-handle.w { left: -4px; top: calc(50% - 4px); cursor: ew-resize; }
+
+.slide-element.selected .rotate-handle {
+  width: 10px;
+  height: 10px;
+  background-color: var(--pico-primary);
+  border: 1px solid white;
+  border-radius: 50%;
+  position: absolute;
+  left: calc(50% - 5px);
+  top: -24px;
+  cursor: grab;
+  z-index: 100;
+}
+
+.slide-element.selected .rotate-line {
+  width: 1px;
+  height: 20px;
+  background-color: var(--pico-primary);
+  position: absolute;
+  left: calc(50% - 0.5px);
+  top: -20px;
+  z-index: 99;
+}
+
+/* Text Element specific */
+.text-element-content {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  cursor: text;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* Image Element */
+.image-element-content {
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+/* Table Element */
+.table-element-content {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.table-element-content td, .table-element-content th {
+  border: 1px solid #94a3b8;
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  background-color: white;
+}
+
+.table-element-content th {
+  background-color: #f1f5f9;
+  font-weight: bold;
+}
+
+/* Shape elements */
+.shape-element-content {
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 1024px) {
+  .properties-panel {
+    display: none; /* Auto collapse on smaller laptops */
+  }
+}
+
+/* Sidebar collapsed state */
+.slide-panel {
+  transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+}
+
+.slide-panel.collapsed {
+  width: 0 !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border-right-color: transparent !important;
+  overflow: hidden !important;
+}
+
+/* Print CSS */
+@page {
+  size: landscape;
+  margin: 0;
+}
+
+@media print {
+  /* Hide all wrappers, panels, headers, dialogs */
+  body > *:not(.editor-main-container),
+  .editor-header,
+  .editor-toolbar,
+  .slide-panel,
+  .properties-panel,
+  .canvas-footer,
+  dialog,
+  #toast-container,
+  .resize-handle,
+  .rotate-handle,
+  .rotate-line,
+  #guides-overlay {
+    display: none !important;
+  }
+  
+  body, html, .editor-body, .editor-main-container {
+    background: transparent !important;
+    height: auto !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+  }
+  
+  .editor-main-container {
+    display: block !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .canvas-workspace {
+    display: block !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+  
+  .canvas-scaler {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  
+  .slide-canvas {
+    transform: none !important; /* Reset scale for 1:1 printing */
+    box-shadow: none !important;
+    border: none !important;
+    position: relative !important;
+    page-break-inside: avoid !important;
+    page-break-after: always !important;
+    margin: 0 auto !important;
+    width: 960px !important;
+    height: 540px !important;
+  }
+}

@@ -205,7 +205,7 @@
 
         function cancelSetupAndRedirect() {
             document.getElementById('free-tier-warning-modal').close();
-            window.location.href = '/app/kerja/vault/';
+            window.location.href = '/app/';
         }
 
         function proceedCreateVault() {
@@ -270,7 +270,7 @@
                 sessionStorage.setItem('tmpt_is_unlocked', 'true');
                 
                 const urlParams = new URLSearchParams(window.location.search);
-                const redirectTo = urlParams.get('redirect') || '/app/kerja/vault/';
+                const redirectTo = urlParams.get('redirect') || '/app/';
                 setTimeout(() => {
                     window.location.href = redirectTo;
                 }, 1000);

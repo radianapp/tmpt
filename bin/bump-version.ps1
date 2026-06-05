@@ -7,7 +7,7 @@ Write-Host " TMPT Version Bumper " -ForegroundColor Cyan
 Write-Host "=========================================" -ForegroundColor Cyan
 
 # Paths
-$versionFile = "assets/js/version.js"
+$versionFile = "shared/version.js"
 $docsFile = "docs/VERSIONS.md"
 
 if (-not (Test-Path $versionFile)) {

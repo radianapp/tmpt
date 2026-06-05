@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Diagram — Visualisasikan Arsitektur & Database</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./css/diagram.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  <script type="module" src="/shared/seo.js" data-seo-key="diagram-dashboard"></script>
+</head>
+<body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+  
+  <!-- include shared app header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main id="main-content" class="container diagram-dashboard">
+    <div class="diagram-app-toolbar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+      <div>
+        <h1 style="margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">📊 TMPT Diagram</h1>
+        <p class="secondary" style="margin-bottom: 0;">Visualisasikan Arsitektur, Flowchart, dan Skema Database secara lokal & privat.</p>
+      </div>
+      <div class="diagram-toolbar-actions" style="display: flex; gap: 0.75rem; align-items: center;">
+        <input type="search" id="search-diagrams" placeholder="Cari diagram..." aria-label="Cari Diagram" style="margin-bottom: 0; max-width: 250px;">
+        
+        <details class="dropdown" id="new-diagram-dropdown" style="margin-bottom: 0;">
+          <summary class="button primary" style="margin-bottom: 0;">
+            ➕ Diagram Baru
+          </summary>
+          <ul dir="rtl" style="text-align: left; right: 0; left: auto; z-index: 100;">
+            <li><a href="./editor.html?new=1&module=draw">🎨 Modul Draw (Visual Blank)</a></li>
+            <li><a href="./editor.html?new=1&module=code">💻 Modul Code (Mermaid Code)</a></li>
+            <li><a href="./editor.html?new=1&module=data">🗄️ Modul Data (DBML/SQL)</a></li>
+            <li><a href="./editor.html?new=1&module=arch">🏗️ Modul Arch (C4 Model)</a></li>
+          </ul>
+        </details>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="tmpt-empty-state hidden" id="empty-state" style="text-align: center; padding: 4rem 2rem; background: var(--pico-card-background-color); border-radius: 12px; border: 1px solid var(--pico-muted-border-color); margin-bottom: 2rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+      <h3>Belum ada Diagram</h3>
+      <p class="secondary">Mulai buat arsitektur sistem, ERD database, atau flowchart alur kerja Anda sekarang.</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap;">
+        <a href="./editor.html?new=1&module=draw" class="button">🎨 Modul Draw</a>
+        <a href="./editor.html?new=1&module=code" class="button">💻 Modul Code</a>
+        <a href="./editor.html?new=1&module=data" class="button">🗄️ Modul Data</a>
+      </div>
+    </div>
+
+    <!-- Recent Diagrams Section -->
+    <div id="diagrams-section">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; margin-bottom: 1rem;">
+        <h5 style="margin: 0; font-weight: 600;">Diagram Anda</h5>
+        <button id="btn-import-diagram" class="outline secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; margin-bottom: 0;">
+          📥 Impor Berkas (.diagram)
+        </button>
+        <input type="file" id="import-file-input" accept=".diagram,.json" style="display: none;">
+      </div>
+      
+      <div class="tmpt-grid" id="diagrams-container" role="list" aria-label="Daftar diagram" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem;">
+        <!-- Diisi secara dinamis oleh JS -->
+      </div>
+    </div>
+
+    <!-- Template Gallery Section -->
+    <div id="templates-section" style="margin-top: 3rem;">
+      <h5 style="border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; margin-bottom: 1rem; font-weight: 600;">Galeri Templat Pilihan</h5>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem;">
+        
+        <!-- Template 1: SaaS 3-Tier -->
+        <article class="template-card" style="margin-bottom: 0; padding: 1rem; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏗️</div>
+            <strong style="display: block; font-size: 0.95rem;">AWS SaaS 3-Tier Architecture</strong>
+            <p class="secondary" style="font-size: 0.78rem; line-height: 1.4; margin: 0.25rem 0 1rem 0;">Template arsitektur AWS Web App standard dengan CloudFront, ALB, EC2 Auto Scaling, dan Multi-AZ RDS.</p>
+          </div>
+          <a href="./editor.html?new=1&module=arch&template=aws-3tier" class="button outline" style="margin-bottom: 0; font-size: 0.8rem; padding: 0.4rem;">Gunakan Templat</a>
+        </article>
+
+        <!-- Template 2: E-Commerce Schema -->
+        <article class="template-card" style="margin-bottom: 0; padding: 1rem; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🗄️</div>
+            <strong style="display: block; font-size: 0.95rem;">E-Commerce DB Schema</strong>
+            <p class="secondary" style="font-size: 0.78rem; line-height: 1.4; margin: 0.25rem 0 1rem 0;">ERD database relasional untuk e-commerce sederhana (Tabel Users, Products, Orders, Order Items).</p>
+          </div>
+          <a href="./editor.html?new=1&module=data&template=ecommerce" class="button outline" style="margin-bottom: 0; font-size: 0.8rem; padding: 0.4rem;">Gunakan Templat</a>
+        </article>
+
+        <!-- Template 3: Flowchart Autentikasi -->
+        <article class="template-card" style="margin-bottom: 0; padding: 1rem; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎨</div>
+            <strong style="display: block; font-size: 0.95rem;">Flowchart Alur Login/Register</strong>
+            <p class="secondary" style="font-size: 0.78rem; line-height: 1.4; margin: 0.25rem 0 1rem 0;">Flowchart alur masuk pengguna dengan verifikasi email, session creation, dan fallback lupa kata kunci.</p>
+          </div>
+          <a href="./editor.html?new=1&module=draw&template=login-flow" class="button outline" style="margin-bottom: 0; font-size: 0.8rem; padding: 0.4rem;">Gunakan Templat</a>
+        </article>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dialog Konfirmasi Generic -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border: none; background: #e5e7eb; color: #374151;">Batal</button>
+        <button class="btn-navy" id="confirm-ok-btn" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border: none; background: var(--pico-primary); color: white;">Hapus</button>
+      </div>
+    </article>
+  </dialog>
+
+  <script type="module" src="./js/diagram-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "email-standard",
+    "title": "Email (Standar)",
+    "description": "Validasi alamat email standar RFC 5322 (disederhanakan).",
+    "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+    "flags": "i",
+    "category": "email",
+    "examples": ["user@example.com", "admin.user+tag@company.org"],
+    "invalid": ["@nodomain.com", "user@.com", "plaintext"]
+  },
+  {
+    "id": "email-strict",
+    "title": "Email (Ketat)",
+    "description": "Validasi email dengan pemeriksaan subdomain dan TLD yang lebih ketat.",
+    "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}$",
+    "flags": "",
+    "category": "email",
+    "examples": ["john@doe.co.uk", "sales@company.info"],
+    "invalid": ["a@b.c", "john@doe.toolongtld"]
+  },
+  {
+    "id": "phone-id",
+    "title": "Telepon Indonesia",
+    "description": "Format nomor telepon seluler Indonesia (+62 atau 08).",
+    "pattern": "^(\\+62|0)8[0-9]{8,12}$",
+    "flags": "",
+    "category": "phone",
+    "examples": ["081234567890", "+6281234567890"],
+    "invalid": ["0812", "123456789", "+621234"]
+  },
+  {
+    "id": "phone-us",
+    "title": "Telepon AS/Kanada",
+    "description": "Nomor telepon standar Amerika Serikat dan Kanada (NANP).",
+    "pattern": "^\\+?1?\\s*\\(?[0-9]{3}\\)?[-.\\s]*[0-9]{3}[-.\\s]*[0-9]{4}$",
+    "flags": "",
+    "category": "phone",
+    "examples": ["(555) 555-5555", "1-555-555-5555", "+15555555555"],
+    "invalid": ["555-5555", "123-456-789"]
+  },
+  {
+    "id": "url-http-https",
+    "title": "URL (HTTP/HTTPS)",
+    "description": "Mencocokkan tautan web yang menggunakan protokol HTTP atau HTTPS.",
+    "pattern": "^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$",
+    "flags": "i",
+    "category": "url",
+    "examples": ["https://tmpt.my.id", "http://google.com/search?q=regex"],
+    "invalid": ["ftp://example.com", "google.com"]
+  },
+  {
+    "id": "ip-v4",
+    "title": "Alamat IPv4",
+    "description": "Mencocokkan alamat IP versi 4 standar (0.0.0.0 hingga 255.255.255.255).",
+    "pattern": "^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$",
+    "flags": "",
+    "category": "ip",
+    "examples": ["192.168.1.1", "127.0.0.1", "255.255.255.255"],
+    "invalid": ["256.0.0.1", "192.168.1", "192.168.1.1.1"]
+  },
+  {
+    "id": "ip-v6",
+    "title": "Alamat IPv6",
+    "description": "Mencocokkan alamat IP versi 6 standar.",
+    "pattern": "^(([0-9a-fA-F]{1,4}:){7,7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(ffff(:0{1,4}){0,1}:){0,1}((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9])\\.){3,3}(25[0-5]|(2[0-4]|1{0,1}[0-9]){0,1}[0-9]))$",
+    "flags": "",
+    "category": "ip",
+    "examples": ["2001:db8:3333:4444:5555:6666:7777:8888", "::1", "2001:db8::"],
+    "invalid": ["1200::ABF8::12", "2001:db8:3333:4444:5555:6666:7777:8888:9999"]
+  },
+  {
+    "id": "uuid",
+    "title": "UUID (v4)",
+    "description": "Mencocokkan format Universal Unique Identifier versi 4.",
+    "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+    "flags": "i",
+    "category": "uuid",
+    "examples": ["f81d4fae-7dec-11d0-a765-00a0c91e6bf6", "9e3cdae6-7ab5-4a67-89ab-123456789abc"],
+    "invalid": ["f81d4fae-7dec-11d0-a765", "9e3cdae6-7ab5-5a67-89ab-123456789abc"]
+  },
+  {
+    "id": "date-iso8601",
+    "title": "Tanggal ISO 8601",
+    "description": "Mencocokkan format tanggal ISO YYYY-MM-DD.",
+    "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$",
+    "flags": "",
+    "category": "date",
+    "examples": ["2026-06-04", "1999-12-31"],
+    "invalid": ["2026/06/04", "26-06-04", "2026-13-32"]
+  },
+  {
+    "id": "nik-id",
+    "title": "NIK Indonesia",
+    "description": "Nomor Induk Kependudukan (16 digit angka).",
+    "pattern": "^[0-9]{16}$",
+    "flags": "",
+    "category": "indonesia",
+    "examples": ["3171012345670001"],
+    "invalid": ["317101234567000", "31710123456700012"]
+  },
+  {
+    "id": "npwp-id",
+    "title": "NPWP Indonesia",
+    "description": "Nomor Pokok Wajib Pajak (15 digit angka).",
+    "pattern": "^[0-9]{15}$",
+    "flags": "",
+    "category": "indonesia",
+    "examples": ["091234567001000"],
+    "invalid": ["09123456700100", "0912345670010001"]
+  },
+  {
+    "id": "jwt-token",
+    "title": "JSON Web Token (JWT)",
+    "description": "Mencocokkan format token JWT standar (tiga bagian dipisah titik).",
+    "pattern": "^[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]+\\.[A-Za-z0-9-_]*$",
+    "flags": "",
+    "category": "developer",
+    "examples": ["eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"],
+    "invalid": ["eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0"]
+  },
+  {
+    "id": "semver",
+    "title": "Semantic Versioning (SemVer)",
+    "description": "Validasi versi rilis perangkat lunak sesuai standar SemVer 2.0.0.",
+    "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$",
+    "flags": "",
+    "category": "developer",
+    "examples": ["1.0.0", "2.3.1-alpha.1", "3.0.0-rc.2+build.123"],
+    "invalid": ["01.0.0", "1.2", "v1.0.0"]
+  }
+]

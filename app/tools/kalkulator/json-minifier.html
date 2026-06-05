@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JSON Minifier — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🗜️ JSON Minifier</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <h4 style="margin-bottom: 0.75rem;">JSON Asal</h4>
+        <textarea id="json-input" class="dev-input-textarea" placeholder="Paste JSON Anda di sini untuk dikompres..." style="min-height: 350px;"></textarea>
+        <button class="btn-navy" id="btn-minify" style="width: 100%; margin-top: 1rem;">Minify Sekarang</button>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">JSON Terkompres</h4>
+          <button class="calc-action-btn secondary" id="btn-copy">📋 Copy</button>
+        </div>
+        <pre id="json-output" class="dev-output-pane" style="flex-grow: 1; min-height: 300px; white-space: pre-wrap; word-break: break-all;"></pre>
+        
+        <div id="stats-box" style="margin-top: 1rem; font-size: 0.9rem; display: none;">
+          Ukuran Asal: <strong id="orig-size">-</strong> B | Ukuran Kompresi: <strong id="mini-size">-</strong> B | Reduksi: <strong id="reduction">-</strong>%
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { minifyJSON } from './js/dev-calc.js';
+
+    const slug = 'json-minifier';
+    const calcName = 'JSON Minifier';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-minify').addEventListener('click', () => {
+        const input = document.getElementById('json-input').value.trim();
+        if (!input) return;
+
+        const res = minifyJSON(input);
+        if (res.valid) {
+          document.getElementById('json-output').textContent = res.minified;
+          document.getElementById('orig-size').textContent = res.origSize;
+          document.getElementById('mini-size').textContent = res.miniSize;
+          document.getElementById('reduction').textContent = res.reduction;
+          document.getElementById('stats-box').style.display = 'block';
+          saveHistoryEntry(slug, calcName, { length: input.length }, { value: `${res.reduction}% Reduksi` });
+        } else {
+          document.getElementById('json-output').textContent = 'Error: ' + res.error;
+          document.getElementById('stats-box').style.display = 'none';
+        }
+      });
+
+      document.getElementById('btn-copy').addEventListener('click', () => {
+        const out = document.getElementById('json-output').textContent;
+        if (!out || out.startsWith('Error')) return;
+        navigator.clipboard.writeText(out).then(() => {
+          window.toast('Salin berhasil!', 'success');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

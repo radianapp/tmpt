@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TMPT Tulis — Tulis Dokumen Tanpa Gangguan</title>
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <link rel="stylesheet" href="./css/tulis.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <!-- SEO injection tag -->
+  <script data-seo-key="tulis-dashboard" src="/shared/seo.js" type="module"></script>
+</head>
+<body>
+  <script>
+    // Check auth before rendering
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <!-- Global Header TMPT -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" id="main-content">
+    <!-- Header App / Title Area -->
+    <header class="app-page-header">
+      <div class="title-area">
+        <h1>📝 TMPT Tulis</h1>
+        <p class="secondary">Buat dan sunting dokumen teks secara offline, aman, dan tersimpan di browser Anda.</p>
+      </div>
+      <div class="actions-area">
+        <button id="import-btn" class="outline secondary">📥 Impor Berkas</button>
+        <button id="new-blank-btn" class="btn-navy">➕ Dokumen Baru</button>
+        <input type="file" id="import-input" accept=".html,.md,.txt" style="display: none;">
+      </div>
+    </header>
+
+    <!-- Template Starter Gallery -->
+    <section class="template-gallery-section">
+      <h3>Mulai Dokumen Baru</h3>
+      <div class="template-grid" id="template-grid-container">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- Recent Documents Section -->
+    <section class="documents-list-section">
+      <div class="filter-bar">
+        <div class="search-box">
+          <input type="search" id="search-input" placeholder="Cari dokumen..." autocomplete="off">
+        </div>
+        <div class="view-toggle">
+          <button id="grid-view-btn" class="outline square-btn active" aria-label="Grid View">⊞</button>
+          <button id="list-view-btn" class="outline square-btn secondary" aria-label="List View">≡</button>
+        </div>
+      </div>
+
+      <div id="documents-container" class="grid-view">
+        <div class="loading-state">Memuat daftar dokumen...</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/dashboard.js"></script>
+</body>
+</html>

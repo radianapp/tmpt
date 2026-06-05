@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Kalender — Kelola Jadwal & Waktu Privat</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./kalender.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+
+  <!-- Global Header -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <!-- Main Container -->
+  <main id="main-content" class="container">
+    <div class="calendar-layout">
+      
+      <!-- Sidebar Kiri -->
+      <aside class="calendar-sidebar">
+        <h5>📅 Kalender Saya</h5>
+        <ul class="calendar-list" id="calendar-list-container">
+          <!-- Diisi dinamis dari JavaScript -->
+        </ul>
+
+        <div id="reminder-activation-section">
+          <hr>
+          <h5>🔔 Pengingat</h5>
+          <div style="font-size: 0.85rem; margin-bottom: 1rem;">
+            <p class="secondary" style="margin: 0 0 0.5rem 0;">Aktifkan notifikasi browser untuk menerima pengingat jadwal kerja Anda.</p>
+            <button id="btn-request-notif" class="outline secondary" style="width: 100%; font-size: 0.75rem; padding: 0.35rem 0.5rem; margin: 0;">Izinkan Notifikasi</button>
+          </div>
+        </div>
+
+        <hr>
+
+        <h5>📤 Interoperabilitas</h5>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <button id="btn-trigger-import" class="outline secondary" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; margin: 0; text-align: center;">📥 Impor ICS</button>
+          <button id="btn-trigger-export" class="outline secondary" style="width: 100%; font-size: 0.8rem; padding: 0.5rem; margin: 0; text-align: center;">📤 Ekspor ICS</button>
+        </div>
+      </aside>
+
+      <!-- Area Utama Kalender -->
+      <section class="calendar-main">
+        <div class="calendar-toolbar">
+          
+          <!-- Navigasi & Judul Rentang Waktu -->
+          <div class="calendar-title-nav">
+            <div class="calendar-nav-buttons" style="display: flex; gap: 0.25rem;">
+              <button id="btn-prev" class="outline secondary" aria-label="Sebelumnya" style="margin: 0;">◀</button>
+              <button id="btn-today" class="outline secondary" style="margin: 0;">Hari ini</button>
+              <button id="btn-next" class="outline secondary" aria-label="Selanjutnya" style="margin: 0;">▶</button>
+            </div>
+            <h2 id="calendar-current-range">Juni 2026</h2>
+          </div>
+
+          <!-- Tipe Tampilan & Tombol Tambah Acara -->
+          <div class="calendar-view-selector" style="display: flex; gap: 0.5rem; align-items: center;">
+            <div role="group" style="margin: 0;">
+              <button id="btn-view-month" class="primary" style="margin: 0;">Bulan</button>
+              <button id="btn-view-week" class="outline secondary" style="margin: 0;">Minggu</button>
+              <button id="btn-view-day" class="outline secondary" style="margin: 0;">Hari</button>
+              <button id="btn-view-agenda" class="outline secondary" style="margin: 0;">Agenda</button>
+            </div>
+            <button id="btn-new-event" class="btn-quick-add" style="margin: 0; white-space: nowrap;">➕ Acara Baru</button>
+          </div>
+
+        </div>
+
+        <!-- Render Target Kalender -->
+        <div id="calendar-view-container">
+          <!-- Tampilan dinamis dimasukkan di sini oleh JS -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Modal Tambah/Edit Acara -->
+  <dialog id="event-editor-modal">
+    <article style="border-radius: 16px; width: 100%; max-width: 580px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 id="event-modal-title" style="margin: 0; font-weight: 700;">Buat Acara Baru</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('event-editor-modal').close()" style="background: transparent; border: none; padding: 0; margin: 0; font-size: 1.5rem; cursor: pointer; color: var(--pico-secondary-color); width: auto; height: auto;">✕</button>
+      </header>
+
+      <form id="event-form" onsubmit="event.preventDefault();">
+        <input type="hidden" id="event-id">
+        <input type="hidden" id="event-source-app">
+        <input type="hidden" id="event-source-id">
+
+        <label for="event-title">Judul Acara *
+          <input type="text" id="event-title" placeholder="Contoh: Rapat Koordinasi Mingguan" required>
+        </label>
+
+        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1rem;">
+          <label for="event-calendar">Kalender
+            <select id="event-calendar">
+              <!-- Diisi secara dinamis -->
+            </select>
+          </label>
+          <label for="event-color">Warna Kustom
+            <select id="event-color">
+              <option value="">Default Kalender</option>
+              <option value="#2563eb">🔵 Biru</option>
+              <option value="#16a34a">🟢 Hijau</option>
+              <option value="#dc2626">🔴 Merah</option>
+              <option value="#d97706">🟡 Oranye</option>
+              <option value="#7c3aed">🟣 Ungu</option>
+              <option value="#db2777">💗 Merah Muda</option>
+            </select>
+          </label>
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+          <input type="checkbox" id="event-all-day" style="margin-right: 0.5rem; margin-bottom: 0;">
+          <label for="event-all-day" style="display: inline-block;">Sepanjang hari</label>
+        </div>
+
+        <div class="grid" style="gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label for="event-start-date">Tanggal Mulai
+              <input type="date" id="event-start-date" required>
+            </label>
+            <label for="event-start-time" class="time-field">Jam Mulai
+              <input type="time" id="event-start-time" value="09:00">
+            </label>
+          </div>
+          <div>
+            <label for="event-end-date">Tanggal Selesai
+              <input type="date" id="event-end-date" required>
+            </label>
+            <label for="event-end-time" class="time-field">Jam Selesai
+              <input type="time" id="event-end-time" value="10:00">
+            </label>
+          </div>
+        </div>
+
+        <div class="grid" style="gap: 1rem;">
+          <label for="event-recurrence">Perulangan
+            <select id="event-recurrence">
+              <option value="none">Tidak ada perulangan</option>
+              <option value="daily">Harian</option>
+              <option value="weekly">Mingguan (Hari yang sama)</option>
+              <option value="monthly">Bulanan (Tanggal yang sama)</option>
+              <option value="yearly">Tahunan</option>
+            </select>
+          </label>
+
+          <label for="event-reminder">Pengingat
+            <select id="event-reminder">
+              <option value="none">Tanpa pengingat</option>
+              <option value="5">5 menit sebelum</option>
+              <option value="15">15 menit sebelum</option>
+              <option value="30" selected>30 menit sebelum</option>
+              <option value="60">1 jam sebelum</option>
+              <option value="1440">1 hari sebelum</option>
+            </select>
+          </label>
+        </div>
+
+        <label for="event-location">Lokasi / URL Rapat
+          <input type="text" id="event-location" placeholder="Ruang Rapat A, atau Google Meet link...">
+        </label>
+
+        <label for="event-description">Deskripsi / Catatan Acara
+          <textarea id="event-description" placeholder="Agenda atau pembahasan penting lainnya..." rows="3"></textarea>
+        </label>
+
+        <div style="border: 1px solid var(--pico-muted-border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; background-color: var(--pico-card-sectioning-background-color);">
+          <strong style="font-size: 0.85rem; display: block; margin-bottom: 0.5rem;">🔗 File TMPT Terkait</strong>
+          <div class="grid" style="grid-template-columns: 1fr auto; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <select id="event-link-doc-select" style="margin: 0; font-size: 0.85rem;">
+              <option value="">Pilih Dokumen TMPT...</option>
+            </select>
+            <button type="button" id="btn-add-file-link" class="outline primary" style="margin: 0; font-size: 0.8rem; padding: 0.35rem 0.75rem;">Sambung</button>
+          </div>
+          <div id="event-linked-files-editor-container" class="linked-files-list">
+            <!-- Chip file terhubung dirender di sini -->
+          </div>
+        </div>
+
+        <footer style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('event-editor-modal').close()" style="margin: 0;">Batal</button>
+          <button type="submit" id="btn-save-event" class="primary" style="margin: 0;">Simpan Acara</button>
+        </footer>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Modal Detail Acara -->
+  <dialog id="event-viewer-modal">
+    <article style="border-radius: 16px; width: 100%; max-width: 500px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <h3 id="view-event-title" style="margin: 0; font-weight: 800; border-left: 5px solid var(--cal-color-personal); padding-left: 0.75rem;">Detail Acara</h3>
+        <div style="display: flex; gap: 0.25rem;">
+          <button id="btn-edit-event" aria-label="Edit" class="outline secondary" style="padding: 0.35rem 0.5rem; font-size: 0.85rem; margin: 0;">✏️ Edit</button>
+          <button id="btn-delete-event" aria-label="Hapus" class="outline secondary" style="padding: 0.35rem 0.5rem; font-size: 0.85rem; margin: 0; color: var(--pico-danger-color); border-color: var(--pico-danger-color);">🗑️</button>
+          <button class="close" aria-label="Tutup" onclick="document.getElementById('event-viewer-modal').close()" style="background: transparent; border: none; padding: 0.5rem; margin: 0; font-size: 1.2rem; cursor: pointer; color: var(--pico-secondary-color); width: auto; height: auto;">✕</button>
+        </div>
+      </header>
+
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color);">Waktu</span>
+          <div id="view-event-time-str" style="font-weight: 700; font-size: 0.95rem;">Senin, 2 Juni 2026 · 09:00 - 10:30</div>
+        </div>
+
+        <div id="view-event-location-container" class="hidden">
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color);">Lokasi</span>
+          <div id="view-event-location" style="font-size: 0.9rem;">Ruang Rapat A</div>
+        </div>
+
+        <div>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color);">Kalender</span>
+          <div>
+            <span id="view-event-calendar-badge" style="font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px;">Pribadi</span>
+            <span id="view-event-recurrence-badge" class="hidden" style="font-size: 0.75rem; background-color: var(--pico-card-sectioning-background-color); border: 1px solid var(--pico-muted-border-color); color: var(--pico-color); font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 6px; margin-left: 0.5rem;">🔁 Mingguan</span>
+          </div>
+        </div>
+
+        <div id="view-event-desc-container" class="hidden">
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color);">Deskripsi / Catatan</span>
+          <div id="view-event-desc" style="white-space: pre-wrap; font-size: 0.9rem; margin-top: 0.25rem;"></div>
+        </div>
+
+        <div id="view-event-links-container" class="hidden" style="border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.75rem; margin-top: 0.25rem;">
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color); display: block; margin-bottom: 0.5rem;">File TMPT Terkait</span>
+          <div id="view-event-links-list" class="linked-files-list">
+            <!-- Chip link file dirender di sini -->
+          </div>
+        </div>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Modal Impor ICS -->
+  <dialog id="ics-import-modal">
+    <article style="border-radius: 16px; max-width: 450px; padding: 2rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h3 style="margin: 0; font-weight: 700;">Impor Kalender (.ics)</h3>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('ics-import-modal').close()" style="background: transparent; border: none; padding: 0; margin: 0; font-size: 1.5rem; cursor: pointer; color: var(--pico-secondary-color); width: auto; height: auto;">✕</button>
+      </header>
+
+      <form id="ics-import-form">
+        <label for="ics-file">Pilih berkas iCalendar (.ics)
+          <input type="file" id="ics-file" accept=".ics" required>
+        </label>
+        <p class="secondary" style="font-size: 0.8rem;">Semua acara yang diimpor akan dimasukkan ke dalam kategori kalender <strong>📥 Impor</strong>.</p>
+        
+        <footer style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('ics-import-modal').close()" style="margin: 0;">Batal</button>
+          <button type="submit" class="primary" style="margin: 0;">Impor Sekarang</button>
+        </footer>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Dialog Konfirmasi -->
+  <dialog id="confirm-modal">
+    <article style="border-radius: 20px; padding: 2.5rem; max-width: 480px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 1rem; color: #dc2626;">⚠️</div>
+      <h3 id="confirm-title" style="font-weight: 700; margin-bottom: 0.5rem;">Konfirmasi</h3>
+      <p id="confirm-message" class="secondary" style="margin-bottom: 1.5rem;">Apakah Anda yakin?</p>
+      <div style="display: flex; gap: 1rem; justify-content: center; width: 100%;">
+        <button class="btn-gray" onclick="document.getElementById('confirm-modal')._resolve(false); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Batal</button>
+        <button class="btn-navy" onclick="document.getElementById('confirm-modal')._resolve(true); document.getElementById('confirm-modal').close()" style="flex: 1; margin:0; border-radius: 8px;">Lanjutkan</button>
+      </div>
+    </article>
+  </dialog>
+
+  <!-- Main JavaScript -->
+  <script type="module" src="./kalender.js"></script>
+</body>
+</html>

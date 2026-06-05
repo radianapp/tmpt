@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>URL Encoder/Decoder — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🔗 URL Encoder/Decoder</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <div class="calc-box">
+        <h4 style="margin-bottom: 0.75rem;">Input Teks</h4>
+        <textarea id="url-input" class="dev-input-textarea" placeholder="Masukkan URL atau teks parameter di sini..." style="min-height: 350px;"></textarea>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem;">
+          <button class="btn-navy" id="btn-encode">Encode URL</button>
+          <button class="secondary" id="btn-decode">Decode URL</button>
+        </div>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">Hasil Output</h4>
+          <button class="calc-action-btn secondary" id="btn-copy">📋 Copy</button>
+        </div>
+        <textarea id="url-output" class="dev-input-textarea" style="flex-grow: 1; min-height: 300px;" readonly></textarea>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { urlEncode, urlDecode } from './js/dev-calc.js';
+
+    const slug = 'url-encode';
+    const calcName = 'URL Tool';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-encode').addEventListener('click', () => {
+        const text = document.getElementById('url-input').value;
+        const res = urlEncode(text);
+        document.getElementById('url-output').value = res;
+        saveHistoryEntry(slug, calcName, { mode: 'encode' }, { value: 'Encoded' });
+      });
+
+      document.getElementById('btn-decode').addEventListener('click', () => {
+        const text = document.getElementById('url-input').value;
+        const res = urlDecode(text);
+        document.getElementById('url-output').value = res;
+        saveHistoryEntry(slug, calcName, { mode: 'decode' }, { value: 'Decoded' });
+      });
+
+      document.getElementById('btn-copy').addEventListener('click', () => {
+        const out = document.getElementById('url-output').value;
+        if (!out) return;
+        navigator.clipboard.writeText(out).then(() => {
+          window.toast('Output disalin!', 'success');
+        });
+      });
+    });
+  </script>
+</body>
+</html>

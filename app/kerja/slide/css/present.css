@@ -1,0 +1,213 @@
+/* app/kerja/slide/css/present.css */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: #000000;
+  color: #ffffff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.present-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.present-deck {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.present-slide {
+  position: absolute;
+  inset: 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.present-slide.active {
+  display: flex;
+  z-index: 10;
+}
+
+.present-slide-content {
+  width: 960px;
+  height: 540px;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* Elements inside Present Slide */
+.present-element {
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.present-text-content {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.present-image-content {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.present-table-content {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+}
+
+.present-table-content td, .present-table-content th {
+  border: 1px solid #94a3b8;
+  padding: 4px 8px;
+  background-color: white;
+  color: #333333;
+}
+
+.present-table-content th {
+  background-color: #f1f5f9;
+}
+
+/* Transitions classes */
+/* Fade */
+.present-slide[data-transition="fade"] {
+  opacity: 0;
+}
+.present-slide[data-transition="fade"].active {
+  opacity: 1;
+}
+
+/* Slide Left */
+.present-slide[data-transition="slide-left"] {
+  transform: translateX(100%);
+}
+.present-slide[data-transition="slide-left"].active {
+  transform: translateX(0);
+}
+
+/* Slide Up */
+.present-slide[data-transition="slide-up"] {
+  transform: translateY(100%);
+}
+.present-slide[data-transition="slide-up"].active {
+  transform: translateY(0);
+}
+
+/* Zoom */
+.present-slide[data-transition="zoom"] {
+  transform: scale(0.6);
+  opacity: 0;
+}
+.present-slide[data-transition="zoom"].active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+/* Controls Bar Overlay */
+.present-controls-bar {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 30px;
+  padding: 0.5rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+/* Show controls on hover or mouse movement */
+body:hover .present-controls-bar,
+.present-controls-bar.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.control-btn {
+  margin: 0 !important;
+  font-size: 0.8rem !important;
+  padding: 0.35rem 0.75rem !important;
+  border-radius: 20px !important;
+  width: auto !important;
+  line-height: 1.2 !important;
+}
+
+.slide-indicator {
+  font-size: 0.85rem;
+  font-weight: 700;
+  min-width: 50px;
+  text-align: center;
+  color: rgba(255,255,255,0.85);
+}
+
+.blank-screen {
+  background-color: #000000 !important;
+  background-image: none !important;
+}
+
+.blank-screen .present-slide-content {
+  display: none !important;
+}
+
+/* Drawing Canvas & Laser Pointer cursors */
+.drawing-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999;
+  pointer-events: none; /* Clicking passes to slide elements by default */
+}
+
+/* Mode classes for body */
+.mode-laser {
+  cursor: none !important; /* Hide native cursor for laser */
+}
+
+.mode-laser #drawing-canvas {
+  pointer-events: auto !important;
+}
+
+.mode-draw {
+  cursor: crosshair !important;
+}
+
+.mode-draw #drawing-canvas {
+  pointer-events: auto !important;
+}
+
+.control-btn.active {
+  background-color: var(--pico-primary) !important;
+  border-color: var(--pico-primary) !important;
+  color: #ffffff !important;
+}

@@ -6,28 +6,28 @@
     { "name": "PDF Tools", "url": "/app/kerja/pdf/", "icon": "📑", "desc": "14 Alat PDF — Privat & Offline", "isEnabled": true },
     { "name": "Papan Tulis", "url": "/app/kerja/papan/", "icon": "🎨", "desc": "Coretan Ide & Sketsa Bebas", "isEnabled": true },
     { "name": "Berkas", "url": "/app/kerja/berkas/", "icon": "📁", "desc": "Pusat Semua File TMPT", "isEnabled": true },
-    { "name": "Tulis", "url": "/app/kerja/tulis/", "icon": "📝", "desc": "Tulis Dokumen Tanpa Gangguan", "isEnabled": false },
-    { "name": "Slide", "url": "/app/kerja/slide/", "icon": "🛝", "desc": "Presentasi Langsung dari Browser", "isEnabled": false },
-    { "name": "Forms", "url": "/app/kerja/forms/", "icon": "📋", "desc": "Form Builder Privat", "isEnabled": false },
-    { "name": "Kalender", "url": "/app/kerja/kalender/", "icon": "📅", "desc": "Atur Waktu & Deadline", "isEnabled": false },
-    { "name": "Tugas", "url": "/app/kerja/tugas/", "icon": "☑️", "desc": "Kelola Tugas Lebih Fokus", "isEnabled": false }
+    { "name": "Tulis", "url": "/app/kerja/tulis/", "icon": "📝", "desc": "Tulis Dokumen Tanpa Gangguan", "isEnabled": true },
+    { "name": "Slide", "url": "/app/kerja/slide/", "icon": "🛝", "desc": "Presentasi Langsung dari Browser", "isEnabled": true },
+    { "name": "Forms", "url": "/app/kerja/forms/", "icon": "📋", "desc": "Form Builder Privat", "isEnabled": true },
+    { "name": "Kalender", "url": "/app/kerja/kalender/", "icon": "📅", "desc": "Atur Waktu & Deadline", "isEnabled": true },
+    { "name": "Tugas", "url": "/app/kerja/tugas/", "icon": "☑️", "desc": "Kelola Tugas Lebih Fokus", "isEnabled": true }
   ],
   "dev": [
     { "name": "Code", "url": "/app/dev/code/", "icon": "💻", "desc": "Editor Kode Ringan & Cepat", "isEnabled": true },
     { "name": "Markdown", "url": "/app/dev/markdown/", "icon": "📝", "desc": "Editor Markdown Splitscreen & Offline", "isEnabled": true },
-    { "name": "Diagram", "url": "/app/dev/diagram/", "icon": "📊", "desc": "Visualisasikan Arsitektur & Flow", "isEnabled": false },
-    { "name": "Regex", "url": "/app/dev/regex/", "icon": "🔍", "desc": "Regex Tester Instan", "isEnabled": false },
-    { "name": "JSON", "url": "/app/dev/json/", "icon": "⚙️", "desc": "Formatter JSON & YAML", "isEnabled": false },
+    { "name": "Diagram", "url": "/app/dev/diagram/", "icon": "📊", "desc": "Visualisasikan Arsitektur & Flow", "isEnabled": true },
+    { "name": "Regex", "url": "/app/dev/regex/", "icon": "🔍", "desc": "Regex Tester Instan", "isEnabled": true },
+    { "name": "JSON", "url": "/app/dev/json/", "icon": "⚙️", "desc": "Visual Data Studio (JSON/YAML/XML/REST)", "isEnabled": true },
     { "name": "Favicon Generator", "url": "/app/tools/favicon/", "icon": "✨", "desc": "Buat & periksa favicon website", "isEnabled": true }
   ],
   "tools": [
     { "name": "Password Generator", "url": "/app/tools/password-gen/", "icon": "🔑", "desc": "Buat Password yang Kuat", "isEnabled": true },
     { "name": "Password Checker", "url": "/app/tools/password-checker/", "icon": "🛡️", "desc": "Cek Kekuatan Password", "isEnabled": true },
     { "name": "Notes Encryptor", "url": "/app/tools/notes-encryptor/", "icon": "🔒", "desc": "Enkripsi pesan sensitif Anda", "isEnabled": true },
-    { "name": "QR Tools", "url": "/app/tools/qr/", "icon": "📷", "desc": "QR Generator & Scanner", "isEnabled": false },
-    { "name": "Pomodoro", "url": "/app/tools/pomodoro/", "icon": "⏱️", "desc": "Fokus Kerja Lebih Teratur", "isEnabled": false },
-    { "name": "Kalkulator", "url": "/app/tools/kalkulator/", "icon": "🧮", "desc": "Perhitungan Cepat Tanpa Ribet", "isEnabled": false },
-    { "name": "Konversi", "url": "/app/tools/konversi/", "icon": "🔄", "desc": "Konversi Data & Satuan", "isEnabled": false }
+    { "name": "QR Tools", "url": "/app/tools/qr/", "icon": "📷", "desc": "QR Generator & Scanner", "isEnabled": true },
+    { "name": "Pomodoro", "url": "/app/tools/pomodoro/", "icon": "⏱️", "desc": "Fokus Kerja Lebih Teratur", "isEnabled": true },
+    { "name": "Kalkulator & Konversi", "url": "/app/tools/kalkulator/", "icon": "🧮", "desc": "Perhitungan Cepat & Konversi Satuan", "isEnabled": true },
+    { "name": "Base64 Tools", "url": "/app/tools/base64/", "icon": "🔤", "desc": "Encoder & Decoder Base64 Lengkap", "isEnabled": true }
   ],
   "platform": [
     { "name": "Home", "url": "/", "icon": "🏠", "desc": "Halaman Depan", "isEnabled": true },

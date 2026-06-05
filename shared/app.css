@@ -1364,5 +1364,27 @@ button.theme-toggle svg {
     outline: none !important;
 }
 
+/* Custom scrollbar for app launcher */
+#tmpt-app-launcher-menu::-webkit-scrollbar,
+.tmpt-app-launcher-menu-class::-webkit-scrollbar {
+    width: 6px;
+}
+
+#tmpt-app-launcher-menu::-webkit-scrollbar-track,
+.tmpt-app-launcher-menu-class::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#tmpt-app-launcher-menu::-webkit-scrollbar-thumb,
+.tmpt-app-launcher-menu-class::-webkit-scrollbar-thumb {
+    background: var(--pico-muted-border-color);
+    border-radius: 10px;
+}
+
+#tmpt-app-launcher-menu::-webkit-scrollbar-thumb:hover,
+.tmpt-app-launcher-menu-class::-webkit-scrollbar-thumb:hover {
+    background: var(--pico-secondary);
+}
+
 
 

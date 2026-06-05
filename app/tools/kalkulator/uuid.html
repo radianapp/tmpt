@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UUID/NanoID Generator — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🆔 UUID/NanoID Generator</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Settings -->
+      <div class="calc-box">
+        <div class="form-group">
+          <label for="id-type">Tipe Identifikasi</label>
+          <select id="id-type">
+            <option value="uuidv4" selected>UUID v4 (Random)</option>
+            <option value="uuidv7">UUID v7 (Time-Ordered)</option>
+            <option value="nanoid">NanoID (Custom alphabet)</option>
+          </select>
+        </div>
+
+        <div id="nano-options" style="display: none;">
+          <div class="form-group">
+            <label for="nano-alphabet">Alphabet Kostum</label>
+            <input type="text" id="nano-alphabet" value="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ">
+          </div>
+          <div class="form-group">
+            <label for="nano-size">Ukuran ID</label>
+            <input type="number" id="nano-size" value="21" min="5" max="64">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="bulk-count">Jumlah Generate (1-500)</label>
+          <input type="number" id="bulk-count" value="5" min="1" max="500">
+        </div>
+
+        <button class="btn-navy" id="btn-generate" style="width: 100%;">Generate ID</button>
+      </div>
+
+      <!-- Result -->
+      <div class="calc-box" style="display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 1.1rem;">Hasil Generasi</h4>
+          <button class="calc-action-btn secondary" id="btn-copy">📋 Copy Semua</button>
+        </div>
+        <textarea id="output-ids" class="dev-input-textarea" style="flex-grow: 1; min-height: 250px; font-family: monospace;" readonly></textarea>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { generateUUIDv4, generateUUIDv7, generateNanoID } from './js/dev-calc.js';
+
+    const slug = 'uuid';
+    const calcName = 'ID Generator';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      const typeSelect = document.getElementById('id-type');
+      typeSelect.addEventListener('change', () => {
+        const isNano = typeSelect.value === 'nanoid';
+        document.getElementById('nano-options').style.display = isNano ? 'block' : 'none';
+      });
+
+      document.getElementById('btn-generate').addEventListener('click', runGeneration);
+      document.getElementById('btn-copy').addEventListener('click', () => {
+        const text = document.getElementById('output-ids').value;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(() => {
+          window.toast('Salin berhasil!', 'success');
+        });
+      });
+
+      runGeneration();
+    });
+
+    function runGeneration() {
+      const type = document.getElementById('id-type').value;
+      const count = Math.min(500, Math.max(1, parseInt(document.getElementById('bulk-count').value || '1')));
+      
+      const ids = [];
+      for (let i = 0; i < count; i++) {
+        if (type === 'uuidv4') ids.push(generateUUIDv4());
+        if (type === 'uuidv7') ids.push(generateUUIDv7());
+        if (type === 'nanoid') {
+          const alph = document.getElementById('nano-alphabet').value;
+          const sz = parseInt(document.getElementById('nano-size').value || '21');
+          ids.push(generateNanoID(alph, sz));
+        }
+      }
+
+      document.getElementById('output-ids').value = ids.join('\n');
+      saveHistoryEntry(slug, calcName, { type, count }, { value: `${count} ID` });
+    }
+  </script>
+</body>
+</html>

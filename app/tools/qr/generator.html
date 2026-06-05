@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buat QR Code — TMPT QR</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/qr.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/version.js"></script>
+  
+  <!-- Vendor libraries -->
+  <script src="./vendor/qr-code-styling.min.js"></script>
+  <script src="./vendor/jspdf.min.js"></script>
+</head>
+<body>
+  <script>
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container" id="generator-page">
+    <div class="qr-container">
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.15rem;">Generator QR Code</h1>
+          <p class="secondary" style="font-size: 0.9rem; margin-bottom: 0;">Rancang QR Code interaktif Anda sendiri dengan logo dan bingkai kustom.</p>
+        </div>
+        <a href="index.html" class="button outline secondary" style="margin-bottom: 0;">← Kembali ke Riwayat</a>
+      </div>
+
+      <!-- Main 3-Panel Grid -->
+      <div class="generator-layout">
+        
+        <!-- PANEL 1: TIPE & KONTEN -->
+        <section class="generator-panel">
+          <h3>1. Tipe &amp; Konten</h3>
+          <div class="type-grid">
+            <button class="type-btn active" data-type="url">🌐 URL</button>
+            <button class="type-btn" data-type="text">📝 Teks</button>
+            <button class="type-btn" data-type="email">📧 Email</button>
+            <button class="type-btn" data-type="phone">📞 Telepon</button>
+            <button class="type-btn" data-type="sms">💬 SMS</button>
+            <button class="type-btn" data-type="whatsapp">💚 WA</button>
+            <button class="type-btn" data-type="location">📍 Lokasi</button>
+            <button class="type-btn" data-type="wifi">📶 WiFi</button>
+            <button class="type-btn" data-type="vcard">👤 vCard</button>
+            <button class="type-btn" data-type="event">📅 Event</button>
+            <button class="type-btn" data-type="qris">💳 QRIS</button>
+            <button class="type-btn" data-type="crypto">₿ Crypto</button>
+            <button class="type-btn" data-type="social">🔗 Sosmed</button>
+          </div>
+
+          <div class="type-form-container">
+            <!-- URL FORM -->
+            <div id="url-form" class="type-form">
+              <label for="url-input">URL Website</label>
+              <input type="url" id="url-input" name="url" placeholder="https://example.com">
+            </div>
+
+            <!-- TEXT FORM -->
+            <div id="text-form" class="type-form hidden">
+              <label for="text-input">Pesan Teks</label>
+              <textarea id="text-input" name="text" placeholder="Masukkan teks di sini..." rows="3"></textarea>
+            </div>
+
+            <!-- EMAIL FORM -->
+            <div id="email-form" class="type-form hidden">
+              <label for="email-to">Kepada (Email)</label>
+              <input type="email" id="email-to" name="to" placeholder="alamat@email.com">
+              <label for="email-sub">Subjek</label>
+              <input type="text" id="email-sub" name="subject" placeholder="Subjek email">
+              <label for="email-body">Isi Pesan</label>
+              <textarea id="email-body" name="body" placeholder="Isi pesan email..." rows="3"></textarea>
+            </div>
+
+            <!-- PHONE FORM -->
+            <div id="phone-form" class="type-form hidden">
+              <label for="phone-number">Nomor Telepon</label>
+              <input type="tel" id="phone-number" name="number" placeholder="+62812345678">
+            </div>
+
+            <!-- SMS FORM -->
+            <div id="sms-form" class="type-form hidden">
+              <label for="sms-number">Nomor Telepon</label>
+              <input type="tel" id="sms-number" name="number" placeholder="+62812345678">
+              <label for="sms-msg">Pesan SMS</label>
+              <textarea id="sms-msg" name="message" placeholder="Tulis isi SMS..." rows="3"></textarea>
+            </div>
+
+            <!-- WHATSAPP FORM -->
+            <div id="whatsapp-form" class="type-form hidden">
+              <label for="wa-number">Nomor WhatsApp</label>
+              <input type="tel" id="wa-number" name="number" placeholder="62812345678">
+              <label for="wa-msg">Pesan Otomatis</label>
+              <textarea id="wa-msg" name="message" placeholder="Tulis template pesan WhatsApp..." rows="3"></textarea>
+            </div>
+
+            <!-- LOCATION FORM -->
+            <div id="location-form" class="type-form hidden">
+              <label for="loc-lat">Latitude</label>
+              <input type="number" id="loc-lat" name="lat" step="any" placeholder="-6.2000">
+              <label for="loc-lng">Longitude</label>
+              <input type="number" id="loc-lng" name="lng" step="any" placeholder="106.8166">
+              <label for="loc-label">Label Lokasi</label>
+              <input type="text" id="loc-label" name="label" placeholder="Nama Tempat/Gedung">
+            </div>
+
+            <!-- WIFI FORM -->
+            <div id="wifi-form" class="type-form hidden">
+              <label for="wifi-ssid">Nama Network (SSID)</label>
+              <input type="text" id="wifi-ssid" name="ssid" placeholder="MyWiFiNetwork">
+              <label for="wifi-pass">Kata Sandi (Password)</label>
+              <input type="password" id="wifi-pass" name="password" placeholder="Password123">
+              <label for="wifi-security">Tipe Keamanan</label>
+              <select id="wifi-security" name="security">
+                <option value="WPA">WPA/WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">Tanpa Kata Sandi (Terbuka)</option>
+              </select>
+              <label>
+                <input type="checkbox" id="wifi-hidden" name="hidden"> Jaringan Tersembunyi (Hidden SSID)
+              </label>
+            </div>
+
+            <!-- VCARD FORM -->
+            <div id="vcard-form" class="type-form hidden">
+              <div class="grid">
+                <div>
+                  <label for="vc-first">Nama Depan</label>
+                  <input type="text" id="vc-first" name="first_name" placeholder="Budi">
+                </div>
+                <div>
+                  <label for="vc-last">Nama Belakang</label>
+                  <input type="text" id="vc-last" name="last_name" placeholder="Santoso">
+                </div>
+              </div>
+              <label for="vc-org">Organisasi / Perusahaan</label>
+              <input type="text" id="vc-org" name="org" placeholder="PT TMPT Maju">
+              <label for="vc-phone">Telepon Seluler</label>
+              <input type="tel" id="vc-phone" name="phone" placeholder="+62812345678">
+              <label for="vc-email">Email</label>
+              <input type="email" id="vc-email" name="email" placeholder="budi@company.com">
+              <label for="vc-web">Situs Web</label>
+              <input type="url" id="vc-web" name="website" placeholder="https://budi.my.id">
+              <label for="vc-addr">Alamat Lengkap</label>
+              <input type="text" id="vc-addr" name="address" placeholder="Jl. Sudirman No. 12, Jakarta">
+              <label for="vc-note">Catatan Tambahan</label>
+              <textarea id="vc-note" name="note" placeholder="Catatan atau Bio singkat..." rows="2"></textarea>
+            </div>
+
+            <!-- EVENT FORM -->
+            <div id="event-form" class="type-form hidden">
+              <label for="ev-title">Judul Acara (Summary)</label>
+              <input type="text" id="ev-title" name="title" placeholder="Rapat Koordinasi TMPT">
+              <div class="grid">
+                <div>
+                  <label for="ev-start">Waktu Mulai</label>
+                  <input type="datetime-local" id="ev-start" name="start">
+                </div>
+                <div>
+                  <label for="ev-end">Waktu Selesai</label>
+                  <input type="datetime-local" id="ev-end" name="end">
+                </div>
+              </div>
+              <label for="ev-loc">Lokasi Ruang / Link</label>
+              <input type="text" id="ev-loc" name="location" placeholder="Ruang Rapat 2 / Zoom Link">
+              <label for="ev-desc">Deskripsi Acara</label>
+              <textarea id="ev-desc" name="description" placeholder="Detail deskripsi agenda rapat..." rows="2"></textarea>
+            </div>
+
+            <!-- QRIS FORM -->
+            <div id="qris-form" class="type-form hidden">
+              <label for="qr-merchant-id">Merchant ID (NMID)</label>
+              <input type="text" id="qr-merchant-id" name="merchant_id" placeholder="ID1020304050607">
+              <label for="qr-merchant-name">Nama Merchant</label>
+              <input type="text" id="qr-merchant-name" name="merchant_name" placeholder="Toko Kelontong Sejahtera">
+              <label for="qr-merchant-city">Kota Merchant</label>
+              <input type="text" id="qr-merchant-city" name="merchant_city" placeholder="Jakarta">
+              <p class="secondary" style="font-size: 0.8rem; margin-top: 0.5rem;">
+                ⚠️ QRIS ini adalah Static QRIS (nominal bebas dimasukkan oleh pembeli). Untuk nominal tetap (Dynamic) membutuhkan API berbayar.
+              </p>
+            </div>
+
+            <!-- CRYPTO FORM -->
+            <div id="crypto-form" class="type-form hidden">
+              <label for="cry-curr">Mata Uang Kripto</label>
+              <select id="cry-curr" name="currency">
+                <option value="BTC">Bitcoin (BTC)</option>
+                <option value="ETH">Ethereum (ETH)</option>
+                <option value="BNB">Binance Coin (BNB)</option>
+                <option value="USDT">Tether (USDT - ERC20)</option>
+              </select>
+              <label for="cry-addr">Alamat Dompet (Wallet Address)</label>
+              <input type="text" id="cry-addr" name="address" placeholder="1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa">
+              <label for="cry-amt">Jumlah Transfer (Opsional)</label>
+              <input type="number" id="cry-amt" name="amount" step="any" placeholder="0.005">
+            </div>
+
+            <!-- SOCIAL FORM -->
+            <div id="social-form" class="type-form hidden">
+              <label for="soc-plat">Platform Media Sosial</label>
+              <select id="soc-plat" name="platform">
+                <option value="instagram">Instagram</option>
+                <option value="facebook">Facebook</option>
+                <option value="twitter">X (Twitter)</option>
+                <option value="linkedin">LinkedIn</option>
+                <option value="github">GitHub</option>
+                <option value="youtube">YouTube</option>
+              </select>
+              <label for="soc-user">Nama Pengguna (Username)</label>
+              <input type="text" id="soc-user" name="username" placeholder="username_kamu">
+              <label for="soc-url">Atau URL Profil Langsung (Opsional)</label>
+              <input type="url" id="soc-url" name="url" placeholder="https://instagram.com/user">
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL 2: DESAIN & BRANDING -->
+        <section class="generator-panel">
+          <h3>2. Desain &amp; Branding</h3>
+          
+          <label>Pilih Template Instan</label>
+          <div class="template-scroll" id="template-scroll-gallery">
+            <!-- Populated dynamically -->
+          </div>
+
+          <hr style="margin: 0.5rem 0;">
+
+          <!-- Colors -->
+          <div class="grid" style="margin-bottom: 0.5rem;">
+            <div>
+              <label>Warna Depan</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="fg-color" value="#000000">
+                <div class="color-preview" id="fg-color-preview" style="background: #000000;" onclick="document.getElementById('fg-color').click()"></div>
+                <input type="text" id="fg-color-hex" value="#000000" style="margin-bottom: 0; font-size: 0.8rem; height: 36px; padding: 0.2rem 0.5rem;">
+              </div>
+            </div>
+            <div>
+              <label>Warna Latar</label>
+              <div class="color-picker-wrapper">
+                <input type="color" id="bg-color" value="#FFFFFF">
+                <div class="color-preview" id="bg-color-preview" style="background: #FFFFFF;" onclick="document.getElementById('bg-color').click()"></div>
+                <input type="text" id="bg-color-hex" value="#FFFFFF" style="margin-bottom: 0; font-size: 0.8rem; height: 36px; padding: 0.2rem 0.5rem;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Gradient option -->
+          <label style="margin-bottom: 0.75rem;">
+            <input type="checkbox" id="enable-gradient"> Gunakan Gradasi Warna
+          </label>
+
+          <div id="gradient-options-pane" class="hidden" style="background: var(--pico-background-color); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.75rem;">
+            <div class="grid">
+              <div>
+                <label for="grad-color1">Warna Awal</label>
+                <div class="color-picker-wrapper">
+                  <input type="color" id="grad-color1" value="#1a1a2e">
+                  <div class="color-preview" style="background: #1a1a2e;" onclick="document.getElementById('grad-color1').click()"></div>
+                  <input type="text" id="grad-color1-hex" value="#1A1A2E" style="margin-bottom: 0; font-size: 0.8rem; height: 30px;">
+                </div>
+              </div>
+              <div>
+                <label for="grad-color2">Warna Akhir</label>
+                <div class="color-picker-wrapper">
+                  <input type="color" id="grad-color2" value="#00b4d8">
+                  <div class="color-preview" style="background: #00b4d8;" onclick="document.getElementById('grad-color2').click()"></div>
+                  <input type="text" id="grad-color2-hex" value="#00B4D8" style="margin-bottom: 0; font-size: 0.8rem; height: 30px;">
+                </div>
+              </div>
+            </div>
+            <div class="grid" style="margin-top: 0.5rem;">
+              <div>
+                <label for="grad-type">Tipe Gradasi</label>
+                <select id="grad-type" style="margin-bottom: 0; font-size: 0.85rem; height: 36px;">
+                  <option value="linear">Linear (Garis)</option>
+                  <option value="radial">Radial (Lingkaran)</option>
+                </select>
+              </div>
+              <div>
+                <label for="grad-angle">Sudut Gradasi</label>
+                <input type="number" id="grad-angle" value="0" style="margin-bottom: 0; font-size: 0.85rem; height: 36px;">
+              </div>
+            </div>
+          </div>
+
+          <!-- Styles -->
+          <div class="grid">
+            <div>
+              <label for="dot-style">Gaya Titik</label>
+              <select id="dot-style">
+                <option value="square">Kotak Klasik</option>
+                <option value="dots">Bulatan (Dots)</option>
+                <option value="rounded">Sudut Membulat</option>
+                <option value="classy">Classy</option>
+                <option value="classy-rounded">Classy Rounded</option>
+                <option value="extra-rounded">Extra Rounded</option>
+              </select>
+            </div>
+            <div>
+              <label for="corner-style">Gaya Sudut</label>
+              <select id="corner-style">
+                <option value="square">Kotak</option>
+                <option value="extra-rounded">Membulat (Rounded)</option>
+                <option value="dot">Titik (Dot)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Logo Upload -->
+          <label>Kustom Logo Tengah</label>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <input type="file" id="logo-file" accept="image/*" style="display: none;">
+            <button class="outline secondary" onclick="document.getElementById('logo-file').click()" style="margin-bottom: 0; font-size: 0.85rem; padding: 0.5rem 1rem;">📁 Unggah Logo</button>
+            <button class="outline error hidden" id="remove-logo-btn" style="margin-bottom: 0; font-size: 0.85rem; padding: 0.5rem 1rem;">🗑 Hapus</button>
+            <img id="logo-preview" class="hidden" style="width: 40px; height: 40px; border-radius: 6px; object-fit: contain; border: 1px solid var(--pico-muted-border-color);" alt="Logo preview">
+          </div>
+
+          <div class="grid" style="margin-top: 0.75rem;">
+            <div>
+              <label for="logo-size">Ukuran Logo (%)</label>
+              <input type="number" id="logo-size" value="20" min="10" max="30">
+            </div>
+            <div>
+              <label for="logo-padding">Jarak/Padding (px)</label>
+              <input type="number" id="logo-padding" value="5" min="0" max="15">
+            </div>
+          </div>
+
+          <!-- Frame Setup -->
+          <label for="frame-style">Bingkai Frame &amp; CTA</label>
+          <select id="frame-style">
+            <option value="none">Tanpa Bingkai</option>
+            <option value="simple">Bingkai Kotak</option>
+            <option value="rounded">Bingkai Membulat</option>
+          </select>
+
+          <div id="frame-options-pane" class="hidden" style="background: var(--pico-background-color); padding: 0.75rem; border-radius: 8px;">
+            <label for="frame-text">Teks CTA (Maks 20 huruf)</label>
+            <input type="text" id="frame-text" value="SCAN ME" maxlength="20">
+            <div class="grid">
+              <div>
+                <label>Warna Bingkai</label>
+                <div class="color-picker-wrapper">
+                  <input type="color" id="frame-color" value="#000000">
+                  <div class="color-preview" style="background: #000000;" onclick="document.getElementById('frame-color').click()"></div>
+                  <input type="text" id="frame-color-hex" value="#000000" style="margin-bottom: 0; font-size: 0.8rem; height: 30px;">
+                </div>
+              </div>
+              <div>
+                <label>Warna Teks</label>
+                <div class="color-picker-wrapper">
+                  <input type="color" id="frame-text-color" value="#FFFFFF">
+                  <div class="color-preview" style="background: #FFFFFF;" onclick="document.getElementById('frame-text-color').click()"></div>
+                  <input type="text" id="frame-text-color-hex" value="#FFFFFF" style="margin-bottom: 0; font-size: 0.8rem; height: 30px;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Advanced QR setup -->
+          <div class="grid" style="margin-top: 0.5rem;">
+            <div>
+              <label for="qr-size">Ukuran Piksel (px)</label>
+              <input type="number" id="qr-size" value="300" min="150" max="800">
+            </div>
+            <div>
+              <label for="error-correction">Error Correction Level</label>
+              <select id="error-correction">
+                <option value="L">Level L (7% - Ringan)</option>
+                <option value="M">Level M (15% - Sedang)</option>
+                <option value="Q">Level Q (25% - Tinggi)</option>
+                <option value="H" selected>Level H (30% - Aman/Rekomendasi Logo)</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- PANEL 3: PRATINJAU & UNDUH -->
+        <section class="generator-panel" style="align-items: center; text-align: center;">
+          <h3>3. Pratinjau &amp; Aksi</h3>
+          
+          <label for="qr-title" style="text-align: left; width: 100%;">Nama QR Code</label>
+          <input type="text" id="qr-title" placeholder="Misal: WiFi Kantor, Menu Digital" style="width: 100%;">
+
+          <div class="qr-preview-box" id="qr-preview-box">
+            <p class="secondary">Isi formulir untuk membuat pratinjau QR Code</p>
+          </div>
+
+          <div style="width: 100%; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem;">
+            <button id="save-qr-btn" class="primary" style="margin-bottom: 0;">💾 Simpan ke Riwayat</button>
+            <span id="save-status" style="font-size: 0.85rem; font-weight: bold; color: var(--pico-muted-color);"></span>
+          </div>
+
+          <hr style="width: 100%; margin: 1rem 0;">
+
+          <h4 style="font-size: 0.95rem; font-weight: 700; width: 100%; text-align: left; margin-bottom: 0.5rem;">Unduh Format Gambar</h4>
+          <div style="width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem;">
+            <button id="download-png-btn" class="outline secondary" style="padding: 0.4rem; font-size: 0.8rem; margin-bottom: 0;">PNG</button>
+            <button id="download-svg-btn" class="outline secondary" style="padding: 0.4rem; font-size: 0.8rem; margin-bottom: 0;">SVG</button>
+            <button id="download-pdf-btn" class="outline secondary" style="padding: 0.4rem; font-size: 0.8rem; margin-bottom: 0;">PDF</button>
+            <button id="download-webp-btn" class="outline secondary" style="padding: 0.4rem; font-size: 0.8rem; margin-bottom: 0;">WEBP</button>
+            <button id="download-jpg-btn" class="outline secondary" style="padding: 0.4rem; font-size: 0.8rem; margin-bottom: 0;">JPG</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Main script orchestrator -->
+  <script type="module" src="./js/qr-app.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Selisih Tanggal — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⏳ Selisih Tanggal</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <div class="calc-box">
+        <form id="date-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="start">Tanggal Mulai</label>
+            <input type="date" id="start" required>
+          </div>
+          <div class="form-group">
+            <label for="end">Tanggal Akhir</label>
+            <input type="date" id="end" required>
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung Selisih</button>
+        </form>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Selisih Hari</span>
+          <div class="calc-result-value" id="days-value">-</div>
+        </div>
+        <div style="font-size: 0.95rem;">
+          <ul>
+            <li>Hari Kerja (Senin-Jumat): <strong id="business-days">-</strong></li>
+            <li>Akhir Pekan (Sabtu-Minggu): <strong id="weekends">-</strong></li>
+            <li>Total Waktu: <strong id="hours-value">-</strong> jam / <strong id="minutes-value">-</strong> menit</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculateDateDiff } from './js/date-calc.js';
+
+    const slug = 'date-difference';
+    const calcName = 'Selisih Tanggal';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function runCalculation() {
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+
+      if (!start || !end) return;
+
+      const res = calculateDateDiff(start, end);
+      if (res) {
+        document.getElementById('days-value').textContent = `${res.totalDays} Hari`;
+        document.getElementById('business-days').textContent = `${res.businessDays} hari`;
+        document.getElementById('weekends').textContent = `${res.weekends} hari`;
+        document.getElementById('hours-value').textContent = res.hours.toLocaleString('id-ID');
+        document.getElementById('minutes-value').textContent = res.minutes.toLocaleString('id-ID');
+        saveHistoryEntry(slug, calcName, { start, end }, { value: `${res.totalDays} Hari` });
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Pajak PPh 21 — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>🏢 Kalkulator Pajak Penghasilan (PPh 21)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <div class="calc-box">
+        <form id="tax-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="monthly-salary">Gaji Pokok Bulanan (IDR)</label>
+            <input type="number" id="monthly-salary" value="10000000" required>
+          </div>
+          <div class="form-group">
+            <label for="allowance">Tunjangan Bulanan (IDR)</label>
+            <input type="number" id="allowance" value="0">
+          </div>
+          <div class="form-group">
+            <label for="ptkp">Status PTKP (Penghasilan Tidak Kena Pajak)</label>
+            <select id="ptkp">
+              <option value="TK/0" selected>TK/0 - Tidak Kawin (Rp54.000.000)</option>
+              <option value="TK/1">TK/1 (Rp58.500.000)</option>
+              <option value="TK/2">TK/2 (Rp63.000.000)</option>
+              <option value="TK/3">TK/3 (Rp67.500.000)</option>
+              <option value="K/0">K/0 - Kawin (Rp58.500.000)</option>
+              <option value="K/1">K/1 (Rp63.000.000)</option>
+              <option value="K/2">K/2 (Rp67.500.000)</option>
+              <option value="K/3">K/3 (Rp72.000.000)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="deductions">Iuran BPJS / Potongan Bulanan (IDR)</label>
+            <input type="number" id="deductions" value="200000">
+          </div>
+          <button type="button" class="btn-navy" id="btn-calculate" style="width: 100%;">Hitung PPh 21</button>
+        </form>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Estimasi PPh 21 per Bulan</span>
+          <div class="calc-result-value" id="tax-monthly-val">Rp0</div>
+        </div>
+
+        <div style="font-size: 0.95rem;">
+          <strong>Breakdown Rincian Pajak Tahunan:</strong>
+          <ul>
+            <li>Bruto Tahunan: <strong id="bruto-annual">-</strong></li>
+            <li>Biaya Jabatan &amp; Potongan: <strong id="deduct-annual">-</strong></li>
+            <li>Neto Tahunan: <strong id="net-annual">-</strong></li>
+            <li>Batas PTKP: <strong id="ptkp-limit">-</strong></li>
+            <li>Penghasilan Kena Pajak (PKP): <strong id="pkp-val">-</strong></li>
+            <li>PPh 21 Terutang (Tahunan): <strong id="tax-annual-val">-</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+    import { calculatePPh21 } from './js/finance-calc.js';
+
+    const slug = 'tax';
+    const calcName = 'Kalkulator Pajak';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function formatRupiah(val) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+    }
+
+    function runCalculation() {
+      const salary = parseFloat(document.getElementById('monthly-salary').value);
+      const allowance = parseFloat(document.getElementById('allowance').value || '0');
+      const ptkp = document.getElementById('ptkp').value;
+      const deduct = parseFloat(document.getElementById('deductions').value || '0');
+
+      if (isNaN(salary)) return;
+
+      const res = calculatePPh21(salary, ptkp, allowance, deduct);
+      if (res) {
+        document.getElementById('tax-monthly-val').textContent = formatRupiah(res.monthlyTax);
+        document.getElementById('bruto-annual').textContent = formatRupiah(res.grossAnnual);
+        document.getElementById('deduct-annual').textContent = formatRupiah(res.deductionsAnnual);
+        document.getElementById('net-annual').textContent = formatRupiah(res.netAnnual);
+        document.getElementById('ptkp-limit').textContent = formatRupiah(res.ptkpLimit);
+        document.getElementById('pkp-val').textContent = formatRupiah(res.pkp);
+        document.getElementById('tax-annual-val').textContent = formatRupiah(res.annualTax);
+
+        saveHistoryEntry(slug, calcName, { salary, ptkp }, { value: formatRupiah(res.monthlyTax) });
+      }
+    }
+  </script>
+</body>
+</html>

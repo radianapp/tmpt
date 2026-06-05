@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Online Lengkap — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/version.js"></script>
+</head>
+<body>
+  <!-- Include TMPT shared header -->
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <section class="calc-hero">
+      <h1>Kalkulator &amp; Developer Tools</h1>
+      <p class="secondary" style="font-size: 1.15rem;">Hitung cepat, analisis data statistik, coding utility, dan estimasi biaya AI secara 100% offline &amp; privat.</p>
+      
+      <div class="calc-search-container">
+        <svg class="calc-search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="search" class="calc-search-input" placeholder="Cari kalkulator (Tekan '/' atau 'Ctrl+K' untuk mencari)..." aria-label="Cari kalkulator">
+      </div>
+    </section>
+
+    <!-- Bookmarks / Favorit (Hanya tampil jika ada) -->
+    <section id="bookmarks-section" style="display: none; margin-bottom: 2rem;">
+      <h2 class="calc-category-title">⭐ Favorit Anda</h2>
+      <div class="calc-grid" id="bookmarks-grid"></div>
+    </section>
+
+    <!-- Main Categories list -->
+    <div id="categories-list">
+      <!-- Diisi oleh JS -->
+    </div>
+
+    <!-- Riwayat Penggunaan & FAQ / SEO -->
+    <div class="calc-container split-equal" style="margin-top: 3rem;">
+      <div class="calc-box">
+        <h3>🕰️ Riwayat Perhitungan</h3>
+        <p class="secondary" style="font-size: 0.9rem;">Riwayat disimpan secara lokal di browser Anda dan tidak pernah dikirim ke server.</p>
+        <div class="history-list" id="history-container">
+          <p class="secondary" style="text-align: center; padding: 2rem 0;">Belum ada riwayat perhitungan.</p>
+        </div>
+      </div>
+      
+      <div class="calc-box">
+        <h3>ℹ️ Tentang TMPT Kalkulator</h3>
+        <p>TMPT Kalkulator adalah platform perkakas terpadu offline-first yang menyediakan 30 kalkulator serbaguna. Terbagi menjadi 4 kategori utama:</p>
+        <ul>
+          <li><strong>Finansial &amp; Umum:</strong> Menghitung pinjaman, bunga investasi majemuk, PTKP PPh 21, BMI, dan konversi kurs.</li>
+          <li><strong>Statistika Pro:</strong> Penentuan sample size, margin of error, uji hipotesis A/B testing untuk peneliti dan marketer.</li>
+          <li><strong>Developer Tools:</strong> Format &amp; minify JSON, generate UUID/Hash, konversi Epoch timestamp, pengujian Regex, dan Cron.</li>
+          <li><strong>AI Era Tools:</strong> Estimasi biaya token dan API model LLM (OpenAI, Claude, Gemini) untuk kecerdasan buatan.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- SEO Content Section -->
+    <section class="calc-related-section">
+      <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem;">Pertanyaan yang Sering Diajukan (FAQ)</h2>
+      <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1rem;">
+        <div>
+          <h4 style="margin-bottom: 0.5rem; font-weight: 600;">Apakah data masukan saya aman di TMPT Kalkulator?</h4>
+          <p class="secondary" style="font-size: 0.95rem;">Ya, 100% aman. Tidak ada server backend untuk kalkulator ini. Semua perhitungan, logika, pemformatan JSON, enkripsi sandi, dan analisis token diselesaikan sepenuhnya di komputer atau perangkat Anda menggunakan JavaScript.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 0.5rem; font-weight: 600;">Bagaimana cara membagikan hasil perhitungan kepada rekan kerja?</h4>
+          <p class="secondary" style="font-size: 0.95rem;">Tiap sub-kalkulator dilengkapi tombol "Salin Tautan". Saat Anda mengekliknya, seluruh data input akan diubah menjadi parameter aman di URL. Rekan kerja yang membuka tautan tersebut akan otomatis melihat data terisi dan hasil kalkulasi berjalan instan.</p>
+        </div>
+        <div>
+          <h4 style="margin-bottom: 0.5rem; font-weight: 600;">Bagaimana jika saya tidak memiliki koneksi internet?</h4>
+          <p class="secondary" style="font-size: 0.95rem;">Sistem ini dirancang offline-first. Kecuali konverter mata uang asing yang sesekali memerlukan koneksi untuk mengunduh kurs kurs terbaru, 29 kalkulator lainnya dapat berjalan sepenuhnya tanpa koneksi internet sama sekali.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Dynamic SEO Tag -->
+  <script type="module" src="/shared/seo.js" data-seo-key="kalkulator-home"></script>
+  
+  <script type="module">
+    import { CALCULATORS, CATEGORY_NAMES, getBookmarks, getHistory } from './js/kalkulator-core.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderDashboard();
+      
+      const searchInput = document.querySelector('.calc-search-input');
+      searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        renderDashboard(query);
+      });
+    });
+
+    function renderDashboard(query = '') {
+      const container = document.getElementById('categories-list');
+      container.innerHTML = '';
+
+      // Render Bookmarks
+      const bookmarks = getBookmarks();
+      const bookmarksGrid = document.getElementById('bookmarks-grid');
+      const bookmarksSection = document.getElementById('bookmarks-section');
+      
+      const bookmarkedCalcs = CALCULATORS.filter(c => bookmarks.includes(c.slug));
+      if (bookmarkedCalcs.length > 0 && !query) {
+        bookmarksSection.style.display = 'block';
+        bookmarksGrid.innerHTML = bookmarkedCalcs.map(createCardHtml).join('');
+      } else {
+        bookmarksSection.style.display = 'none';
+      }
+
+      // Group by Category
+      const grouped = {};
+      CALCULATORS.forEach(c => {
+        if (query && !c.name.toLowerCase().includes(query) && !c.desc.toLowerCase().includes(query)) {
+          return;
+        }
+        if (!grouped[c.category]) {
+          grouped[c.category] = [];
+        }
+        grouped[c.category].push(c);
+      });
+
+      const categories = Object.keys(grouped);
+      if (categories.length === 0) {
+        container.innerHTML = '<p class="secondary" style="text-align: center; padding: 3rem 0;">Tidak menemukan kalkulator yang cocok dengan pencarian Anda.</p>';
+        return;
+      }
+
+      categories.forEach(cat => {
+        const calcs = grouped[cat];
+        const section = document.createElement('section');
+        section.className = 'calc-category-section';
+        
+        const titleText = CATEGORY_NAMES[cat] || cat;
+        section.innerHTML = `
+          <h2 class="calc-category-title">${titleText}</h2>
+          <div class="calc-grid">
+            ${calcs.map(createCardHtml).join('')}
+          </div>
+        `;
+        container.appendChild(section);
+      });
+
+      // Render History
+      renderHistory();
+    }
+
+    function createCardHtml(calc) {
+      return `
+        <a href="./${calc.slug}.html" class="calc-card">
+          <div>
+            <span class="calc-card-icon">${calc.icon}</span>
+            <h3>${calc.name}</h3>
+            <p>${calc.desc}</p>
+          </div>
+          <div class="calc-card-footer">
+            Buka Tool
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </div>
+        </a>
+      `;
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-container');
+      const history = getHistory();
+      if (history.length === 0) {
+        container.innerHTML = '<p class="secondary" style="text-align: center; padding: 2rem 0;">Belum ada riwayat perhitungan.</p>';
+        return;
+      }
+
+      container.innerHTML = history.slice(0, 10).map(entry => {
+        const date = new Date(entry.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const valStr = entry.results ? (entry.results.value || entry.results.hash || entry.results.output || 'Selesai') : 'Selesai';
+        return `
+          <div class="history-item" onclick="location.href='./${entry.slug}.html?history_id=${entry.id}'">
+            <div>
+              <strong>${entry.calcName}</strong>
+              <span class="secondary" style="display: block; font-size: 0.75rem;">${date} — Klik untuk memuat kembali</span>
+            </div>
+            <span class="secondary" style="font-weight: 600; color: var(--calc-primary);">${valStr}</span>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

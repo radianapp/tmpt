@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk QR Code Generator — TMPT QR</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/qr.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/version.js"></script>
+  
+  <!-- Vendor libraries -->
+  <script src="./vendor/qr-code-styling.min.js"></script>
+  <script src="./vendor/papaparse.min.js"></script>
+  <script src="./vendor/jszip.min.js"></script>
+</head>
+<body>
+  <script>
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container" id="bulk-page">
+    <div class="qr-container" style="max-width: 700px; margin: 0 auto;">
+      <div class="flex-between">
+        <div>
+          <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.15rem;">📦 Bulk QR Generator</h1>
+          <p class="secondary" style="font-size: 0.9rem; margin-bottom: 0;">Buat hingga 500 QR Code secara bersamaan dari file CSV.</p>
+        </div>
+        <a href="index.html" class="button outline secondary" style="margin-bottom: 0;">← Kembali</a>
+      </div>
+
+      <!-- CSV Upload Zone -->
+      <div class="bulk-upload-zone" id="bulk-upload-zone">
+        <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">📊</span>
+        <strong>Unggah berkas CSV Anda</strong>
+        <p class="secondary" style="font-size: 0.85rem; margin-bottom: 0.5rem;">Seret berkas CSV ke sini atau klik untuk mencari berkas.</p>
+        <input type="file" id="bulk-file" accept=".csv" style="display: none;">
+      </div>
+
+      <!-- Template Information -->
+      <div style="background: var(--pico-background-color); border: 1px solid var(--pico-muted-border-color); padding: 1rem; border-radius: 8px; font-size: 0.85rem; margin-top: 1rem;">
+        <strong>Format Kolom CSV yang didukung:</strong>
+        <p class="secondary" style="margin-bottom: 0.5rem;">File CSV Anda wajib memiliki setidaknya salah satu kolom berikut sebagai konten utama: <code>content</code>, <code>url</code>, atau <code>text</code>.</p>
+        <pre style="padding: 0.5rem; margin-bottom: 0; font-size: 0.8rem; background: var(--pico-card-background-color);">content,title,filename
+https://example.com,Situs Utama,utama
+https://another.com,Situs Cadangan,cadangan</pre>
+      </div>
+
+      <!-- Settings & Design options -->
+      <div style="background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); padding: 1.25rem; border-radius: 12px; margin-top: 1.25rem;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem;">Setelan Batch &amp; Desain</h3>
+        
+        <div class="grid">
+          <div>
+            <label for="bulk-format">Format Output Gambar</label>
+            <select id="bulk-format" style="margin-bottom: 0.5rem;">
+              <option value="png">PNG (Transparansi / Universal)</option>
+              <option value="webp">WebP (Ringan)</option>
+              <option value="jpg">JPEG (Klasik)</option>
+            </select>
+          </div>
+          <div>
+            <label for="qr-size">Ukuran Piksel (px)</label>
+            <input type="number" id="qr-size" value="300" min="150" max="600" style="margin-bottom: 0.5rem;">
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top: 0.5rem;">
+          <div>
+            <label for="dot-style">Gaya Titik</label>
+            <select id="dot-style">
+              <option value="square">Kotak Klasik</option>
+              <option value="rounded">Membulat (Rounded)</option>
+              <option value="dots">Bulatan (Dots)</option>
+            </select>
+          </div>
+          <div>
+            <label for="corner-style">Gaya Sudut</label>
+            <select id="corner-style">
+              <option value="square">Kotak</option>
+              <option value="extra-rounded">Membulat (Rounded)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Color pickers -->
+        <div class="grid" style="margin-top: 0.5rem;">
+          <div>
+            <label>Warna Depan</label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="fg-color" value="#000000">
+              <div class="color-preview" style="background: #000000;" onclick="document.getElementById('fg-color').click()"></div>
+              <input type="text" id="fg-color-hex" value="#000000" style="margin-bottom: 0; font-size: 0.8rem; height: 36px; padding: 0.2rem 0.5rem;">
+            </div>
+          </div>
+          <div>
+            <label>Warna Latar</label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="bg-color" value="#FFFFFF">
+              <div class="color-preview" style="background: #FFFFFF;" onclick="document.getElementById('bg-color').click()"></div>
+              <input type="text" id="bg-color-hex" value="#FFFFFF" style="margin-bottom: 0; font-size: 0.8rem; height: 36px; padding: 0.2rem 0.5rem;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden dummies to keep design-panel.js from throwing errors -->
+        <input type="checkbox" id="enable-gradient" class="hidden">
+        <select id="grad-type" class="hidden"><option value="linear"></option></select>
+        <input type="color" id="grad-color1" class="hidden">
+        <input type="text" id="grad-color1-hex" class="hidden">
+        <input type="color" id="grad-color2" class="hidden">
+        <input type="text" id="grad-color2-hex" class="hidden">
+        <input type="number" id="grad-angle" class="hidden">
+        <img id="logo-preview" class="hidden">
+        <input type="number" id="logo-size" value="20" class="hidden">
+        <input type="number" id="logo-padding" value="5" class="hidden">
+        <select id="frame-style" class="hidden"><option value="none"></option></select>
+        <input type="color" id="frame-color" class="hidden">
+        <input type="text" id="frame-color-hex" class="hidden">
+        <input type="text" id="frame-text" class="hidden">
+        <input type="color" id="frame-text-color" class="hidden">
+        <input type="text" id="frame-text-color-hex" class="hidden">
+        <select id="error-correction" class="hidden"><option value="H"></option></select>
+      </div>
+
+      <!-- Preview Data Zone -->
+      <div id="bulk-preview-container" class="hidden" style="background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); padding: 1.25rem; border-radius: 12px; margin-top: 1.25rem;">
+        <div class="flex-between" style="margin-bottom: 0.75rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0;">Pratinjau Data CSV</h3>
+          <span class="badge" id="bulk-preview-count"></span>
+        </div>
+        <div class="bulk-preview-grid" id="bulk-preview-list">
+          <!-- Populated by JS -->
+        </div>
+
+        <button class="primary" id="generate-bulk-btn" style="margin-top: 1rem; margin-bottom: 0;" disabled>▶ Mulai Pembuatan Batch</button>
+      </div>
+
+      <!-- Progress Section -->
+      <div id="bulk-progress-pane" class="hidden" style="background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); padding: 1.25rem; border-radius: 12px; margin-top: 1.25rem; text-align: center;">
+        <span id="bulk-progress-text" style="font-weight: 700; font-size: 1rem;">Memulai pembuatan...</span>
+        <progress id="bulk-progress-indicator" value="0" max="100" class="bulk-progress-bar"></progress>
+        <button class="primary" id="download-zip-btn" class="hidden" style="margin-bottom: 0; display: inline-block;">📥 Unduh ZIP Bundle</button>
+      </div>
+
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <!-- Main script orchestrator -->
+  <script type="module" src="./js/qr-app.js"></script>
+</body>
+</html>

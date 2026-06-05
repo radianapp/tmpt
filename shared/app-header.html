@@ -1,112 +1,185 @@
-<header class="container">
-    <nav>
-        <ul>
-            <li>
-                <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
-                    <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img">
-                    <strong>TMPT</strong>
-                    <span id="app-header-pro-badge" style="display: none; background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 6px; letter-spacing: 0.05em; line-height: 1;">PRO</span>
-                </a>
-            </li>
-        </ul>
-        <ul>
-            <!-- Umpan Balik / Bantuan -->
-            <li>
-                <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                        <path d="M12 17l0 .01"></path>
-                        <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+<header class="container-fluid" style="width: 100%; max-width: none !important; margin: 0; padding: 0.5rem 1.5rem; border-bottom: 1px solid var(--pico-muted-border-color); background-color: var(--pico-card-background-color); z-index: 1010; position: sticky; top: 0;">
+    <style>
+      #header-search {
+        background-color: var(--pico-card-sectioning-background-color) !important;
+        border: 1px solid transparent !important;
+      }
+      html[data-theme="light"] #header-search {
+        background-color: #f1f5f9 !important;
+      }
+      html[data-theme="dark"] #header-search {
+        background-color: #1e293b !important;
+      }
+      #header-search:focus {
+        background-color: var(--pico-card-background-color) !important;
+        border-color: var(--pico-primary) !important;
+        box-shadow: 0 0 0 0.2rem var(--pico-primary-focus) !important;
+      }
+      #header-mobile-search-toggle {
+        display: none !important;
+      }
+      @media (max-width: 768px) {
+        #header-mobile-search-toggle {
+          display: flex !important;
+        }
+        .header-right-group .feedback-toggle,
+        .header-right-group .theme-toggle,
+        .header-right-group a[aria-label="Setelan"] {
+          display: none !important;
+        }
+        .header-center-group {
+          display: none !important;
+        }
+      }
+    </style>
+    <nav id="header-main-nav" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin: 0; padding: 0;">
+        <!-- Left group: Hamburger, Logo, Brand, and App Name -->
+        <div class="header-left-group" style="display: flex; align-items: center; gap: 0.75rem;">
+            <div id="header-hamburger-container" style="display: flex; align-items: center; margin-right: 0.25rem;">
+                <button id="header-sidebar-toggle" data-i18n-aria="header.sidebar_toggle" aria-label="Toggle Sidebar" class="outline secondary" style="padding: 0; margin: 0; border: none; font-size: 1.25rem; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; cursor: pointer; color: var(--pico-heading-color);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
                     </svg>
                 </button>
-            </li>
+            </div>
+            <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+                <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img" style="height: 28px;">
+                <strong style="font-size: 1.35rem; color: var(--pico-heading-color);">TMPT</strong>
+                <span id="app-header-pro-badge" style="display: none; background: linear-gradient(135deg, #1e40af, #0284c7); color: white; font-size: 0.65rem; font-weight: 800; padding: 0.15rem 0.4rem; border-radius: 6px; letter-spacing: 0.05em; line-height: 1;">PRO</span>
+            </a>
+            <span id="header-app-name" style="font-weight: 700; font-size: 1.2rem; color: var(--pico-heading-color); margin-left: 0.5rem; border-left: 1px solid var(--pico-muted-border-color); padding-left: 0.75rem; display: inline-block;">Dashboard</span>
+        </div>
+
+        <!-- Center group: Pill Search Bar -->
+        <div class="header-center-group" style="flex: 1; max-width: 720px; margin: 0 1.5rem; position: relative;">
+            <div class="header-search-box" style="position: relative; display: flex; align-items: center; width: 100%;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 1rem; color: var(--pico-muted-color); pointer-events: none;">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="header-search" data-i18n-placeholder="header.search_placeholder" placeholder="Cari di TMPT..." style="width: 100%; padding: 0.6rem 3rem 0.6rem 2.75rem !important; margin: 0 !important; border-radius: 24px !important; border: 1px solid transparent !important; background-color: var(--pico-card-sectioning-background-color) !important; height: 46px !important; box-shadow: none !important; font-size: 0.95rem !important; transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;">
+                <button id="header-search-filter-btn" data-i18n-aria="header.search_options" data-i18n-title="header.search_options" aria-label="Opsi Pencarian" title="Opsi Pencarian" style="position: absolute; right: 0.75rem; background: transparent; border: none; padding: 0; margin: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--pico-muted-color); cursor: pointer; border-radius: 50%; display: none !important;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right group: Actions (Help, Theme, Settings, App Launcher, Profile) -->
+        <div class="header-right-group" style="display: flex; align-items: center; gap: 0.35rem;">
+            <!-- Mobile Search Toggle Button -->
+            <button id="header-mobile-search-toggle" aria-label="Cari" title="Cari" style="padding: 0; display: none; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
+            
+            <!-- Bantuan -->
+            <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" data-i18n-aria="header.feedback" data-i18n-title="header.feedback" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                    <path d="M12 17l0 .01"></path>
+                    <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
+                </svg>
+            </button>
+
+            <!-- Status Backup -->
+            <div id="header-backup-status-container" style="position: relative; display: inline-block;">
+                <!-- Diisi oleh BackupAwareness.js -->
+            </div>
 
             <!-- Ganti Tema -->
-            <li>
-                <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" data-i18n-aria="header.theme_toggle" data-i18n-title="header.theme_toggle" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+                </svg>
+            </button>
+
+            <!-- Pengaturan -->
+            <a href="/app/auth/settings/" data-i18n-aria="header.settings" data-i18n-title="header.settings" aria-label="Setelan" title="Setelan" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent; border: none; cursor: pointer; color: var(--pico-heading-color); text-decoration: none;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"></path>
+                    <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"></path>
+                </svg>
+            </a>
+
+            <!-- App Launcher -->
+            <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
+                <button onclick="window.TMPT_UI.toggleAppLauncher(event)" data-i18n-aria="header.app_launcher" data-i18n-title="header.app_launcher" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
                         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+                        <rect x="4" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="4" width="4" height="4" rx="1"></rect>
+                        <rect x="4" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="10" width="4" height="4" rx="1"></rect>
+                        <rect x="4" y="16" width="4" height="4" rx="1"></rect>
+                        <rect x="10" y="16" width="4" height="4" rx="1"></rect>
+                        <rect x="16" y="16" width="4" height="4" rx="1"></rect>
                     </svg>
                 </button>
-            </li>
-            
-            <!-- App Launcher -->
-            <li>
-                <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
-                    <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: transparent !important; background-color: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                            <rect x="4" y="4" width="4" height="4" rx="1"></rect>
-                            <rect x="10" y="4" width="4" height="4" rx="1"></rect>
-                            <rect x="16" y="4" width="4" height="4" rx="1"></rect>
-                            <rect x="4" y="10" width="4" height="4" rx="1"></rect>
-                            <rect x="10" y="10" width="4" height="4" rx="1"></rect>
-                            <rect x="16" y="10" width="4" height="4" rx="1"></rect>
-                            <rect x="4" y="16" width="4" height="4" rx="1"></rect>
-                            <rect x="10" y="16" width="4" height="4" rx="1"></rect>
-                            <rect x="16" y="16" width="4" height="4" rx="1"></rect>
-                        </svg>
-                    </button>
-                    <!-- Dropdown Menu -->
-                    <div id="tmpt-app-launcher-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 16px !important; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left; opacity: 1 !important;">
-                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; color: var(--pico-color);">Aplikasi TMPT</h4>
-                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
-                            <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
-                                <span style="font-size: 1.5rem;">💻</span>
-                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
-                            </a>
-                            <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
-                                <span style="font-size: 1.5rem;">🔐</span>
-                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
-                            </a>
-                            <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
-                                <span style="font-size: 1.5rem;">📝</span>
-                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
-                            </a>
-                            <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px; transition: background-color 0.2s;">
-                                <span style="font-size: 1.5rem;">📊</span>
-                                <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
-                            </a>
-                        </div>
-                    </div>
+                <!-- Dropdown Menu -->
+                <div id="tmpt-app-launcher-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 16px !important; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left; opacity: 1 !important;">
+                    <!-- Dropdown content will be dynamically generated by UIModule -->
                 </div>
-            </li>
+            </div>
             
             <!-- Profile Dropdown -->
-            <li>
-                <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
-                    <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 15px; text-transform: uppercase;">
-                        <span id="tmpt-profile-initial">G</span>
-                    </button>
-                    <!-- Dropdown Menu -->
-                    <div id="tmpt-profile-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 20px !important; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: var(--pico-color) !important; opacity: 1 !important;">
-                        <div id="tmpt-profile-email" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
-                        <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-                            <div id="tmpt-profile-avatar-large" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid var(--pico-muted-border-color); text-transform: uppercase;">G</div>
-                        </div>
-                        <h3 id="tmpt-profile-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Halo, Tamu.</h3>
-                        <p id="tmpt-profile-subtitle" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.25rem;">Tmpt terkunci</p>
-                        
-                        <div id="tmpt-profile-status-badge" style="margin-bottom: 1.5rem;"></div>
-                        
-                        <hr style="margin: 1rem 0;">
-                        
-                        <div id="tmpt-profile-vault-list" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
-                        
-                        <hr style="margin: 1rem 0;">
-                        
-                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                            <button id="tmpt-profile-action-btn" class="outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">Buka Tmpt</button>
-                            <button id="tmpt-profile-settings-btn" class="outline secondary" onclick="window.location.href='/app/auth/settings/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; display: none;">Setelan</button>
-                            <button id="tmpt-profile-setup-btn" class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">+ Buat Tmpt Baru</button>
-                        </div>
+            <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
+                <button onclick="window.TMPT_UI.toggleProfileMenu(event)" data-i18n-aria="header.profile" data-i18n-title="header.profile" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 15px; text-transform: uppercase;">
+                    <span id="tmpt-profile-initial">G</span>
+                </button>
+                <!-- Dropdown Menu -->
+                <div id="tmpt-profile-menu" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color) !important; background-color: var(--pico-card-background-color) !important; border: 1px solid var(--pico-muted-border-color) !important; box-shadow: 0 8px 32px rgba(0,0,0,0.15) !important; border-radius: 20px !important; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: var(--pico-color) !important; opacity: 1 !important;">
+                    <div id="tmpt-profile-email" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+                        <div id="tmpt-profile-avatar-large" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid var(--pico-muted-border-color); text-transform: uppercase;">G</div>
+                    </div>
+                    <h3 id="tmpt-profile-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Halo, Tamu.</h3>
+                    <p id="tmpt-profile-subtitle" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.25rem;">Tmpt terkunci</p>
+                    
+                    <div id="tmpt-profile-status-badge" style="margin-bottom: 1.5rem;"></div>
+                    
+                    <hr style="margin: 1rem 0;">
+                    
+                    <div id="tmpt-profile-vault-list" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
+                    
+                    <hr style="margin: 1rem 0;">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button id="tmpt-profile-action-btn" class="outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">Buka Tmpt</button>
+                        <button id="tmpt-profile-settings-btn" class="outline secondary" onclick="window.location.href='/app/auth/settings/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; display: none;">Setelan</button>
+                        <button id="tmpt-profile-setup-btn" class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">+ Buat Tmpt Baru</button>
                     </div>
                 </div>
-            </li>
-        </ul>
+            </div>
+        </div>
     </nav>
+    <div id="header-mobile-search-bar" style="display: none; align-items: center; width: 100%; gap: 0.5rem; height: 46px; padding: 0 1rem; background-color: var(--pico-card-background-color);">
+        <button id="btn-close-mobile-search" aria-label="Tutup Pencarian" style="background: transparent; border: none; padding: 0.5rem; cursor: pointer; color: var(--pico-heading-color); display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin: 0; border-radius: 50%;" onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'" onmouseout="this.style.backgroundColor='transparent'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </button>
+        <input type="text" id="mobile-search-input" placeholder="Cari..." style="flex: 1; margin: 0 !important; border-radius: 20px !important; border: 1px solid var(--pico-muted-border-color) !important; background-color: var(--pico-card-sectioning-background-color) !important; height: 38px !important; padding: 0.25rem 1rem !important;">
+    </div>
 </header>
 
 <!-- Mobile App Menu Dialog -->
@@ -116,11 +189,14 @@
             <strong style="font-size: 1.25rem;">Menu TMPT</strong>
             <button class="close" aria-label="Tutup" onclick="document.getElementById('mobile-app-nav-modal').close()" style="margin-bottom: 0; background: transparent; border: none; font-size: 1.5rem; color: var(--pico-secondary); padding: 0; width: auto; height: auto;">✕</button>
         </header>
-        <ul style="list-style: none !important; padding-left: 0 !important; margin: 0;">
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Dashboard</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/tools/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Tools &amp; Generator</a></li>
-            <li style="margin: 1.25rem 0; list-style: none !important;"><a href="/app/auth/settings/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600;">Pengaturan</a></li>
-            <li style="margin-top: 2rem; list-style: none !important;">
+        <ul style="list-style: none !important; padding-left: 0 !important; margin: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+            <li style="margin: 0; list-style: none !important;"><a href="/app/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>🏠</span> Dashboard</a></li>
+            <li style="margin: 0; list-style: none !important;"><a href="/app/tools/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>🔧</span> Tools &amp; Generator</a></li>
+            <li style="margin: 0; list-style: none !important;"><a href="/app/auth/settings/" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close()" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>⚙️</span> Pengaturan</a></li>
+            <li style="margin: 0; list-style: none !important;"><a href="#" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_UI.toggleTheme();" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>🌓</span> Ganti Tema</a></li>
+            <li style="margin: 0; list-style: none !important;"><a href="#" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_Feedback.toggleWidget();" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>❓</span> Bantuan &amp; Umpan Balik</a></li>
+            <li style="margin: 0; list-style: none !important;"><a href="#" class="secondary" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_UI.toggleAppLauncher(this, event);" style="font-weight: 600; display: flex; align-items: center; gap: 0.5rem;"><span>📱</span> Aplikasi TMPT</a></li>
+            <li style="margin-top: 1.5rem; list-style: none !important;">
                 <button role="button" class="outline secondary" style="width: 100%; text-align: center; display: block; border-radius: 10px; font-weight: 600;" onclick="document.getElementById('mobile-app-nav-modal').close(); window.TMPT_Auth.lock();">Kunci Tmpt</button>
             </li>
         </ul>
@@ -183,7 +259,32 @@
         }
     }
 
+    async function loadScript(src) {
+        return new Promise((resolve, reject) => {
+            if (document.querySelector(`script[src="${src}"]`)) {
+                resolve();
+                return;
+            }
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
     async function initTMPTAppHeader() {
+        // Load i18n modules
+        try {
+            await loadScript('/shared/i18n-config.js');
+            await loadScript('/shared/i18n.js');
+            if (window.TMPT_I18n) {
+                window.TMPT_I18n.applyTranslations();
+            }
+        } catch (e) {
+            console.warn("Gagal memuat modul i18n di header:", e);
+        }
+
         await loadLicenseModule();
         await loadFeedbackModule();
         const proBadge = document.getElementById('app-header-pro-badge');
@@ -194,6 +295,112 @@
             window.TMPT_UI.updateThemeIcons(localStorage.getItem('tmpt_theme') || 'light');
             window.TMPT_UI.updateProfileUI();
         }
+
+        // Muat modul Backup Awareness & GDrive Sync secara dinamis
+        try {
+            await loadScript('/shared/backup-awareness.js');
+            await loadScript('/shared/gdrive-sync.js');
+            if (window.BackupAwareness) {
+                window.BackupAwareness.renderHeaderIcon();
+                // Jalankan reminder setelah 2 detik agar tidak mengganggu inisialisasi awal
+                setTimeout(() => window.BackupAwareness.maybeShowReminder(), 2000);
+            }
+            if (window.GDriveSync) {
+                await window.GDriveSync.checkAndAutoBackup();
+            }
+        } catch (e) {
+            console.warn("Gagal memuat modul pencadangan awan di header:", e);
+        }
+
+        // Setup menu mobile dinamis (sidebar / fallback modal)
+        setupMobileMenu();
+        // Setup mobile search handlers
+        setupMobileSearch();
+    }
+
+    function setupMobileSearch() {
+        const toggleSearchBtn = document.getElementById('header-mobile-search-toggle');
+        const closeSearchBtn = document.getElementById('btn-close-mobile-search');
+        const mainNav = document.getElementById('header-main-nav');
+        const mobileSearch = document.getElementById('header-mobile-search-bar');
+        const mobileSearchInput = document.getElementById('mobile-search-input');
+
+        if (toggleSearchBtn && closeSearchBtn && mainNav && mobileSearch && mobileSearchInput) {
+            toggleSearchBtn.onclick = (e) => {
+                e.stopPropagation();
+                mainNav.style.setProperty('display', 'none', 'important');
+                mobileSearch.style.setProperty('display', 'flex', 'important');
+                mobileSearchInput.focus();
+            };
+
+            closeSearchBtn.onclick = (e) => {
+                e.stopPropagation();
+                mobileSearch.style.setProperty('display', 'none', 'important');
+                mainNav.style.setProperty('display', 'flex', 'important');
+                mobileSearchInput.value = '';
+                
+                const headerSearch = document.getElementById('header-search');
+                if (headerSearch) {
+                    headerSearch.value = '';
+                    headerSearch.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            };
+
+            mobileSearchInput.addEventListener('input', (e) => {
+                const headerSearch = document.getElementById('header-search');
+                if (headerSearch) {
+                    headerSearch.value = e.target.value;
+                    headerSearch.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+        }
+    }
+
+    function setupMobileMenu() {
+        const isMobile = window.innerWidth <= 768;
+        if (!isMobile) return;
+
+        // 1. Tambahkan menu ke sidebar jika ada di halaman aktif
+        const sidebar = document.querySelector('.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, #dashboard-sidebar, .sidebar, aside, nav.sidebar-nav');
+        if (sidebar && !document.getElementById('mobile-sidebar-actions')) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.id = 'mobile-sidebar-actions';
+            actionsDiv.style.cssText = 'padding: 1rem 0.5rem; margin-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); display: flex; flex-direction: column; gap: 0.75rem;';
+            
+            actionsDiv.innerHTML = `
+                <div style="font-size: 0.7rem; font-weight: 800; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Aktivitas TMPT</div>
+                <a href="/app/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <span>🏠</span> Dashboard Utama
+                </a>
+                <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleAppLauncher(this, event);" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <span>📱</span> Aplikasi TMPT
+                </a>
+                <a href="/app/auth/settings/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <span>⚙️</span> Setelan Pengaturan
+                </a>
+                <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleTheme();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <span>🌓</span> Ganti Tema
+                </a>
+                <a href="#" onclick="event.preventDefault(); window.TMPT_Feedback.toggleWidget();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                    <span>❓</span> Bantuan & Umpan Balik
+                </a>
+            `;
+            sidebar.appendChild(actionsDiv);
+        }
+        
+        // 2. Listener global untuk hamburger menu di halaman tanpa sidebar
+        document.addEventListener('click', (e) => {
+            const toggleBtn = e.target.closest('#header-sidebar-toggle');
+            if (toggleBtn) {
+                const hasSidebar = document.querySelector('.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, #dashboard-sidebar, .sidebar, aside');
+                if (!hasSidebar) {
+                    const modal = document.getElementById('mobile-app-nav-modal');
+                    if (modal) {
+                        modal.showModal();
+                    }
+                }
+            }
+        });
     }
 
     if (document.readyState === 'loading') {

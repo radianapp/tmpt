@@ -24,6 +24,16 @@
   <script src="/shared/license.js"></script>
 </head>
 <body>
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
 
   <main class="editor-container" id="editor-main">
     

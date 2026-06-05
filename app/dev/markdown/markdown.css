@@ -343,9 +343,10 @@ details.dropdown summary.button:hover {
   display: none !important;
 }
 .markdown-app.focus-mode .markdown-toolbar {
-  justify-content: space-between;
+  justify-content: center !important;
+  gap: 1.5rem !important;
 }
-.markdown-app.focus-mode .markdown-toolbar .toolbar-left > *:not(#btn-sidebar-toggle):not(#tb-bold):not(#tb-italic):not(#tb-quote):not(#tb-link) {
+.markdown-app.focus-mode .markdown-toolbar .toolbar-left > *:not(#tb-bold):not(#tb-italic):not(#tb-quote):not(#tb-link) {
   display: none !important;
 }
 .markdown-app.focus-mode .markdown-toolbar .toolbar-right > *:not(.view-toggles) {
@@ -502,11 +503,13 @@ details.dropdown summary::after {
 }
 
 /* Hide header in PWA standalone or focus mode */
+body.focus-mode header,
 body.focus-mode #header-container {
   display: none !important;
 }
 body.focus-mode .markdown-app {
   height: 100vh !important;
+  width: 100vw !important;
 }
 
 /* Drag & Drop Visual Styles */

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editor Tulis — TMPT</title>
+  <!-- Quill Stylesheet -->
+  <link rel="stylesheet" href="./vendor/quill.snow.css">
+  <!-- PicoCSS and App Global Stylesheet -->
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css">
+  <!-- Tulis App Specific Stylesheet -->
+  <link rel="stylesheet" href="./css/tulis.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <!-- SEO injection tag -->
+  <script data-seo-key="tulis-editor" src="/shared/seo.js" type="module"></script>
+</head>
+<body class="editor-page">
+  <script>
+    // Check auth before rendering
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+    })();
+  </script>
+
+  <!-- Global Header TMPT -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" id="main-content">
+    <div class="gdocs-editor-layout" id="editor-layout">
+      
+      <!-- Top Title & Menu Bar -->
+      <header class="gdocs-header">
+        <div class="gdocs-header-top">
+          <div class="logo-and-title">
+            <button onclick="window.location.href='./index.html'" class="gdocs-back-btn" title="Kembali ke Dashboard" aria-label="Kembali ke Dashboard">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icon-tabler-arrow-left"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0" /><path d="M5 12l6 6" /><path d="M5 12l6 -6" /></svg>
+            </button>
+            <div class="title-wrapper">
+              <input type="text" id="document-title" class="gdocs-title-input" value="Dokumen Tanpa Judul" aria-label="Judul Dokumen">
+              <div class="title-icons">
+                <span class="icon-btn star-btn" title="Bintangi">☆</span>
+                <span class="icon-btn folder-btn" title="Pindahkan">📁</span>
+                <span id="save-status" class="save-status">Tersimpan ✓</span>
+              </div>
+            </div>
+          </div>
+          <div class="right-header-actions">
+            <button id="btn-focus-mode" class="gdocs-focus-btn outline secondary" title="Mode Fokus">👁️ Fokus</button>
+            <button class="gdocs-share-btn" title="Bagikan Dokumen">👥 Bagikan</button>
+          </div>
+        </div>
+
+        <!-- Google Docs Menu bar -->
+        <nav class="gdocs-menu-bar">
+          <div class="menu-item" id="menu-file">Berkas
+            <div class="menu-dropdown">
+              <div id="menu-new-doc">➕ Dokumen Baru</div>
+              <hr>
+              <div id="menu-export-html">🌐 Ekspor ke HTML</div>
+              <div id="menu-export-md">📝 Ekspor ke Markdown</div>
+              <div id="menu-export-txt">📄 Ekspor ke TXT</div>
+              <hr>
+              <div id="menu-print">🖨️ Cetak / PDF (Ctrl+P)</div>
+            </div>
+          </div>
+          <div class="menu-item" id="menu-edit">Edit
+            <div class="menu-dropdown">
+              <div id="menu-undo">↩️ Urungkan (Ctrl+Z)</div>
+              <div id="menu-redo">↪️ Ulangi (Ctrl+Y)</div>
+              <hr>
+              <div id="menu-clear-format">🗑️ Hapus Format</div>
+            </div>
+          </div>
+          <div class="menu-item" id="menu-view">Tampilan
+            <div class="menu-dropdown">
+              <div id="menu-toggle-outline">📂 Toggle Outline</div>
+              <div id="menu-toggle-ruler">📏 Toggle Penggaris</div>
+            </div>
+          </div>
+          <div class="menu-item" id="menu-insert">Sisipkan
+            <div class="menu-dropdown">
+              <div id="menu-insert-image">📷 Gambar</div>
+              <div id="menu-insert-link">🔗 Tautan</div>
+            </div>
+          </div>
+          <div class="menu-item" id="menu-format">Format
+            <div class="menu-dropdown">
+              <div id="menu-bold">B Bold</div>
+              <div id="menu-italic">I Italic</div>
+              <div id="menu-underline">U Underline</div>
+              <div id="menu-strike">S Strikethrough</div>
+            </div>
+          </div>
+          <div class="menu-item" id="menu-help">Bantuan
+            <div class="menu-dropdown">
+              <div onclick="window.TMPT_UI.toast('TMPT Tulis v1.0.0 — Platform lokal privat.', 'info')">Tentang Tulis</div>
+            </div>
+          </div>
+        </nav>
+
+        <!-- Quill Toolbar Area (Clean Google Docs Style) -->
+        <div id="quill-toolbar-container">
+          <span class="ql-formats">
+            <button class="ql-undo" title="Urungkan">↩️</button>
+            <button class="ql-redo" title="Ulangi">↪️</button>
+          </span>
+          <span class="ql-formats">
+            <select class="ql-header">
+              <option value="1">Heading 1</option>
+              <option value="2">Heading 2</option>
+              <option value="3">Heading 3</option>
+              <option selected>Teks Normal</option>
+            </select>
+          </span>
+          <span class="ql-formats">
+            <button class="ql-bold" title="Tebal (Ctrl+B)"></button>
+            <button class="ql-italic" title="Miring (Ctrl+I)"></button>
+            <button class="ql-underline" title="Garis Bawah (Ctrl+U)"></button>
+            <button class="ql-strike" title="Coret Tengah"></button>
+          </span>
+          <span class="ql-formats">
+            <select class="ql-color" title="Warna Teks"></select>
+            <select class="ql-background" title="Warna Sorotan"></select>
+          </span>
+          <span class="ql-formats">
+            <select class="ql-align" title="Rataan"></select>
+          </span>
+          <span class="ql-formats">
+            <button class="ql-list" value="ordered" title="Daftar Bernomor"></button>
+            <button class="ql-list" value="bullet" title="Daftar Berbutir"></button>
+          </span>
+          <span class="ql-formats">
+            <button class="ql-link" title="Sisipkan Tautan"></button>
+            <button class="ql-image" title="Sisipkan Gambar"></button>
+            <button class="ql-blockquote" title="Kutipan"></button>
+            <button class="ql-code-block" title="Blok Kode"></button>
+          </span>
+          <span class="ql-formats">
+            <button class="ql-clean" title="Hapus Pemformatan"></button>
+          </span>
+        </div>
+      </header>
+
+      <!-- Main Workspace -->
+      <div class="gdocs-workspace">
+        
+        <!-- Left Vertical Ruler -->
+        <div class="gdocs-vertical-ruler" id="vertical-ruler">
+          <div class="ruler-mark">1</div>
+          <div class="ruler-mark">2</div>
+          <div class="ruler-mark">3</div>
+          <div class="ruler-mark">4</div>
+          <div class="ruler-mark">5</div>
+          <div class="ruler-mark">6</div>
+          <div class="ruler-mark">7</div>
+          <div class="ruler-mark">8</div>
+          <div class="ruler-mark">9</div>
+          <div class="ruler-mark">10</div>
+        </div>
+
+        <!-- Collapsible Outline Sidebar (Shown with left toggle button like Google Docs) -->
+        <aside class="gdocs-outline-sidebar" id="outline-sidebar">
+          <div class="outline-sidebar-header">
+            <h4>Daftar Isi</h4>
+          </div>
+          <div class="outline-list" id="outline-list">
+            <!-- Populated dynamically from Headings -->
+          </div>
+        </aside>
+
+        <!-- Toggle Outline Panel button on the edge -->
+        <button id="btn-sidebar-toggle" class="gdocs-sidebar-toggle-btn" title="Tampilkan/Sembunyikan Outline">
+          📋
+        </button>
+
+        <!-- Center Paper Sheet Scroll Area -->
+        <div class="gdocs-scroll-container" id="editor-scroll-container">
+          
+          <!-- Top Horizontal Ruler aligned with Paper sheet margins -->
+          <div class="gdocs-horizontal-ruler" id="horizontal-ruler">
+            <div class="ruler-scale">
+              <span class="ruler-tick">1</span>
+              <span class="ruler-tick">2</span>
+              <span class="ruler-tick">3</span>
+              <span class="ruler-tick">4</span>
+              <span class="ruler-tick">5</span>
+              <span class="ruler-tick">6</span>
+              <span class="ruler-tick">7</span>
+              <span class="ruler-tick">8</span>
+              <span class="ruler-tick">9</span>
+              <span class="ruler-tick">10</span>
+              <span class="ruler-tick">11</span>
+              <span class="ruler-tick">12</span>
+              <span class="ruler-tick">13</span>
+              <span class="ruler-tick">14</span>
+            </div>
+          </div>
+
+          <!-- Document paper -->
+          <div class="gdocs-paper-sheet" id="paper-sheet">
+            <!-- Quill Editor Container -->
+            <div id="quill-editor"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Status Bar -->
+      <footer class="gdocs-status-bar">
+        <div class="left-section">
+          <span id="word-count">0 kata</span>
+          <span id="char-count">0 karakter</span>
+          <span id="page-count">Estimasi: 1 halaman</span>
+        </div>
+        <div class="right-section">
+          <label for="zoom-select" style="margin: 0; font-size: 0.75rem;">Skala:</label>
+          <select id="zoom-select" aria-label="Pilih Skala">
+            <option value="0.75">75%</option>
+            <option value="1.0" selected>100%</option>
+            <option value="1.25">125%</option>
+            <option value="1.5">150%</option>
+          </select>
+        </div>
+      </footer>
+
+      <!-- Exit Focus Mode Floating Button -->
+      <button id="btn-exit-focus" class="btn-exit-focus hidden" title="Keluar Mode Fokus">✕</button>
+
+    </div>
+  </main>
+
+  <!-- Quill main library -->
+  <script src="./vendor/quill.min.js"></script>
+  <!-- Main Editor JS logic -->
+  <script type="module" src="./js/editor.js"></script>
+</body>
+</html>

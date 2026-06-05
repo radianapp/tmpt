@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TMPT Regex Studio Pro v1</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./css/regex.css">
+  
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  
+  <!-- Lazy load Mermaid for Visual Graph -->
+  <script src="/app/dev/markdown/vendor/mermaid.min.js"></script>
+
+  <script type="module" src="/shared/seo.js" data-seo-key="regex-studio"></script>
+</head>
+<body style="padding-top: 0;">
+  <script>
+    // Cek otentikasi sebelum merender halaman
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+  
+  <!-- Global App Header (Full Width) -->
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" style="padding: 1rem 1.5rem; max-width: 100%;">
+    <!-- Main Workspace (Three Column Layout) -->
+    <div class="regex-studio-layout">
+      
+      <!-- Column 1: Sidebar (Session History & Cheat Sheet) -->
+      <aside class="sidebar-column" id="sidebar-panel">
+        <!-- Session History Panel -->
+        <article class="regex-card collapsible-card">
+          <header class="card-header" id="header-history">
+            <span>Session History</span>
+            <span class="chevron-icon">▲</span>
+          </header>
+          <div class="card-body-content" id="body-history">
+            <div style="font-size: 0.85rem; color: var(--pico-muted-color); margin-bottom: 0.5rem;" id="last-session-info">
+              Last session: Today, 10:45 AM
+            </div>
+            <div id="sessions-history-list" style="display: flex; flex-direction: column; gap: 0.4rem;">
+              <!-- Filled dynamically -->
+            </div>
+          </div>
+        </article>
+
+        <!-- Cheat Sheet Panel -->
+        <article class="regex-card collapsible-card">
+          <header class="card-header" id="header-cheatsheet">
+            <span>Cheat Sheet</span>
+            <span class="chevron-icon">▲</span>
+          </header>
+          <div class="card-body-content" id="body-cheatsheet">
+            <div class="cheatsheet-list" id="cheatsheet-container">
+              <!-- Cheatsheet items loaded dynamically -->
+            </div>
+          </div>
+        </article>
+      </aside>
+
+      <!-- Column 2: Inputs (Pattern, Flags, Test String) -->
+      <section class="inputs-column">
+        <!-- Regex Pattern & Flags Input (Combined Row) -->
+        <article class="regex-card input-card" style="margin-bottom: 1rem;">
+          <div class="pattern-flags-row">
+            <div class="pattern-input-container">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <label style="font-weight: 700; margin: 0;">Regex Pattern</label>
+                <span id="save-status" style="font-size: 0.8rem; color: var(--pico-muted-color);">Tersimpan ✓</span>
+              </div>
+              <div class="regex-input-wrapper-pro">
+                <textarea id="regex-pattern" class="regex-pattern-textarea" placeholder="Masukkan pola regex di sini..." autocomplete="off" rows="1" style="height: 38px; resize: none;"></textarea>
+              </div>
+              <div id="pattern-error-msg" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; display: none;"></div>
+            </div>
+
+            <div class="flags-input-container" style="position: relative;">
+              <label style="font-weight: 700; margin-bottom: 0.5rem; display: block;">Flags</label>
+              <div class="flags-select-wrapper">
+                <input type="text" id="regex-flags" class="regex-flags-input-pro" placeholder="Pilih..." style="margin-bottom: 0; height: 38px;" autocomplete="off" readonly>
+                <span class="dropdown-chevron" style="top: 19px;">▼</span>
+                <!-- Flags dropdown selection list -->
+                <div class="flags-dropdown" id="flags-dropdown-list" style="box-sizing: border-box; width: 180px;">
+                  <label><input type="checkbox" value="g" checked> g (global)</label>
+                  <label><input type="checkbox" value="i"> i (case-insensitive)</label>
+                  <label><input type="checkbox" value="m"> m (multiline)</label>
+                  <label><input type="checkbox" value="u"> u (unicode)</label>
+                  <label><input type="checkbox" value="y"> y (sticky)</label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Test String Input -->
+        <article class="regex-card input-card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <label style="font-weight: 700; margin: 0;">Test String</label>
+            <span id="match-summary-stats" style="font-size: 0.85rem; font-weight: bold; color: var(--pico-primary);">0 matches · 0ms</span>
+          </div>
+          <div class="test-editor-container-pro">
+            <div class="test-backdrop-pro" id="test-backdrop"></div>
+            <textarea class="test-textarea-pro" id="test-input" placeholder="Masukkan teks pengujian di sini..." spellcheck="false" autocomplete="off"></textarea>
+          </div>
+        </article>
+      </section>
+
+      <!-- Column 3: Outputs (Active Tab Content) -->
+      <section class="outputs-column">
+        <article class="regex-card output-card-pro" style="height: 100%; display: flex; flex-direction: column; margin-bottom: 0;">
+          <!-- Tabs Navigation -->
+          <nav class="tab-nav-pro">
+            <button class="tab-btn active" data-tab="tab-studio">Matches</button>
+            <button class="tab-btn" data-tab="tab-replace">Replace</button>
+            <button class="tab-btn" data-tab="tab-ai">AI Assistant</button>
+            <button class="tab-btn" data-tab="tab-explain">Explanation</button>
+            <button class="tab-btn" data-tab="tab-devops">DevOps</button>
+          </nav>
+
+          <!-- Tab Contents wrapper -->
+          <div class="tab-contents-wrapper" style="flex-grow: 1; overflow-y: auto; padding-top: 1rem;">
+            <!-- Matches Tab -->
+            <div id="tab-studio" class="tab-content active">
+              <div id="match-details-list" class="pro-list-container">
+                <!-- Match details rendered here -->
+              </div>
+            </div>
+
+            <!-- Replace Tab -->
+            <div id="tab-replace" class="tab-content">
+              <div style="margin-bottom: 1rem;">
+                <label for="replace-input" style="font-size: 0.9rem; font-weight: bold;">Replace String:</label>
+                <input type="text" id="replace-input" placeholder="Teks pengganti, misal: $1..." style="margin-bottom: 0.5rem;" autocomplete="off">
+              </div>
+              <div style="background-color: var(--pico-code-background-color); padding: 1rem; border-radius: 8px; border: 1px solid var(--pico-border-color);">
+                <strong style="font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Result:</strong>
+                <pre id="replace-result" style="margin: 0; white-space: pre-wrap; word-break: break-all; font-size: 0.9rem;"></pre>
+              </div>
+            </div>
+
+            <!-- AI Assistant Tab -->
+            <div id="tab-ai" class="tab-content">
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <textarea id="ai-prompt-generate" placeholder="Tulis deskripsi regex yang ingin dibuat..." rows="2" style="margin:0;"></textarea>
+                <div style="display: flex; gap: 0.5rem;">
+                  <button id="btn-ai-generate" class="outline primary" style="flex:1; padding: 0.35rem 0.5rem; font-size:0.8rem; margin:0;">Generate</button>
+                  <button id="btn-ai-explain" class="outline" style="flex:1; padding: 0.35rem 0.5rem; font-size:0.8rem; margin:0;">Explain</button>
+                  <button id="btn-ai-fix" class="outline" style="flex:1; padding: 0.35rem 0.5rem; font-size:0.8rem; margin:0;">Optimize</button>
+                </div>
+                <div id="ai-generate-output" style="margin-top: 0.5rem;"></div>
+              </div>
+            </div>
+
+            <!-- Explanation Tab -->
+            <div id="tab-explain" class="tab-content">
+              <div id="explain-list" class="pro-list-container">
+                <!-- AST descriptions loaded here -->
+              </div>
+            </div>
+
+            <!-- DevOps Tab -->
+            <div id="tab-devops" class="tab-content">
+              <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <strong>Unit Test Cases</strong>
+                  <button id="btn-add-testcase" class="outline" style="padding:0.2rem 0.4rem; font-size:0.75rem; margin:0;">+ Add</button>
+                </div>
+                <div id="test-suite-results" style="max-height: 180px; overflow-y:auto; border: 1px solid var(--pico-border-color); border-radius:6px; padding:0.5rem;"></div>
+                <button id="btn-run-tests" class="outline primary" style="padding:0.35rem; font-size:0.8rem; margin:0;">Run Tests</button>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Dialog Settings AI Key -->
+  <dialog id="modal-settings-ai">
+    <article style="max-width: 480px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">⚙️ Konfigurasi API AI</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-settings-ai').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin: 0;">✕</button>
+      </header>
+      <form id="form-ai-settings" onsubmit="event.preventDefault();">
+        <div style="margin-bottom: 1rem;">
+          <label for="ai-api-key">Anthropic API Key (Claude)</label>
+          <input type="password" id="ai-api-key" placeholder="sk-ant-..." autocomplete="off">
+          <small class="secondary">Kunci API Anda disimpan secara lokal di browser Anda.</small>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-settings-ai').close()" style="margin: 0; border-radius: 8px;">Batal</button>
+          <button type="submit" class="btn-navy" id="btn-save-ai-settings" style="margin: 0; border-radius: 8px;">Simpan Kunci</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+
+  <!-- Dialog Unit Test Case Editor -->
+  <dialog id="modal-testcase-editor">
+    <article style="max-width: 450px; width: 95%; border-radius: 16px; padding: 1.5rem;">
+      <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h4 style="margin-bottom: 0; font-weight: 700;">Skenario Uji Baru</h4>
+        <button class="close" aria-label="Tutup" onclick="document.getElementById('modal-testcase-editor').close()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; width: auto; height: auto; margin: 0;">✕</button>
+      </header>
+      <form id="form-testcase" onsubmit="event.preventDefault();">
+        <div style="margin-bottom: 0.75rem;">
+          <label for="tc-input-string">Teks Input</label>
+          <input type="text" id="tc-input-string" placeholder="Input untuk dicocokkan..." required autocomplete="off">
+        </div>
+        <div style="margin-bottom: 0.75rem;">
+          <label for="tc-expect">Ekspektasi Hasil</label>
+          <select id="tc-expect">
+            <option value="match">Match (Cocok)</option>
+            <option value="no-match">No-Match (Tidak Cocok)</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1.5rem;">
+          <button type="button" class="outline secondary" onclick="document.getElementById('modal-testcase-editor').close()" style="margin: 0; border-radius: 8px;">Batal</button>
+          <button type="submit" class="btn-navy" style="margin: 0; border-radius: 8px;">Simpan Skenario</button>
+        </div>
+      </form>
+    </article>
+  </dialog>
+
+  <script type="module" src="./js/regex-app.js"></script>
+</body>
+</html>

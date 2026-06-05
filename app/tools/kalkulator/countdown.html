@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Penghitung Waktu Mundur — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+  <style>
+    .countdown-display {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+    .countdown-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--calc-card-border);
+      border-radius: 12px;
+      padding: 1.5rem 0.5rem;
+    }
+    .countdown-card div {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--calc-primary);
+    }
+    .countdown-card span {
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: var(--pico-muted-color);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⏰ Penghitung Waktu Mundur</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+        <button class="calc-action-btn secondary" id="share-btn">🔗 Salin Tautan</button>
+      </div>
+    </div>
+
+    <div class="calc-container">
+      <div class="calc-box">
+        <form id="cd-form" onsubmit="return false;">
+          <div class="form-group">
+            <label for="title">Judul Acara / Event</label>
+            <input type="text" id="title" value="Tahun Baru" required>
+          </div>
+          <div class="form-group">
+            <label for="datetime">Tanggal &amp; Waktu</label>
+            <input type="datetime-local" id="datetime" required>
+          </div>
+          <button type="button" class="btn-navy" id="btn-start" style="width: 100%;">Mulai Hitung Mundur</button>
+        </form>
+      </div>
+
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <h3 id="event-title" style="text-align: center;">Tahun Baru</h3>
+        
+        <div class="countdown-display">
+          <div class="countdown-card"><div id="cd-days">0</div><span>Hari</span></div>
+          <div class="countdown-card"><div id="cd-hours">0</div><span>Jam</span></div>
+          <div class="countdown-card"><div id="cd-minutes">0</div><span>Menit</span></div>
+          <div class="countdown-card"><div id="cd-seconds">0</div><span>Detik</span></div>
+        </div>
+
+        <p class="secondary" style="text-align: center; margin-bottom: 0;" id="cd-status">Belum dimulai</p>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { getUrlParams, setUrlParams, copyShareUrl, toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'countdown';
+    const calcName = 'Countdown Timer';
+
+    let timerInterval = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set default date to next year
+      const nextYear = new Date().getFullYear() + 1;
+      document.getElementById('datetime').value = `${nextYear}-01-01T00:00`;
+
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('share-btn').addEventListener('click', () => {
+        copyShareUrl({
+          title: document.getElementById('title').value,
+          datetime: document.getElementById('datetime').value
+        });
+      });
+
+      document.getElementById('btn-start').addEventListener('click', startTimer);
+
+      const params = getUrlParams();
+      if (params.datetime) {
+        document.getElementById('title').value = params.title || 'Event';
+        document.getElementById('datetime').value = params.datetime;
+        startTimer();
+      }
+    });
+
+    function startTimer() {
+      clearInterval(timerInterval);
+      const title = document.getElementById('title').value;
+      const targetTime = new Date(document.getElementById('datetime').value).getTime();
+
+      if (isNaN(targetTime)) return;
+
+      document.getElementById('event-title').textContent = title;
+      document.getElementById('cd-status').textContent = 'Hitung mundur berjalan...';
+
+      timerInterval = setInterval(() => {
+        const now = new Date().getTime();
+        const diff = targetTime - now;
+
+        if (diff < 0) {
+          clearInterval(timerInterval);
+          document.getElementById('cd-days').textContent = '0';
+          document.getElementById('cd-hours').textContent = '0';
+          document.getElementById('cd-minutes').textContent = '0';
+          document.getElementById('cd-seconds').textContent = '0';
+          document.getElementById('cd-status').textContent = 'Waktu Acara Telah Tiba!';
+          return;
+        }
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+        document.getElementById('cd-days').textContent = days;
+        document.getElementById('cd-hours').textContent = hours;
+        document.getElementById('cd-minutes').textContent = minutes;
+        document.getElementById('cd-seconds').textContent = seconds;
+      }, 1000);
+
+      // Save History
+      saveHistoryEntry(slug, calcName, { title }, { value: title });
+      setUrlParams({ title, datetime: document.getElementById('datetime').value });
+    }
+  </script>
+</body>
+</html>

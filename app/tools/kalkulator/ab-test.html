@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kalkulator Uji A/B — TMPT</title>
+  <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=2">
+  <link rel="stylesheet" href="./css/kalkulator.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/ui.js"></script>
+</head>
+<body>
+  <div id="header-container" hx-get="/shared/header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container">
+    <a href="./index.html" class="secondary" style="display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 1.5rem; text-decoration: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      Kembali ke Dashboard
+    </a>
+
+    <div class="calc-title-bar">
+      <h2>⚖️ Kalkulator Uji A/B (Signifikansi Konversi)</h2>
+      <div class="calc-actions">
+        <button class="calc-action-btn secondary" id="bookmark-btn">⭐ Favorit</button>
+      </div>
+    </div>
+
+    <div class="calc-container split-equal">
+      <!-- Input Box -->
+      <div class="calc-box">
+        <h3>Varian A (Kontrol)</h3>
+        <div class="form-group">
+          <label for="visitor-a">Jumlah Pengunjung</label>
+          <input type="number" id="visitor-a" value="1000" required>
+        </div>
+        <div class="form-group">
+          <label for="conversions-a">Jumlah Konversi</label>
+          <input type="number" id="conversions-a" value="50" required>
+        </div>
+
+        <hr>
+
+        <h3>Varian B (Variasi)</h3>
+        <div class="form-group">
+          <label for="visitor-b">Jumlah Pengunjung</label>
+          <input type="number" id="visitor-b" value="1000" required>
+        </div>
+        <div class="form-group">
+          <label for="conversions-b">Jumlah Konversi</label>
+          <input type="number" id="conversions-b" value="70" required>
+        </div>
+
+        <button class="btn-navy" id="btn-calculate" style="width: 100%; margin-top: 1rem;">Uji Signifikansi</button>
+      </div>
+
+      <!-- Result Box -->
+      <div class="calc-box" style="display: flex; flex-direction: column; justify-content: center;">
+        <div class="calc-result-box">
+          <span class="calc-result-label">Status Signifikansi</span>
+          <div class="calc-result-value" id="ab-status" style="font-size: 1.75rem;">-</div>
+          <span class="calc-result-badge badge-success" id="ab-p-val">p-value: -</span>
+        </div>
+
+        <div style="font-size: 0.95rem;">
+          <p>Tingkat Konversi A: <strong id="cr-a">-</strong>%</p>
+          <p>Tingkat Konversi B: <strong id="cr-b">-</strong>%</p>
+          <p>Uplift Relatif: <strong id="uplift-val">-</strong>%</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="footer-container" hx-get="/shared/footer.html" hx-trigger="load" hx-swap="outerHTML"></div>
+  <div id="toast-container" aria-live="polite"></div>
+
+  <script type="module">
+    import { toggleBookmark, getBookmarks, saveHistoryEntry } from './js/kalkulator-core.js';
+
+    const slug = 'ab-test';
+    const calcName = 'Uji A/B';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const bbtn = document.getElementById('bookmark-btn');
+      if (getBookmarks().includes(slug)) bbtn.textContent = '⭐ Terfavorit';
+      bbtn.addEventListener('click', () => {
+        const isB = toggleBookmark(slug);
+        bbtn.textContent = isB ? '⭐ Terfavorit' : '⭐ Favorit';
+      });
+
+      document.getElementById('btn-calculate').addEventListener('click', runCalculation);
+    });
+
+    function runCalculation() {
+      const nA = parseInt(document.getElementById('visitor-a').value);
+      const cA = parseInt(document.getElementById('conversions-a').value);
+      const nB = parseInt(document.getElementById('visitor-b').value);
+      const cB = parseInt(document.getElementById('conversions-b').value);
+
+      if (!nA || !nB) return;
+
+      const pA = cA / nA;
+      const pB = cB / nB;
+
+      const crA = pA * 100;
+      const crB = pB * 100;
+      const uplift = ((pB - pA) / pA) * 100;
+
+      // Pool proportions for Z-test
+      const pPool = (cA + cB) / (nA + nB);
+      const se = Math.sqrt(pPool * (1 - pPool) * (1 / nA + 1 / nB));
+      const z = (pB - pA) / se;
+
+      // Approximate two-tailed p-value from Z-score
+      const pValue = 2 * (1 - normalCDF(Math.abs(z)));
+
+      const sign = pValue < 0.05;
+
+      document.getElementById('cr-a').textContent = crA.toFixed(2);
+      document.getElementById('cr-b').textContent = crB.toFixed(2);
+      document.getElementById('uplift-val').textContent = (uplift > 0 ? '+' : '') + uplift.toFixed(2);
+
+      const statusEl = document.getElementById('ab-status');
+      const badgeEl = document.getElementById('ab-p-val');
+      
+      badgeEl.textContent = `p-value: ${pValue.toFixed(4)}`;
+
+      if (sign) {
+        statusEl.textContent = 'Signifikan Secara Statistik';
+        statusEl.style.color = 'var(--calc-success)';
+        badgeEl.className = 'calc-result-badge badge-success';
+      } else {
+        statusEl.textContent = 'Tidak Signifikan';
+        statusEl.style.color = 'var(--calc-danger)';
+        badgeEl.className = 'calc-result-badge badge-danger';
+      }
+
+      saveHistoryEntry(slug, calcName, { nA, nB }, { value: sign ? 'Signifikan' : 'Tidak Signifikan' });
+    }
+
+    // Standard Normal Cumulative Distribution Function approximation
+    function normalCDF(x) {
+      const t = 1 / (1 + 0.2316419 * Math.abs(x));
+      const d = 0.3989423 * Math.exp(-x * x / 2);
+      const p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+      return x > 0 ? 1 - p : p;
+    }
+  </script>
+</body>
+</html>

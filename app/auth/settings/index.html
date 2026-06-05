@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="/favicon.png">
     <link rel="stylesheet" href="/shared/pico.min.css">
     <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="/app/app-dashboard.css">
     <link rel="stylesheet" href="./settings.css">
     <script src="/shared/htmx.min.js"></script>
     <script src="/shared/pwa.js"></script>
@@ -17,9 +18,21 @@
     <script src="/shared/license.js"></script>
     <script src="/shared/recovery-code.js"></script>
     <script src="/shared/ui.js"></script>
+    <script src="/shared/i18n-config.js"></script>
+    <script src="/shared/i18n.js"></script>
     <script src="/shared/backup.js"></script>
     <script src="/shared/version.js"></script>
     <script src="/shared/generator.js"></script>
+    <style>
+        .settings-container {
+            grid-template-columns: 1fr !important;
+            max-width: 800px !important;
+            margin: 0 auto !important;
+        }
+        .settings-container .settings-sidebar {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
 
@@ -30,146 +43,107 @@
         })();
     </script>
 
-    <!-- Chrome-like Settings Header Bar -->
-    <header class="settings-header-bar">
-        <div class="settings-header-left">
-            <button class="settings-hamburger" onclick="toggleSidebarDrawer()" aria-label="Menu Utama" style="padding: 0; background: transparent; border: none; cursor: pointer; color: var(--pico-heading-color); display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <a href="/app/" class="contrast" style="display: flex; align-items: center; gap: 0.65rem; text-decoration: none;">
-                <img src="/assets/img/logo.svg?v=2" alt="Logo" style="width: 24px; height: 24px;">
-                <span class="settings-title">Pengaturan</span>
-            </a>
-        </div>
-        
-        <!-- Search Input -->
-        <div class="settings-search-container">
-            <span class="settings-search-icon">🔍</span>
-            <input type="search" id="settings-search" class="settings-search-input" placeholder="Cari pengaturan" autocomplete="off" oninput="filterSettings(this.value)">
-        </div>
-
-        <div style="display: flex; align-items: center; gap: 0.75rem;">
-            <!-- Umpan Balik / Bantuan -->
-            <button class="feedback-toggle" onclick="window.TMPT_Feedback.toggleWidget()" aria-label="Kirim Umpan Balik" title="Kirim Umpan Balik" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
-                <svg xmlns="http://www.w3.org/2000/svg" class="feedback-toggle-icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
-                    <path d="M12 17l0 .01"></path>
-                    <path d="M12 13a2 2 0 1 0 -1.837 -2.75"></path>
-                </svg>
-            </button>
-
-            <!-- Ganti Tema -->
-            <button class="theme-toggle" onclick="window.TMPT_UI.toggleTheme()" aria-label="Ganti Tema" title="Ganti Tema" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
-                <svg xmlns="http://www.w3.org/2000/svg" class="theme-toggle-icon" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
-                </svg>
-            </button>
-            
-            <!-- App Launcher -->
-            <div class="tmpt-app-launcher" style="position: relative; display: inline-block;">
-                <button onclick="window.TMPT_UI.toggleAppLauncher(event)" aria-label="Aplikasi TMPT" title="Aplikasi TMPT" style="padding: 0; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 50%; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color) !important;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
-                        <rect x="4" y="4" width="4" height="4" rx="1"></rect>
-                        <rect x="10" y="4" width="4" height="4" rx="1"></rect>
-                        <rect x="16" y="4" width="4" height="4" rx="1"></rect>
-                        <rect x="4" y="10" width="4" height="4" rx="1"></rect>
-                        <rect x="10" y="10" width="4" height="4" rx="1"></rect>
-                        <rect x="16" y="10" width="4" height="4" rx="1"></rect>
-                        <rect x="4" y="16" width="4" height="4" rx="1"></rect>
-                        <rect x="10" y="16" width="4" height="4" rx="1"></rect>
-                        <rect x="16" y="16" width="4" height="4" rx="1"></rect>
-                    </svg>
-                </button>
-                <div id="tmpt-app-launcher-menu" style="display: none; position: absolute; top: 45px; right: 0; background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); border-radius: 16px; width: 280px; padding: 1.25rem; z-index: 110000; text-align: left;">
-                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; color: var(--pico-color);">Aplikasi TMPT</h4>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center;">
-                        <a href="/app/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
-                            <span style="font-size: 1.5rem;">💻</span>
-                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Utama</span>
-                        </a>
-                        <a href="/app/kerja/vault/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
-                            <span style="font-size: 1.5rem;">🔐</span>
-                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Brankas</span>
-                        </a>
-                        <a href="/app/kerja/catatan/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
-                            <span style="font-size: 1.5rem;">📝</span>
-                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Catat</span>
-                        </a>
-                        <a href="/app/kerja/hitung/" class="app-launcher-item" style="display: flex; flex-direction: column; align-items: center; gap: 0.35rem; text-decoration: none; color: var(--pico-color); font-size: 0.75rem; font-weight: 600; padding: 0.5rem 0; border-radius: 12px;">
-                            <span style="font-size: 1.5rem;">📊</span>
-                            <span style="display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;">Hitung</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Profile Dropdown -->
-            <div class="tmpt-profile-dropdown" style="position: relative; display: inline-block;">
-                <button onclick="window.TMPT_UI.toggleProfileMenu(event)" aria-label="Profil Akun" title="Profil Akun" style="padding: 0; margin: 0; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; border: none; cursor: pointer; font-weight: bold; font-size: 14px; text-transform: uppercase;">
-                    <span id="tmpt-profile-initial">G</span>
-                </button>
-                <div id="tmpt-profile-menu" style="display: none; position: absolute; top: 45px; right: 0; background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); border-radius: 20px; width: 320px; padding: 1.5rem; z-index: 110000; text-align: center; color: var(--pico-color);">
-                    <div id="tmpt-profile-email" style="font-size: 0.85rem; color: var(--pico-secondary-color); margin-bottom: 1rem; word-break: break-all;">guest@tmpt.my.id</div>
-                    <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-                        <div id="tmpt-profile-avatar-large" style="width: 80px; height: 80px; border-radius: 50%; background: linear-gradient(135deg, #0F6E56, #064e3b); color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 32px; border: 4px solid var(--pico-muted-border-color); text-transform: uppercase;">G</div>
-                    </div>
-                    <h3 id="tmpt-profile-title" style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Halo, Tamu.</h3>
-                    <p id="tmpt-profile-subtitle" class="secondary" style="font-size: 0.85rem; margin-bottom: 1.25rem;">Tmpt terkunci</p>
-                    <div id="tmpt-profile-status-badge" style="margin-bottom: 1.5rem;"></div>
-                    <hr style="margin: 1rem 0;">
-                    <div id="tmpt-profile-vault-list" style="max-height: 150px; overflow-y: auto; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem;"></div>
-                    <hr style="margin: 1rem 0;">
-                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <button id="tmpt-profile-action-btn" class="outline primary" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">Buka Tmpt</button>
-                        <button id="tmpt-profile-settings-btn" class="outline secondary" onclick="window.location.href='/app/auth/settings/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem; display: none;">Setelan</button>
-                        <button id="tmpt-profile-setup-btn" class="outline secondary" onclick="window.location.href='/app/auth/setup/'" style="width: 100%; border-radius: 10px; margin-bottom: 0; font-size: 0.9rem;">+ Buat Tmpt Baru</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- Shared header -->
+    <div id="header-container" hx-get="/shared/app-header.html?v=4" hx-trigger="load" hx-swap="outerHTML"></div>
 
     <!-- Switcher Include -->
     <div hx-get="/shared/vault-switcher.html?v=3" hx-trigger="load" hx-swap="outerHTML"></div>
 
-    <!-- Sidebar Backdrop Overlay -->
-    <div id="sidebar-overlay" class="settings-sidebar-overlay" onclick="toggleSidebarDrawer(false)"></div>
+    <div class="dashboard-wrapper">
+        <!-- Sidebar Kiri -->
+        <aside class="dashboard-sidebar" id="dashboard-sidebar">
+            <div class="sidebar-logo">
+                <button id="sidebar-collapse-btn" class="sidebar-collapse-btn" aria-label="Collapse Sidebar" title="Collapse Sidebar">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                </button>
+                <img src="/assets/img/logo.svg?v=2" alt="Logo" class="logo-img">
+                <span class="logo-text">TMPT</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a class="sidebar-link active" onclick="scrollToSection('section-license')" data-target="section-license">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                        <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>
+                    </svg>
+                    <span data-i18n="settings.nav_license">Akun & Lisensi</span>
+                </a>
+                <a class="sidebar-link" onclick="scrollToSection('section-tampilan')" data-target="section-tampilan">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <rect x="3" y="4" width="18" height="12" rx="1"></rect>
+                        <line x1="7" y1="20" x2="17" y2="20"></line>
+                        <line x1="9" y1="16" x2="9" y2="20"></line>
+                        <line x1="15" y1="16" x2="15" y2="20"></line>
+                    </svg>
+                    <span data-i18n="settings.nav_appearance">Tampilan</span>
+                </a>
+                <a class="sidebar-link" onclick="scrollToSection('section-keamanan')" data-target="section-keamanan">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <rect x="5" y="11" width="14" height="10" rx="2"></rect>
+                        <circle cx="12" cy="16" r="1"></circle>
+                        <path d="M8 11v-4a4 4 0 0 1 8 0v4"></path>
+                    </svg>
+                    <span data-i18n="settings.nav_security">Keamanan</span>
+                </a>
+                <a class="sidebar-link" onclick="scrollToSection('section-backup')" data-target="section-backup">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2z"></path>
+                        <circle cx="12" cy="14" r="2"></circle>
+                        <polyline points="14 4 14 8 8 8 8 4"></polyline>
+                    </svg>
+                    <span data-i18n="settings.nav_backup">Data & Backup</span>
+                </a>
+                <a class="sidebar-link" onclick="scrollToSection('section-tentang')" data-target="section-tentang">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <line x1="12" y1="17" x2="12" y2="17.01"></line>
+                        <path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"></path>
+                    </svg>
+                    <span data-i18n="settings.nav_about">Tentang</span>
+                </a>
+            </nav>
+        </aside>
 
-    <!-- Main Container -->
-    <div class="settings-container">
-        <!-- Sidebar Navigation -->
-        <aside class="settings-sidebar">
+        <!-- Area Konten Utama Dashboard -->
+        <div class="dashboard-main">
+
+            <main class="dashboard-content-area">
+                <!-- Main Container -->
+                <div class="settings-container">
+                    <!-- Sidebar Navigation -->
+                    <aside class="settings-sidebar">
             <ul class="settings-nav-list">
                 <li class="settings-nav-item active" data-target="section-license">
                     <a class="settings-nav-link" onclick="scrollToSection('section-license')">
-                        <span class="settings-row-icon">👤</span> Akun & Lisensi
+                        <span class="settings-row-icon">👤</span> <span data-i18n="settings.nav_license">Akun & Lisensi</span>
                     </a>
                 </li>
                 <li class="settings-nav-item" data-target="section-tampilan">
                     <a class="settings-nav-link" onclick="scrollToSection('section-tampilan')">
-                        <span class="settings-row-icon">🖥️</span> Tampilan
+                        <span class="settings-row-icon">🖥️</span> <span data-i18n="settings.nav_appearance">Tampilan</span>
                     </a>
                 </li>
                 <li class="settings-nav-item" data-target="section-keamanan">
                     <a class="settings-nav-link" onclick="scrollToSection('section-keamanan')">
-                        <span class="settings-row-icon">🔒</span> Keamanan
+                        <span class="settings-row-icon">🔒</span> <span data-i18n="settings.nav_security">Keamanan</span>
                     </a>
                 </li>
                 <li class="settings-nav-item" data-target="section-backup">
                     <a class="settings-nav-link" onclick="scrollToSection('section-backup')">
-                        <span class="settings-row-icon">💾</span> Data & Backup
+                        <span class="settings-row-icon">💾</span> <span data-i18n="settings.nav_backup">Data & Backup</span>
                     </a>
                 </li>
                 <li class="settings-nav-item" data-target="section-tentang">
                     <a class="settings-nav-link" onclick="scrollToSection('section-tentang')">
-                        <span class="settings-row-icon">ℹ️</span> Tentang
+                        <span class="settings-row-icon">ℹ️</span> <span data-i18n="settings.nav_about">Tentang</span>
                     </a>
                 </li>
             </ul>
@@ -179,7 +153,7 @@
         <main class="settings-main">
             <!-- Akun & Lisensi Section -->
             <section id="section-license" class="settings-section">
-                <div class="settings-section-title">Akun & Lisensi</div>
+                <div class="settings-section-title" data-i18n="settings.nav_license">Akun & Lisensi</div>
                 <div class="license-card">
                     <div class="license-card-left">
                         <div class="license-avatar">👤</div>
@@ -196,20 +170,36 @@
 
             <!-- Tampilan Section -->
             <section id="section-tampilan" class="settings-section">
-                <div class="settings-section-title">Tampilan</div>
+                <div class="settings-section-title" data-i18n="settings.section_appearance">Tampilan</div>
                 <div class="settings-panel">
+                    <div class="settings-row" data-search-text="bahasa language indonesian english indonesia inggris">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">🌐</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title" data-i18n="settings.row_language">Bahasa (Language)</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_language">Pilih bahasa antarmuka aplikasi.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="language" onchange="updateSetting('language', this.value)">
+                                <option value="id">Bahasa Indonesia</option>
+                                <option value="en">English (US)</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="settings-row" data-search-text="tema aplikasi mode terang gelap">
                         <div class="settings-row-left">
                             <span class="settings-row-icon">🌗</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Tema Aplikasi (Mode)</span>
-                                <span class="settings-row-desc">Atur tampilan antarmuka ke mode gelap atau terang.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_theme">Tema Aplikasi (Mode)</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_theme">Atur tampilan antarmuka ke mode gelap atau terang.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
                             <select id="theme" onchange="updateSetting('theme', this.value)">
-                                <option value="light">Terang</option>
-                                <option value="dark">Gelap</option>
+                                <option value="light" data-i18n="settings.opt_theme_light">Terang</option>
+                                <option value="dark" data-i18n="settings.opt_theme_dark">Gelap</option>
                             </select>
                         </div>
                     </div>
@@ -218,8 +208,8 @@
                         <div class="settings-row-left">
                             <span class="settings-row-icon">🎨</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Gaya Visual (Palet Warna)</span>
-                                <span class="settings-row-desc font-size-small">Pilih skema warna visual yang sesuai untuk Brankas Anda.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_theme_style">Gaya Visual (Palet Warna)</span>
+                                <span class="settings-row-desc font-size-small" data-i18n="settings.desc_theme_style">Pilih skema warna visual yang sesuai untuk Brankas Anda.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
@@ -231,19 +221,16 @@
                             </select>
                         </div>
                     </div>
-                </div>
-            </section>
-
-            <!-- Keamanan Section -->
+                           <!-- Keamanan Section -->
             <section id="section-keamanan" class="settings-section">
-                <div class="settings-section-title">Keamanan</div>
+                <div class="settings-section-title" data-i18n="settings.nav_security">Keamanan</div>
                 <div class="settings-panel">
                     <div class="settings-row" data-search-text="auto-lock otomatis menit jam jangan pernah">
                         <div class="settings-row-left">
                             <span class="settings-row-icon">⏱️</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Auto-lock Otomatis</span>
-                                <span class="settings-row-desc">Kunci Brankas secara otomatis setelah tidak aktif beberapa saat.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_autolock">Auto-lock Otomatis</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_autolock">Kunci Brankas secara otomatis setelah tidak aktif beberapa saat.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
@@ -262,8 +249,8 @@
                         <div class="settings-row-left" style="cursor: pointer;" onclick="document.getElementById('change-pwd-details').toggleAttribute('open')">
                             <span class="settings-row-icon">🔑</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Ganti Kata Kunci Utama</span>
-                                <span class="settings-row-desc">Perbarui kata kunci enkripsi Brankas Anda.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_change_password">Ganti Kata Kunci Utama</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_change_password">Perbarui kata kunci enkripsi Brankas Anda.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
@@ -325,18 +312,18 @@
 
             <!-- Data & Backup Section -->
             <section id="section-backup" class="settings-section">
-                <div class="settings-section-title">Data & Backup</div>
+                <div class="settings-section-title" data-i18n="settings.nav_backup">Data & Backup</div>
                 <div class="settings-panel">
                     <div class="settings-row" data-search-text="cadangkan data backup unduh tmpt">
                         <div class="settings-row-left">
                             <span class="settings-row-icon">📤</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Cadangkan Data</span>
-                                <span class="settings-row-desc">Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt terenkripsi.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_backup_data">Cadangkan Data</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_backup_data">Unduh seluruh isi Brankas (termasuk pengaturan) ke file .tmpt terenkripsi.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
-                            <button class="btn-navy" onclick="window.TMPT_Backup.exportVault()">Unduh Backup (.tmpt)</button>
+                            <button class="btn-navy" onclick="window.TMPT_Backup.exportVault()" data-i18n="settings.btn_download_backup">Unduh Backup (.tmpt)</button>
                         </div>
                     </div>
 
@@ -344,30 +331,97 @@
                         <div class="settings-row-left">
                             <span class="settings-row-icon">📥</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Pulihkan Data</span>
-                                <span class="settings-row-desc">Timpa data saat ini dengan data dari file backup (.tmpt) Anda secara instan.</span>
+                                <span class="settings-row-title" data-i18n="settings.row_restore_data">Pulihkan Data</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_restore_data">Timpa data saat ini dengan data dari file backup (.tmpt) Anda secara instan.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
-                            <button class="btn-gray" onclick="handleRestoreClick()">Pilih File Backup</button>
+                            <button class="btn-gray" onclick="handleRestoreClick()" data-i18n="settings.btn_choose_backup">Pilih File Backup</button>
                             <input type="file" id="import-input" style="display: none;" accept=".tmpt" onchange="window.TMPT_Backup.importVault(this.files[0])">
                         </div>
                     </div>
                 </div>
 
+                <div class="settings-section-title" style="margin-top: 1.5rem;" data-i18n="settings.section_gdrive">Google Drive Sync</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="google drive sync awan cloud backup otomatis">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">☁️</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title" data-i18n="settings.row_connect_gdrive">Hubungkan Google Drive</span>
+                                <span class="settings-row-desc" id="gdrive-status-desc" data-i18n="settings.desc_connect_gdrive">Hubungkan akun Google Anda untuk mencadangkan data terenkripsi secara otomatis ke awan.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right" id="gdrive-action-container">
+                            <button class="btn-navy" onclick="connectGoogleDrive()" data-i18n="settings.btn_connect">Hubungkan</button>
+                        </div>
+                    </div>
+
+                    <div class="settings-row" id="gdrive-schedule-row" style="display: none;" data-search-text="jadwal backup otomatis drive harian mingguan">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">📅</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title">Jadwal Sinkronisasi Otomatis</span>
+                                <span class="settings-row-desc">Pilih seberapa sering TMPT akan melakukan sinkronisasi otomatis ke Google Drive.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="gdrive-schedule" onchange="updateGDriveSchedule(this.value)">
+                                <option value="daily">Harian</option>
+                                <option value="weekly">Mingguan</option>
+                                <option value="manual">Manual Saja</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-row" id="gdrive-history-row" style="display: none;" data-search-text="riwayat backup cloud drive restore pulihkan">
+                        <div class="settings-row-left" style="width: 100%;">
+                            <span class="settings-row-icon">📜</span>
+                            <div class="settings-row-info" style="width: 100%;">
+                                <span class="settings-row-title">Riwayat Cadangan di Awan</span>
+                                <span class="settings-row-desc">Berikut adalah daftar file backup TMPT terenkripsi yang ada di Google Drive Anda (maksimal 3 file terakhir):</span>
+                                <div id="gdrive-backups-list" style="margin-top: 1rem; border: 1px solid var(--pico-muted-border-color); border-radius: 8px; overflow: hidden; font-size: 0.85rem;">
+                                    <div style="padding: 1rem; text-align: center; color: var(--pico-secondary-color);">Mengambil daftar backup...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section-title" style="margin-top: 1.5rem;" data-i18n="settings.section_backup_reminder">Pengingat Backup</div>
+                <div class="settings-panel">
+                    <div class="settings-row" data-search-text="pengingat backup reminder interval hari">
+                        <div class="settings-row-left">
+                            <span class="settings-row-icon">🔔</span>
+                            <div class="settings-row-info">
+                                <span class="settings-row-title" data-i18n="settings.row_backup_interval">Interval Pengingat Backup</span>
+                                <span class="settings-row-desc" data-i18n="settings.desc_backup_interval">TMPT akan mengingatkan Anda untuk mem-backup data secara berkala.</span>
+                            </div>
+                        </div>
+                        <div class="settings-row-right">
+                            <select id="backup-reminder-interval" onchange="updateReminderInterval(parseInt(this.value))">
+                                <option value="3">Setiap 3 Hari</option>
+                                <option value="7">Setiap 7 Hari</option>
+                                <option value="14">Setiap 14 Hari</option>
+                                <option value="30">Setiap 30 Hari</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Danger Zone (Zona Bahaya) Inside a red bordered panel -->
-                <div class="settings-section-title" style="color: #ef4444; margin-top: 1.5rem;">Zona Bahaya</div>
+                <div class="settings-section-title" style="color: #ef4444; margin-top: 1.5rem;" data-i18n="settings.section_danger_zone">Zona Bahaya</div>
                 <div class="settings-panel danger-zone-panel" data-search-text="zona bahaya hapus brankas permanen reset total data">
                     <div class="settings-row" style="align-items: center;">
                         <div class="settings-row-left">
                             <span class="settings-row-icon" style="color: #ef4444;">⚠️</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title" style="font-weight: 600;">Zona Bahaya</span>
-                                <span class="settings-row-desc" style="color: var(--pico-secondary);">Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</span>
+                                <span class="settings-row-title" style="font-weight: 600;" data-i18n="settings.row_danger_zone">Zona Bahaya</span>
+                                <span class="settings-row-desc" style="color: var(--pico-secondary);" data-i18n="settings.desc_danger_zone">Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.</span>
                             </div>
                         </div>
                         <div class="settings-row-right">
-                            <button class="btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="handleDestroyVault()">Hapus Seluruh Brankas</button>
+                            <button class="btn-danger" style="background-color: #ef4444; border-color: #ef4444; color: white;" onclick="handleDestroyVault()" data-i18n="settings.btn_destroy_vault">Hapus Seluruh Brankas</button>
                         </div>
                     </div>
                 </div>
@@ -375,13 +429,13 @@
 
             <!-- Tentang Section (System status / Version info) -->
             <section id="section-tentang" class="settings-section">
-                <div class="settings-section-title">Tentang</div>
+                <div class="settings-section-title" data-i18n="settings.section_about">Tentang</div>
                 <div class="settings-panel">
                     <div class="settings-row" data-search-text="versi tmpt sistem update codename">
                         <div class="settings-row-left">
                             <span class="settings-row-icon">ℹ️</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Versi Sistem</span>
+                                <span class="settings-row-title" data-i18n="settings.row_version">Versi Sistem</span>
                                 <span class="settings-row-desc">Informasi build rilis TMPT saat ini.</span>
                             </div>
                         </div>
@@ -394,7 +448,7 @@
                         <div class="settings-row-left">
                             <span class="settings-row-icon">🏷️</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Codename</span>
+                                <span class="settings-row-title" data-i18n="settings.row_codename">Codename</span>
                                 <span class="settings-row-desc">Nama kode rilis edisi saat ini.</span>
                             </div>
                         </div>
@@ -407,7 +461,7 @@
                         <div class="settings-row-left">
                             <span class="settings-row-icon">📅</span>
                             <div class="settings-row-info">
-                                <span class="settings-row-title">Pembaruan Terakhir</span>
+                                <span class="settings-row-title" data-i18n="settings.row_last_update">Pembaruan Terakhir</span>
                                 <span class="settings-row-desc">Tanggal publikasi rilis build ini.</span>
                             </div>
                         </div>
@@ -418,6 +472,32 @@
                 </div>
             </section>
         </main>
+    </div>
+</main> <!-- end of .dashboard-content-area -->
+
+            <!-- Status Keamanan Bar -->
+            <footer class="security-status-bar">
+                <div class="status-item">
+                    <span class="dot dot-green"></span>
+                    <span>Status TMPT: <strong id="status-lock-text">Terbuka</strong></span>
+                </div>
+                <div class="status-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Lokasi Data: <strong>Browser Lokal</strong></span>
+                </div>
+                <div class="status-item">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2"></rect>
+                        <path d="M7 11v-4a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    <span>Enkripsi: <strong>AES-256-GCM</strong></span>
+                </div>
+            </footer>
+        </div>
     </div>
 
     <!-- Recovery Codes Modal -->
@@ -685,7 +765,7 @@
                 el.scrollIntoView({ behavior: 'smooth' });
                 
                 // Update active sidebar item
-                document.querySelectorAll('.settings-nav-item').forEach(item => {
+                document.querySelectorAll('.settings-nav-item, .sidebar-link[data-target]').forEach(item => {
                     if (item.getAttribute('data-target') === id) {
                         item.classList.add('active');
                     } else {
@@ -805,6 +885,31 @@
             }
         }
 
+        function updateHeaderSettings() {
+            const nameEl = document.getElementById('header-app-name');
+            const t = (key, fallback) => window.TMPT_I18n ? window.TMPT_I18n.t(key) : fallback;
+            if (nameEl) {
+                nameEl.textContent = t('settings.title', 'Pengaturan');
+            }
+            const searchEl = document.getElementById('header-search');
+            if (searchEl) {
+                searchEl.placeholder = t('settings.search_placeholder', 'Cari pengaturan');
+            }
+        }
+
+        // Jalankan polling berkala untuk memastikan header ter-update begitu elemennya masuk ke DOM
+        const headerCheckInterval = setInterval(() => {
+            const nameEl = document.getElementById('header-app-name');
+            const searchEl = document.getElementById('header-search');
+            if (nameEl && searchEl) {
+                updateHeaderSettings();
+                clearInterval(headerCheckInterval);
+            }
+        }, 50);
+
+        // Bersihkan interval setelah 5 detik jika elemen tidak ditemukan (mencegah loop tak terbatas)
+        setTimeout(() => clearInterval(headerCheckInterval), 5000);
+
         async function initSettingsPageHeader() {
             await loadLicenseModule();
             await loadFeedbackModule();
@@ -820,7 +925,22 @@
                     el.textContent = window.TMPT_Version.getVersionString();
                 });
             }
+
+            updateHeaderSettings();
         }
+
+        // Search filter routing from shared header search bar
+        document.addEventListener('input', (e) => {
+            if (e.target && e.target.id === 'header-search') {
+                filterSettings(e.target.value.toLowerCase());
+            }
+        });
+
+
+
+        document.addEventListener('htmx:afterSwap', () => {
+            updateHeaderSettings();
+        });
 
         document.addEventListener('DOMContentLoaded', async () => {
             await initSettingsPageHeader();
@@ -832,6 +952,13 @@
                 observer.observe(section);
             });
 
+            // Initialize configurations from localStorage
+            document.getElementById('backup-reminder-interval').value = localStorage.getItem('tmpt_backup_reminder_interval_days') || '7';
+            document.getElementById('gdrive-schedule').value = localStorage.getItem('tmpt_gdrive_schedule') || 'daily';
+            
+            // Render GDrive Sync UI
+            updateGDriveUI();
+
             // Load current data/settings from vault
             const encryptedPayload = window.TMPT_Vault.getPayload();
             if (encryptedPayload) {
@@ -841,13 +968,31 @@
                     const data = JSON.parse(decrypted);
             
                     if (data.settings) {
+                        if (data.settings.language) {
+                            document.getElementById('language').value = data.settings.language;
+                        } else {
+                            // Set default ke yang ada di localstorage
+                            document.getElementById('language').value = localStorage.getItem('tmpt_lang') || 'id';
+                        }
                         if (data.settings.theme) document.getElementById('theme').value = data.settings.theme === 'system' ? 'light' : data.settings.theme;
                         if (data.settings.themeStylesheet) document.getElementById('theme_stylesheet').value = data.settings.themeStylesheet;
                         if (data.settings.autoLock !== undefined) document.getElementById('autolock').value = data.settings.autoLock;
+                    } else {
+                        document.getElementById('language').value = localStorage.getItem('tmpt_lang') || 'id';
                     }
                 } catch (e) {
                     console.error("Failed to load settings from vault", e);
+                    document.getElementById('language').value = localStorage.getItem('tmpt_lang') || 'id';
                 }
+            } else {
+                document.getElementById('language').value = localStorage.getItem('tmpt_lang') || 'id';
+            }
+
+            // Pengecekan parameter URL section untuk auto scroll
+            const params = new URLSearchParams(window.location.search);
+            const targetSection = params.get('section');
+            if (targetSection === 'backup') {
+                setTimeout(() => scrollToSection('section-backup'), 100);
             }
         });
 
@@ -877,12 +1022,20 @@
                 } else if (key === 'themeStylesheet') {
                     window.TMPT_UI.applyThemeStylesheet(value);
                     localStorage.setItem('tmpt_theme_stylesheet', value);
+                } else if (key === 'language') {
+                    localStorage.setItem('tmpt_lang', value);
+                    if (window.TMPT_I18n) {
+                        window.TMPT_I18n.setLang(value);
+                        return; // return early karena setLang akan reload page
+                    }
                 }
 
-                window.TMPT_UI.toast("Pengaturan disimpan.", "success");
+                const successMsg = window.TMPT_I18n ? window.TMPT_I18n.t('settings.toast_saved') : "Pengaturan disimpan.";
+                window.TMPT_UI.toast(successMsg, "success");
             } catch (e) {
                 console.error("Failed to save setting", e);
-                window.TMPT_UI.toast("Gagal menyimpan pengaturan.", "error");
+                const failedMsg = window.TMPT_I18n ? window.TMPT_I18n.t('settings.toast_save_failed') : "Gagal menyimpan pengaturan.";
+                window.TMPT_UI.toast(failedMsg, "error");
             }
         }
 
@@ -1008,6 +1161,148 @@
                 window.TMPT_UI.setLoading('#btn-change-pwd', false);
             }
         }
+
+        // --- Google Drive Sync & Backup Reminder Handlers ---
+
+        function connectGoogleDrive() {
+            if (window.GDriveSync) {
+                window.GDriveSync.connect();
+            } else {
+                window.TMPT_UI.toast("Modul Google Drive Sync belum dimuat.", "error");
+            }
+        }
+
+        async function disconnectGoogleDrive() {
+            const confirmed = await window.TMPT_UI.confirm("Apakah Anda yakin ingin memutuskan koneksi Google Drive?", "PUTUSKAN KONEKSI");
+            if (confirmed) {
+                if (window.GDriveSync) {
+                    await window.GDriveSync.disconnect();
+                    updateGDriveUI();
+                }
+            }
+        }
+
+        function updateGDriveSchedule(value) {
+            localStorage.setItem('tmpt_gdrive_schedule', value);
+            window.TMPT_UI.toast("Jadwal sinkronisasi diperbarui.", "success");
+        }
+
+        function updateReminderInterval(value) {
+            localStorage.setItem('tmpt_backup_reminder_interval_days', value.toString());
+            window.TMPT_UI.toast("Interval pengingat backup diperbarui.", "success");
+        }
+
+        async function manualGDriveSync() {
+            const btn = document.getElementById('btn-manual-gdrive-sync');
+            if (btn) {
+                btn.setAttribute('aria-busy', 'true');
+                btn.setAttribute('disabled', 'disabled');
+            }
+            window.TMPT_UI.toast("Memulai sinkronisasi awan...", "info");
+            
+            try {
+                if (window.GDriveSync) {
+                    await window.GDriveSync.uploadSync();
+                    window.TMPT_UI.toast("Pencadangan Google Drive berhasil!", "success");
+                    await updateGDriveUI();
+                }
+            } catch (e) {
+                console.error(e);
+                window.TMPT_UI.toast("Gagal melakukan sinkronisasi awan: " + e.message, "error");
+            } finally {
+                if (btn) {
+                    btn.removeAttribute('aria-busy');
+                    btn.removeAttribute('disabled');
+                }
+            }
+        }
+
+        async function updateGDriveUI() {
+            const isConnected = localStorage.getItem('tmpt_gdrive_connected') === 'true';
+            const email = localStorage.getItem('tmpt_gdrive_email') || 'Terhubung';
+            
+            const descEl = document.getElementById('gdrive-status-desc');
+            const containerEl = document.getElementById('gdrive-action-container');
+            const scheduleRow = document.getElementById('gdrive-schedule-row');
+            const historyRow = document.getElementById('gdrive-history-row');
+
+            if (!descEl || !containerEl || !scheduleRow || !historyRow) return;
+
+            if (isConnected) {
+                descEl.innerHTML = `Terhubung sebagai: <strong>${email}</strong>.<br>Status: Awan Tersinkronisasi secara otomatis.`;
+                containerEl.innerHTML = `
+                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                        <button class="btn-navy" id="btn-manual-gdrive-sync" onclick="manualGDriveSync()">Sync Sekarang</button>
+                        <button class="outline secondary" onclick="disconnectGoogleDrive()">Putuskan</button>
+                    </div>
+                `;
+                scheduleRow.style.display = 'flex';
+                historyRow.style.display = 'flex';
+                
+                // Muat daftar file backup dari Drive
+                await loadGDriveBackupsList();
+            } else {
+                descEl.textContent = "Hubungkan akun Google Anda untuk mencadangkan data terenkripsi secara otomatis ke awan.";
+                containerEl.innerHTML = `<button class="btn-navy" onclick="connectGoogleDrive()">Hubungkan</button>`;
+                scheduleRow.style.display = 'none';
+                historyRow.style.display = 'none';
+            }
+        }
+
+        async function loadGDriveBackupsList() {
+            const listEl = document.getElementById('gdrive-backups-list');
+            if (!listEl) return;
+
+            listEl.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--pico-secondary-color);"><span aria-busy="true"></span> Memuat file backup dari Drive...</div>`;
+
+            if (!window.GDriveSync) {
+                listEl.innerHTML = `<div style="padding: 1rem; text-align: center; color: #ef4444;">Modul Drive tidak aktif.</div>`;
+                return;
+            }
+
+            const files = await window.GDriveSync.listBackups();
+            if (files.length === 0) {
+                listEl.innerHTML = `<div style="padding: 1rem; text-align: center; color: var(--pico-secondary-color);">Tidak ada file backup TMPT ditemukan di Google Drive.</div>`;
+                return;
+            }
+
+            const formatter = new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            const formatBytes = (bytes) => {
+                if (!bytes) return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            };
+
+            let html = '<ul style="list-style: none; margin: 0; padding: 0;">';
+            files.forEach(file => {
+                const dateStr = formatter.format(new Date(file.createdTime));
+                const sizeStr = formatBytes(parseInt(file.size));
+                html += `
+                    <li style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--pico-muted-border-color);">
+                        <div>
+                            <div style="font-weight: 700; color: var(--pico-color);">${file.name}</div>
+                            <small style="color: var(--pico-secondary-color);">${dateStr} &bull; ${sizeStr}</small>
+                        </div>
+                        <button class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin-bottom: 0; border-radius: 8px;" onclick="restoreFromGDrive('${file.id}')">Pulihkan</button>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            listEl.innerHTML = html;
+        }
+
+        async function restoreFromGDrive(fileId) {
+            const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Memulihkan dari cloud akan MENIMPA dan MENGHAPUS seluruh data aktif Anda saat ini. Lanjutkan?", "KONFIRMASI RESTORE CLOUD");
+            if (confirmed) {
+                if (window.GDriveSync) {
+                    await window.GDriveSync.restoreBackup(fileId);
+                }
+            }
+        }
     </script>
+    <script src="/app/app-dashboard.js?v=2"></script>
 </body>
 </html>
