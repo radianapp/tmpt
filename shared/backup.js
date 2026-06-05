@@ -553,7 +553,7 @@ const BackupModule = {
 
                 if (localStorage.getItem('tmpt_vault_v1') && !window._backupConfirmed) {
                     if (window.TMPT_UI) window.TMPT_UI.hideLoader();
-                    const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Pemulihan data akan MENIMPA dan MENGHAPUS seluruh isi Brankas, aplikasi, dan file saat ini. Apakah Anda yakin data aktif saat ini sudah di-backup terlebih dahulu?", "KONFIRMASI PEMULIHAN");
+                    const confirmed = await window.TMPT_UI.confirm("PERHATIAN: Pemulihan data akan MENIMPA dan MENGHAPUS seluruh isi Brankas, aplikasi, dan file saat ini. Apakah Anda yakin data aktif saat ini sudah di-backup terlebih dahulu?", "KONFIRMASI");
                     if (!confirmed) {
                         return resolve(false);
                     }
@@ -666,13 +666,18 @@ const BackupModule = {
 
                 resolve(true);
             } catch (err) {
-                console.error("Import failed:", err);
-                if (window.TMPT_UI) {
-                    window.TMPT_UI.hideLoader();
-                    window.TMPT_UI.toast("Gagal memulihkan cadangan: " + err.message, "error");
-                }
-                reject(err);
-            }
+                 console.error("Import failed:", err);
+                 if (window.TMPT_UI) {
+                     window.TMPT_UI.hideLoader();
+                     let friendlyMsg = "Gagal memulihkan cadangan: " + err.message;
+                     const errStr = String(err.message).toLowerCase();
+                     if (errStr.includes("central directory") || errStr.includes("decrypt") || errStr.includes("cipher") || errStr.includes("decryption") || errStr.includes("mac check") || errStr.includes("integrity")) {
+                         friendlyMsg = "Berkas cadangan tidak cocok dengan Brankas yang aktif atau berkas rusak. Silakan periksa kembali berkas Anda. Jika ini adalah berkas dari Brankas lain, silakan Kunci Tmpt terlebih dahulu, lalu restore dari halaman Setup/Login awal.";
+                     }
+                     window.TMPT_UI.toast(friendlyMsg, "error");
+                 }
+                 reject(err);
+             }
         });
     },
 
