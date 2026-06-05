@@ -217,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   async function init() {
     adjustDefaultColors();
     try {
-      db = await openTmptDB('tmpt_papan', 1, (database) => {
+      db = await openTmptDB('tmpt_papan', 2, (database) => {
         if (!database.objectStoreNames.contains('boards')) {
           database.createObjectStore('boards', { keyPath: 'id' });
         }

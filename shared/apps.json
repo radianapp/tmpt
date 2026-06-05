@@ -10,7 +10,8 @@
     { "name": "Slide", "url": "/app/kerja/slide/", "icon": "🛝", "desc": "Presentasi Langsung dari Browser", "isEnabled": true },
     { "name": "Forms", "url": "/app/kerja/forms/", "icon": "📋", "desc": "Form Builder Privat", "isEnabled": true },
     { "name": "Kalender", "url": "/app/kerja/kalender/", "icon": "📅", "desc": "Atur Waktu & Deadline", "isEnabled": true },
-    { "name": "Tugas", "url": "/app/kerja/tugas/", "icon": "☑️", "desc": "Kelola Tugas Lebih Fokus", "isEnabled": true }
+    { "name": "Tugas", "url": "/app/kerja/tugas/", "icon": "☑️", "desc": "Kelola Tugas Lebih Fokus", "isEnabled": true },
+    { "name": "Project", "url": "/app/kerja/project/", "icon": "💼", "desc": "Kelola Proyek, Sprint, WBS, Wiki & Tim", "isEnabled": true }
   ],
   "dev": [
     { "name": "Code", "url": "/app/dev/code/", "icon": "💻", "desc": "Editor Kode Ringan & Cepat", "isEnabled": true },

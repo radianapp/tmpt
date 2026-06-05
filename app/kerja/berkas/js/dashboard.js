@@ -235,7 +235,7 @@ async function syncAllApps() {
 
   // 3. Sync Papan (Drawing Boards)
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -288,7 +288,7 @@ async function syncAllApps() {
 
   // 4. Sync Markdown (tmpt_markdown)
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
       }
@@ -393,7 +393,7 @@ async function syncAllApps() {
 
   // 4.5. Sync JSON (tmpt_json)
   try {
-    const jsonDb = await openTmptDB('tmpt_json', 1, (database) => {
+    const jsonDb = await openTmptDB('tmpt_json', 2, (database) => {
       if (!database.objectStoreNames.contains('sessions')) {
         database.createObjectStore('sessions', { keyPath: 'id' });
       }
@@ -443,7 +443,7 @@ async function syncAllApps() {
 
   // 5. Sync Forms (tmpt_forms)
   try {
-    const formsDb = await openTmptDB('tmpt_forms', 1, (database) => {
+    const formsDb = await openTmptDB('tmpt_forms', 2, (database) => {
       if (!database.objectStoreNames.contains('forms')) {
         database.createObjectStore('forms', { keyPath: 'id' });
       }
@@ -494,7 +494,7 @@ async function syncAllApps() {
 
   // 5.5. Sync Slide (tmpt_slides)
   try {
-    const slidesDb = await openTmptDB('tmpt_slides', 1, (database) => {
+    const slidesDb = await openTmptDB('tmpt_slides', 2, (database) => {
       if (!database.objectStoreNames.contains('presentations')) {
         database.createObjectStore('presentations', { keyPath: 'id' });
       }
@@ -541,6 +541,56 @@ async function syncAllApps() {
     slidesDb.close();
   } catch (err) {
     console.error("Gagal sinkronisasi Slide:", err);
+  }
+
+  // 5.7. Sync Project (tmpt_project)
+  try {
+    const projectDb = await openTmptDB('tmpt_project', 2, (database) => {
+      if (!database.objectStoreNames.contains('projects')) {
+        database.createObjectStore('projects', { keyPath: 'id' });
+      }
+    });
+    const projects = await dbGetAll(projectDb, 'projects') || [];
+
+    for (const proj of projects) {
+      const key = `project-${proj.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = proj.start_date ? new Date(proj.start_date).toISOString() : new Date().toISOString();
+      const updated = new Date().toISOString();
+      
+      const size = 1024;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: proj.name || 'Proyek Tanpa Judul',
+          type: 'project',
+          app_id: proj.id,
+          app_db: 'tmpt_project',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== proj.name) {
+          existing.name = proj.name || 'Proyek Tanpa Judul';
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    projectDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Project:", err);
   }
 
   // 6. Clean up deleted metadata of files that no longer exist in original apps
@@ -992,7 +1042,7 @@ async function updateCatatNoteTrashed(noteId, isTrashed) {
 
 async function updatePapanBoardStarred(boardId, isStarred) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1018,7 +1068,7 @@ async function updatePapanBoardStarred(boardId, isStarred) {
 
 async function updatePapanBoardTrashed(boardId, isTrashed) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1047,7 +1097,7 @@ async function updatePapanBoardTrashed(boardId, isTrashed) {
 
 async function deletePapanBoardRecord(boardId) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 1, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1065,9 +1115,12 @@ async function deletePapanBoardRecord(boardId) {
 
 async function updateMarkdownDocTrashed(docId, isTrashed) {
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
+      }
+      if (!database.objectStoreNames.contains('folders')) {
+        database.createObjectStore('folders', { keyPath: 'id' });
       }
     });
     const transaction = markdownDb.transaction('documents', 'readwrite');
@@ -1091,9 +1144,12 @@ async function updateMarkdownDocTrashed(docId, isTrashed) {
 
 async function deleteMarkdownRecord(docId) {
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 1, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
+      }
+      if (!database.objectStoreNames.contains('folders')) {
+        database.createObjectStore('folders', { keyPath: 'id' });
       }
     });
     const transaction = markdownDb.transaction('documents', 'readwrite');
@@ -1351,6 +1407,8 @@ async function handleOpenFile(id) {
     window.location.href = `/app/kerja/forms/builder.html?id=${file.app_id}`;
   } else if (file.type === 'slide') {
     window.location.href = `/app/kerja/slide/editor.html?id=${file.app_id}`;
+  } else if (file.type === 'project') {
+    window.location.href = `/app/kerja/project/index.html?id=${file.app_id}`;
   } else if (file.type === 'markdown') {
     window.location.href = `/app/dev/markdown/?id=${file.app_id}`;
   } else if (file.type === 'diagram') {

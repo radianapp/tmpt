@@ -20,6 +20,58 @@ const GDriveSync = {
     // Step 1: Mulai flow OAuth Implicit
     async connect() {
         try {
+            const proceed = await new Promise((resolve) => {
+                const dialog = document.createElement('dialog');
+                dialog.style.borderRadius = '20px';
+                dialog.style.padding = '2rem';
+                dialog.style.maxWidth = '550px';
+                dialog.style.width = '95%';
+
+                dialog.innerHTML = `
+                    <article style="border: none; margin: 0; padding: 0; background: transparent; box-shadow: none; text-align: left;">
+                        <h3 style="font-weight: 700; margin-bottom: 0.75rem; font-size: 1.5rem; text-align: center;">☁️ Hubungkan Google Drive</h3>
+                        <p style="margin-bottom: 1.25rem; font-size: 0.95rem; line-height: 1.5; color: var(--pico-secondary);">
+                            Anda akan diarahkan ke halaman masuk Google untuk mengaktifkan fitur pencadangan otomatis (Auto Cloud Backup).
+                        </p>
+                        
+                        <div class="warning-alert" style="margin-bottom: 1.5rem; border-left: 4px solid #f59e0b; background: rgba(245, 158, 11, 0.05); padding: 1rem; border-radius: 0 10px 10px 0; font-size: 0.9rem; line-height: 1.5;">
+                            <p style="margin: 0 0 0.5rem 0; font-weight: bold; color: #d97706;">⚠️ PENTING SAAT LAYAR PERSETUJUAN GOOGLE:</p>
+                            <p style="margin: 0 0 0.5rem 0; color: var(--pico-color);">
+                                Pada halaman persetujuan (OAuth consent screen) dari Google, Anda <strong>WAJIB mencentang (ceklis)</strong> opsi izin akses ke:
+                            </p>
+                            <ul style="margin: 0; padding-left: 1.25rem; font-weight: 600; color: var(--pico-color);">
+                                <li>"Melihat dan mengelola data konfigurasi aplikasi di Google Drive Anda"</li>
+                            </ul>
+                            <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--pico-muted-color);">
+                                *Jika opsi ini tidak dicentang, TMPT tidak akan bisa mengunggah atau mengunduh file cadangan Anda, sehingga sinkronisasi akan gagal.
+                            </p>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button type="button" class="outline secondary" id="btn-gdrive-cancel" style="margin: 0; border-radius: 8px; padding: 0.5rem 1.5rem; width: auto;">Batal</button>
+                            <button type="button" class="btn-navy" id="btn-gdrive-confirm" style="margin: 0; border-radius: 8px; padding: 0.5rem 1.75rem; width: auto; background-color: #2563eb; border-color: #2563eb; color: white;">Lanjutkan ke Google</button>
+                        </div>
+                    </article>
+                `;
+
+                document.body.appendChild(dialog);
+                dialog.showModal();
+
+                dialog.querySelector('#btn-gdrive-cancel').onclick = () => {
+                    dialog.close();
+                    dialog.remove();
+                    resolve(false);
+                };
+
+                dialog.querySelector('#btn-gdrive-confirm').onclick = () => {
+                    dialog.close();
+                    dialog.remove();
+                    resolve(true);
+                };
+            });
+
+            if (!proceed) return;
+
             if (window.TMPT_UI) window.TMPT_UI.showLoader("Menghubungkan ke Google Drive...");
             
             const state = this._generateRandomString(16);

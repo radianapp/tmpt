@@ -1,8 +1,27 @@
 // shared/db.js - Reusable IndexedDB wrapper for TMPT
 
+export const DB_VERSIONS = {
+  'tmpt_berkas': 2,
+  'tmpt_tulis': 2,
+  'tmpt_slides': 2,
+  'tmpt_forms': 2,
+  'tmpt_kalender': 2,
+  'tmpt_tugas': 2,
+  'tmpt_vault': 1,
+  'tmpt_code': 2,
+  'tmpt_diagram': 2,
+  'tmpt_markdown': 2,
+  'tmpt_json': 2,
+  'tmpt_papan': 2,
+  'tmpt_regex': 2,
+  'tmpt_pomodoro': 2,
+  'tmpt_qr': 2
+};
+
 export async function openTmptDB(dbName, version, upgradeCallback) {
+  const finalVersion = DB_VERSIONS[dbName] || version || 1;
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(dbName, version);
+    const req = indexedDB.open(dbName, finalVersion);
     req.onupgradeneeded = (e) => upgradeCallback(e.target.result);
     req.onsuccess = (e) => resolve(e.target.result);
     req.onerror = (e) => reject(e.target.error);

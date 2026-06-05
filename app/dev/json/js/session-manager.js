@@ -3,7 +3,7 @@ import { openTmptDB, dbGet, dbPut, dbDelete, dbGetAll } from '/shared/db.js';
 import { broadcastTMPT, TMPT_EVENTS } from '/shared/broadcast.js';
 
 const DB_NAME = 'tmpt_json';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_NAME = 'sessions';
 
 let db = null;

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TMPT Project — Manajemen Proyek Kolaboratif Tim & Agile</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="./project.css">
+    
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+    <script src="/shared/license.js"></script>
+    <script type="module" src="/shared/seo.js" data-seo-key="project-dashboard"></script>
+    
+    <style>
+        header.container {
+            max-width: 100% !important;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+        .main-container-fluid {
+            padding: 0 2rem;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // Cek otentikasi sebelum merender halaman
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+            if (window.TMPT_Auth.isUnlocked()) {
+                window.TMPT_Auth.setupIdleListeners();
+            }
+        })();
+    </script>
+
+    <!-- Header Shared TMPT -->
+    <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="main-container-fluid">
+        <div class="project-layout">
+            <!-- Sidebar Kiri -->
+            <aside class="project-sidebar">
+                <div class="sidebar-project-select">
+                    <label for="project-selector" style="font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color);">Pilih Proyek</label>
+                    <select id="project-selector" style="margin-bottom: 0.5rem;" onchange="handleProjectChange()">
+                        <!-- Diisi secara dinamis -->
+                    </select>
+                    <button class="btn-navy" style="width: 100%; font-size: 0.85rem; padding: 0.4rem 0.75rem;" onclick="openNewProjectModal()">+ Proyek Baru</button>
+                </div>
+
+                <nav class="sidebar-menu">
+                    <button class="sidebar-nav-btn active" id="nav-portfolio" onclick="switchTab('portfolio')">
+                        <span>📊</span> Portofolio
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-dashboard" onclick="switchTab('dashboard')">
+                        <span>📈</span> Dasbor Proyek
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-kanban" onclick="switchTab('kanban')">
+                        <span>📋</span> Papan Kanban
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-timeline" onclick="switchTab('timeline')">
+                        <span>📅</span> Timeline (Gantt)
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-wbs" onclick="switchTab('wbs')">
+                        <span>🌳</span> Struktur WBS
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-sprints" onclick="switchTab('sprints')">
+                        <span>🏃</span> Perencanaan Sprint
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-requirements" onclick="switchTab('requirements')">
+                        <span>🎯</span> Requirements
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-qa" onclick="switchTab('qa')">
+                        <span>🐛</span> QA & Bugs
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-wiki" onclick="switchTab('wiki')">
+                        <span>📖</span> Wiki & Dokumen
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-resources" onclick="switchTab('resources')">
+                        <span>👥</span> Tim & Beban Kerja
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-releases" onclick="switchTab('releases')">
+                        <span>📦</span> Manajemen Rilis
+                    </button>
+                    <button class="sidebar-nav-btn" id="nav-extra" onclick="switchTab('extra')">
+                        <span>⚙️</span> Risiko & Rapat
+                    </button>
+                </nav>
+
+                <!-- Time Tracker Widget -->
+                <div class="time-tracker-card" style="margin-top: auto;">
+                    <div style="font-weight: 800; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color); text-align: center;">⏱️ Pencatat Waktu</div>
+                    <div id="tracker-timer" class="tracker-time">00:00:00</div>
+                    <select id="tracker-task-selector" style="font-size: 0.8rem; margin-bottom: 0.5rem;">
+                        <option value="">-- Pilih Tugas --</option>
+                    </select>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="btn-tracker-start" class="btn-navy" style="flex: 1; font-size: 0.8rem; padding: 0.4rem 0;" onclick="toggleTracker()">Mulai</button>
+                        <button id="btn-tracker-stop" class="outline secondary" style="flex: 1; font-size: 0.8rem; padding: 0.4rem 0;" onclick="stopTracker()" disabled>Berhenti</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Konten Utama Kanan -->
+            <section class="project-main">
+                <!-- Action Header Row -->
+                <div class="project-action-header">
+                    <div>
+                        <h2 id="project-display-name" style="margin: 0; font-size: 1.5rem; font-weight: 800;">Portofolio Organisasi</h2>
+                        <div class="project-meta-badges" id="project-meta-container" style="margin-top: 0.25rem;">
+                            <!-- Dinamis -->
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span id="save-status" style="font-size: 0.8rem; color: var(--pico-muted-color); font-weight: 600;"></span>
+                        <button id="btn-primary-action" class="btn-navy" style="margin: 0; font-size: 0.85rem; padding: 0.4rem 0.85rem;" onclick="handlePrimaryAction()">
+                            + Tambah Tugas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container Tab Konten Utama -->
+                <div id="project-tab-content">
+                    <!-- Berbagai view dirender di sini via JS -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal: Proyek Baru -->
+    <dialog id="modal-project">
+        <article class="modal-premium" style="max-width: 500px; width: 95%;">
+            <div class="modal-header">
+                <h3>Buat Proyek Baru</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-project').close()">✕</button>
+            </div>
+            <form id="form-project" onsubmit="saveNewProject(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label for="project-name-input">Nama Proyek</label>
+                    <input type="text" id="project-name-input" placeholder="Nama Proyek Baru" required>
+                </div>
+                <div class="grid">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-key-input">Prefix Key (misal: TMPT)</label>
+                        <input type="text" id="project-key-input" placeholder="KEY" maxlength="10" required>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-priority-input">Prioritas</label>
+                        <select id="project-priority-input">
+                            <option value="low">Rendah</option>
+                            <option value="medium" selected>Sedang</option>
+                            <option value="high">Tinggi</option>
+                            <option value="critical">Kritis</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-budget-input">Budget (Rp)</label>
+                        <input type="number" id="project-budget-input" placeholder="50000000">
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <label for="project-pm-input">Project Manager</label>
+                        <select id="project-pm-input">
+                            <!-- Diisi dinamis -->
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem;">
+                    <button type="button" class="btn-gray" onclick="document.getElementById('modal-project').close()">Batal</button>
+                    <button type="submit" class="btn-navy" style="margin: 0;">Buat Proyek</button>
+                </div>
+            </form>
+        </article>
+    </dialog>
+
+    <!-- Modal: Buat/Edit Tugas -->
+    <dialog id="modal-task">
+        <article class="modal-premium" style="max-width: 650px; width: 95%;">
+            <div class="modal-header">
+                <h3 id="modal-task-title">Tambah Tugas Baru</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-task').close()">✕</button>
+            </div>
+            <form id="form-task" onsubmit="saveTask(event)">
+                <input type="hidden" id="task-id">
+                <div style="margin-bottom: 1rem;">
+                    <label for="task-title-input">Judul Tugas</label>
+                    <input type="text" id="task-title-input" placeholder="Tuliskan judul tugas..." required>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="task-type-input">Tipe</label>
+                        <select id="task-type-input">
+                            <option value="feature">Fitur baru (Feature)</option>
+                            <option value="bug">Kutu (Bug)</option>
+                            <option value="task" selected>Tugas umum (Task)</option>
+                            <option value="chore">Pekerjaan rutin (Chore)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-priority-input">Prioritas</label>
+                        <select id="task-priority-input">
+                            <option value="low">Rendah</option>
+                            <option value="medium" selected>Sedang</option>
+                            <option value="high">Tinggi</option>
+                            <option value="critical">Kritis</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="task-assignee-input">Penerima Tugas</label>
+                        <select id="task-assignee-input">
+                            <option value="">Belum Ditugaskan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="task-sprint-input">Sprint</label>
+                        <select id="task-sprint-input">
+                            <option value="">Backlog Utama</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid">
+                    <div>
+                        <label for="task-estimate-input">Estimasi Waktu (Jam)</label>
+                        <input type="number" id="task-estimate-input" step="0.5" placeholder="4">
+                    </div>
+                    <div>
+                        <label for="task-points-input">Story Points</label>
+                        <input type="number" id="task-points-input" placeholder="3">
+                    </div>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label for="task-desc-input">Deskripsi Tugas</label>
+                    <textarea id="task-desc-input" rows="4" placeholder="Detail deskripsi tugas..."></textarea>
+                </div>
+                <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                    <button type="button" id="btn-del-task" class="outline secondary" style="color: #ef4444; border-color: #ef4444; margin: 0; display: none;" onclick="deleteTask()">🗑️ Hapus</button>
+                    <div></div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button type="button" class="btn-gray" onclick="document.getElementById('modal-task').close()">Batal</button>
+                        <button type="submit" class="btn-navy" style="margin: 0;">Simpan</button>
+                    </div>
+                </div>
+            </form>
+        </article>
+    </dialog>
+
+    <!-- Modal: Detail Tugas (Activity, Time entries, Subtasks) -->
+    <dialog id="modal-task-detail">
+        <article class="modal-premium" style="max-width: 700px; width: 95%;">
+            <div class="modal-header">
+                <span id="detail-task-key" class="meta-badge" style="margin-right: 0.5rem;">TMPT-01</span>
+                <h3 id="detail-task-title" style="display: inline; margin: 0;">Judul Tugas</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-task-detail').close()">✕</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <div class="grid" style="gap: 1.5rem;">
+                    <!-- Informasi Utama -->
+                    <div style="flex-grow: 2;">
+                        <h5>Deskripsi</h5>
+                        <p id="detail-task-desc" class="secondary" style="white-space: pre-line; background: var(--pico-form-element-background-color); padding: 0.75rem; border-radius: 8px;">Tidak ada deskripsi.</p>
+                        
+                        <h5 style="margin-top: 1.5rem;">Log Waktu Tugas</h5>
+                        <div id="detail-task-time-log" style="font-size: 0.9rem;">
+                            <!-- Diisi dinamis -->
+                        </div>
+                    </div>
+                    <!-- Sidebar Atribut -->
+                    <div style="flex: 0 0 220px; background: var(--pico-form-element-background-color); padding: 1rem; border-radius: 12px; height: fit-content; font-size: 0.85rem;">
+                        <div style="margin-bottom: 0.75rem;"><strong>Status:</strong> <span id="detail-task-status">Todo</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Tipe:</strong> <span id="detail-task-type">Task</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Prioritas:</strong> <span id="detail-task-priority">Medium</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Penerima:</strong> <span id="detail-task-assignee">Budi</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Sprint:</strong> <span id="detail-task-sprint">Sprint 1</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Story Points:</strong> <span id="detail-task-points">3</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Estimasi:</strong> <span id="detail-task-estimate">4 jam</span></div>
+                        <div style="margin-bottom: 0.75rem;"><strong>Aktual:</strong> <span id="detail-task-actual">0 jam</span></div>
+                        <button class="outline" style="width: 100%; font-size: 0.8rem; padding: 0.4rem 0;" onclick="triggerEditTaskFromDetail()">Edit Tugas</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end; margin-top: 1rem;">
+                <button class="btn-gray" onclick="document.getElementById('modal-task-detail').close()">Tutup</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal: Ekspor / Impor JSON -->
+    <dialog id="modal-export">
+        <article class="modal-premium" style="max-width: 520px; width: 95%;">
+            <div class="modal-header">
+                <h3>Ekspor / Impor Data Proyek</h3>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-export').close()">✕</button>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <p class="secondary" style="font-size: 0.95rem; margin-bottom: 1.5rem;">Ekspor atau impor seluruh database kerja proyek tim Anda ke format JSON local-first TMPT.</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    <div style="padding: 1.25rem; border: 1px solid var(--pico-primary); border-radius: 16px; background: rgba(59, 130, 246, 0.05); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <div>
+                            <div style="font-weight: 700; color: var(--pico-primary); font-size: 1.1rem; margin-bottom: 0.25rem;">Unduh Backup Proyek</div>
+                            <small class="secondary">Seluruh proyek, tugas, sprint, wiki, dan log disimpan ke berkas .json</small>
+                        </div>
+                        <button onclick="exportProjectData()" class="btn-navy" style="margin: 0; padding: 0.5rem 1rem !important;">📥 Unduh JSON</button>
+                    </div>
+
+                    <div style="padding: 1.25rem; border: 1px solid var(--pico-muted-border-color); border-radius: 16px; background: var(--pico-card-background-color); text-align: center;">
+                        <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem;">Pulihkan dari Berkas</div>
+                        <p class="secondary" style="font-size: 0.9rem; margin-bottom: 1rem;">Unggah berkas backup .json proyek Anda.</p>
+                        <input type="file" id="import-project-file" accept=".json" style="display: none;" onchange="importProjectData(event)">
+                        <button onclick="document.getElementById('import-project-file').click()" class="outline" style="border-radius: 12px; margin: 0;">Upload Berkas JSON</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button class="btn-gray" onclick="document.getElementById('modal-export').close()">Tutup</button>
+            </div>
+        </article>
+    </dialog>
+
+    <!-- Modal Konfirmasi Umum (PicoCSS) -->
+    <dialog id="confirm-modal">
+        <article style="max-width: 480px; width: 95%;">
+            <header style="margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="margin: 0; font-weight: 700;">Konfirmasi Tindakan</h4>
+                <button type="button" class="btn-close" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--pico-muted-color); padding: 0; margin: 0;" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(false)">✕</button>
+            </header>
+            <p id="confirm-message" style="margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;"></p>
+            <div id="confirm-input-container" style="display: none; margin-bottom: 1rem;">
+                <input type="text" id="confirm-input" style="width: 100%;">
+            </div>
+            <footer style="display: flex; justify-content: flex-end; gap: 0.75rem; background: transparent; padding: 0; border-top: none;">
+                <button type="button" class="btn-gray" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(false)">Batal</button>
+                <button type="button" id="confirm-ok-btn" class="btn-navy" style="margin: 0;" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(true)">Ya, Lanjutkan</button>
+            </footer>
+        </article>
+    </dialog>
+
+    <div id="toast-container" aria-live="polite"></div>
+
+    <script type="module" src="./project.js"></script>
+</body>
+</html>

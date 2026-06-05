@@ -1,5 +1,5 @@
 // app/kerja/tugas/tugas.js
-import { openTmptDB, dbGet, dbGetAll, dbPut, dbDelete } from '/shared/db.js';
+import { openTmptDB, dbGet, dbGetAll, dbPut, dbDelete, DB_VERSIONS } from '/shared/db.js';
 import { listenTMPT, broadcastTMPT, TMPT_EVENTS } from '/shared/broadcast.js';
 
 const generateId = () => crypto.randomUUID();
@@ -735,7 +735,7 @@ async function loadFilesForLinking() {
   const select = document.getElementById('modal-link-doc-select');
   select.innerHTML = '<option value="">Pilih Berkas...</option>';
   try {
-    const req = indexedDB.open('tmpt_berkas', 1);
+    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
     req.onsuccess = (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;
@@ -1109,7 +1109,7 @@ function setupEventListeners() {
     }
 
     try {
-      const req = indexedDB.open('tmpt_kalender', 1);
+      const req = indexedDB.open('tmpt_kalender', DB_VERSIONS['tmpt_kalender']);
       req.onsuccess = async (e) => {
         const dbKalender = e.target.result;
         if (!dbKalender.objectStoreNames.contains('events')) {

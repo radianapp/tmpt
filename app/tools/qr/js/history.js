@@ -3,7 +3,7 @@ import { openTmptDB } from '/shared/db.js';
 
 const DB_NAME = 'tmpt_qr';
 const STORE_NAME = 'qrcodes';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance = null;
 

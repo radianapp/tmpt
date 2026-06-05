@@ -4,7 +4,7 @@ import { openTmptDB, dbPut } from '/shared/db.js';
 import { broadcastTMPT, TMPT_EVENTS } from '/shared/broadcast.js';
 
 const KALENDER_DB_NAME = 'tmpt_kalender';
-const KALENDER_DB_VERSION = 1;
+const KALENDER_DB_VERSION = 2;
 
 export async function logSessionToKalender(session) {
   try {

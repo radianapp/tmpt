@@ -113,7 +113,7 @@ function insertHamburgerInHeader() {
 // === DATABASE MODULE (IndexedDB) ===
 async function initDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('tmpt_markdown', 1);
+    const request = indexedDB.open('tmpt_markdown', 2);
     
     request.onupgradeneeded = (e) => {
       const db = e.target.result;

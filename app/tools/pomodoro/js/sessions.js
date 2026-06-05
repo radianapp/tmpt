@@ -3,7 +3,7 @@
 import { openTmptDB, dbGet, dbPut, dbDelete, dbGetAll, dbGetAllByIndex } from '/shared/db.js';
 
 const DB_NAME = 'tmpt_pomodoro';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let dbInstance = null;
 

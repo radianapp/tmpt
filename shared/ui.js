@@ -238,6 +238,48 @@ const UIModule = {
     },
 
     /**
+     * Generic Custom Alert Dialog (Promise based, styled with PicoCSS)
+     */
+    async alert(message) {
+        return new Promise((resolve) => {
+            const dialog = document.createElement('dialog');
+            dialog.style.borderRadius = '20px';
+            dialog.style.padding = '2rem';
+            dialog.style.maxWidth = '450px';
+            dialog.style.width = '95%';
+
+            dialog.innerHTML = `
+                <article style="border: none; margin: 0; padding: 0; background: transparent; box-shadow: none;">
+                    <h3 style="font-weight: 700; margin-bottom: 0.75rem; font-size: 1.5rem;">Perhatian</h3>
+                    <p style="margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5; text-align: left;">${message}</p>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button type="button" class="btn-navy" id="ui-alert-ok" style="margin: 0; border-radius: 8px; padding: 0.4rem 1.5rem;">OK</button>
+                    </div>
+                </article>
+            `;
+
+            document.body.appendChild(dialog);
+            dialog.showModal();
+
+            const okBtn = dialog.querySelector('#ui-alert-ok');
+            okBtn.focus();
+
+            okBtn.onclick = () => {
+                dialog.close();
+                dialog.remove();
+                resolve();
+            };
+
+            dialog.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === 'Escape') {
+                    e.preventDefault();
+                    okBtn.click();
+                }
+            };
+        });
+    },
+
+    /**
      * Generic Dynamic Prompt Dialog (Promise based, styled with PicoCSS)
      */
     async prompt(message, placeholder = '', isPassword = false) {
@@ -460,7 +502,7 @@ const UIModule = {
                                     window.TMPT_Vault.switchVault(vault.id);
                                 }
                             } else {
-                                alert(window.TMPT_I18n ? t('profile.pro_required') : "Fitur Ganti Tmpt (Multi-Vault) memerlukan akun TMPT Pro!");
+                                UIModule.alert(window.TMPT_I18n ? t('profile.pro_required') : "Fitur Ganti Tmpt (Multi-Vault) memerlukan akun TMPT Pro!");
                             }
                         };
                     }

@@ -80,7 +80,19 @@ export const SEO_CONFIG = {
     ]
   },
 
-  // ── Halaman App (noindex) ────────────────────────────────────────────────
+  'project-dashboard': {
+    title: 'TMPT Project — Manajemen Proyek Kolaboratif &amp; Agile Tim Offline',
+    desc: 'Platform manajemen proyek, Scrum/Kanban board, WBS, Wiki, dan pelacakan waktu kerja (Time Tracking) local-first dan privat.',
+    canonical: 'https://tmpt.my.id/app/kerja/project/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Kerja', url: '/app/kerja/' },
+      { name: 'TMPT Project', url: '/app/kerja/project/' }
+    ]
+  },
+
   'tulis-dashboard': {
     title: 'TMPT Tulis — Pembuat Dokumen Offline & Privat',
     desc: 'Tulis dan sunting dokumen secara lokal dan privat. Data Anda tidak pernah dikirim ke server. Bebas dari gangguan iklan dan pelacakan.',

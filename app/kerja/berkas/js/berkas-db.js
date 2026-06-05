@@ -2,7 +2,7 @@
 import { openTmptDB, dbGet, dbPut, dbDelete, dbGetAll, dbGetAllByIndex } from '/shared/db.js';
 
 const DB_NAME = 'tmpt_berkas';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let db = null;
 

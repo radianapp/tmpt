@@ -1,9 +1,9 @@
 // app/kerja/kalender/kalender.js
-import { openTmptDB, dbGet, dbGetAll, dbPut, dbDelete } from '/shared/db.js';
+import { openTmptDB, dbGet, dbGetAll, dbPut, dbDelete, DB_VERSIONS } from '/shared/db.js';
 import { listenTMPT, broadcastTMPT, TMPT_EVENTS } from '/shared/broadcast.js';
 
 const DB_NAME = 'tmpt_kalender';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 let db = null;
 let activeCalendars = new Set();
@@ -644,7 +644,7 @@ async function loadFilesForLinking() {
   select.innerHTML = '<option value="">Pilih Dokumen TMPT...</option>';
 
   try {
-    const req = indexedDB.open('tmpt_berkas', 1);
+    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
     req.onsuccess = (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;
@@ -1214,7 +1214,7 @@ async function syncDeadlines() {
 
   // 1. Fetch deadlines from TMPT Berkas
   try {
-    const req = indexedDB.open('tmpt_berkas', 1);
+    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
     req.onsuccess = async (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;

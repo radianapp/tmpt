@@ -5,7 +5,7 @@ let db = null;
 
 export async function initSessionDB() {
   if (db) return db;
-  db = await openTmptDB('tmpt_regex', 1, (database) => {
+  db = await openTmptDB('tmpt_regex', 2, (database) => {
     if (!database.objectStoreNames.contains('sessions')) {
       database.createObjectStore('sessions', { keyPath: 'id' });
     }
