@@ -156,7 +156,7 @@ const BackupAwareness = {
                 </div>
                 
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
-                    <button class="btn-navy" style="flex: 1; font-size: 0.8rem; padding: 0.4rem 0.5rem; margin-bottom: 0; border-radius: 8px;" onclick="BackupAwareness.triggerBackup()">📥 Backup Sekarang</button>
+                    <a href="/app/auth/settings/#section-backup" class="btn-navy" role="button" style="flex: 1; font-size: 0.8rem; padding: 0.4rem 0.5rem; margin-bottom: 0; border-radius: 8px; text-align: center; text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">📥 Backup Sekarang</a>
                     <a href="/app/auth/settings/#section-backup" role="button" class="outline secondary" style="flex: 1; font-size: 0.8rem; padding: 0.4rem 0.5rem; margin-bottom: 0; border-radius: 8px; text-align: center; text-decoration: none;">⚙️ Setelan Sync</a>
                 </div>
                 <div id="dropdown-gdrive-sync-status" style="font-size: 0.75rem; text-align: center; color: var(--pico-secondary-color); border-top: 1px solid var(--pico-muted-border-color); padding-top: 0.5rem; margin-top: 0.5rem;">
@@ -264,7 +264,7 @@ const BackupAwareness = {
                 <div style="font-weight: 700;">💾 Amankan Data TMPT Anda</div>
                 <div style="font-size: 0.85rem; color: var(--pico-color);">${daysStr} Data hanya tersimpan di peramban komputer ini.</div>
                 <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-                    <button class="btn-navy" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px;" onclick="BackupAwareness.triggerBackup(); this.closest('.toast').remove();">Backup Sekarang</button>
+                    <a href="/app/auth/settings/#section-backup" class="btn-navy" role="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px; text-align: center; text-decoration: none; display: inline-block;" onclick="this.closest('.toast').remove();">Backup Sekarang</a>
                     <button class="outline secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px;" onclick="BackupAwareness.snoozeReminder(); this.closest('.toast').remove();">Nanti</button>
                 </div>
             `;

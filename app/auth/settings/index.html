@@ -942,8 +942,20 @@
             updateHeaderSettings();
         });
 
+        async function loadGDriveSyncModule() {
+            if (!window.GDriveSync) {
+                await new Promise((resolve) => {
+                    const script = document.createElement('script');
+                    script.src = '/shared/gdrive-sync.js';
+                    script.onload = resolve;
+                    document.head.appendChild(script);
+                });
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             await initSettingsPageHeader();
+            await loadGDriveSyncModule();
             renderRecoverySection();
             renderLicenseStatus();
 

@@ -6,6 +6,7 @@
 
 const GDriveSync = {
     // Client ID dari Google Cloud Console - Diisi oleh user
+    
     CLIENT_ID: '537747410603-5e2p8k9e0cnohsgfc9aqhht9e25l35h0.apps.googleusercontent.com', 
     SCOPES: 'https://www.googleapis.com/auth/drive.appdata email',
 
@@ -16,29 +17,21 @@ const GDriveSync = {
         return 'https://tmpt.my.id/app/auth/gdrive-callback.html';
     },
 
-    // Step 1: Mulai flow OAuth PKCE
+    // Step 1: Mulai flow OAuth Implicit
     async connect() {
         try {
             if (window.TMPT_UI) window.TMPT_UI.showLoader("Menghubungkan ke Google Drive...");
             
-            // Generate Verifier & Challenge
-            const verifier = this._generateRandomString(64);
-            sessionStorage.setItem('gdrive_oauth_verifier', verifier);
-            
-            const challenge = await this._sha256(verifier);
             const state = this._generateRandomString(16);
             sessionStorage.setItem('gdrive_oauth_state', state);
 
             const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
             authUrl.searchParams.set('client_id', this.CLIENT_ID);
             authUrl.searchParams.set('redirect_uri', this._getRedirectUri());
-            authUrl.searchParams.set('response_type', 'code');
+            authUrl.searchParams.set('response_type', 'token'); // Menggunakan Implicit Flow (Token langsung)
             authUrl.searchParams.set('scope', this.SCOPES);
-            authUrl.searchParams.set('code_challenge', challenge);
-            authUrl.searchParams.set('code_challenge_method', 'S256');
             authUrl.searchParams.set('state', state);
-            authUrl.searchParams.set('access_type', 'offline'); // Minta refresh token
-            authUrl.searchParams.set('prompt', 'consent');
+            authUrl.searchParams.set('prompt', 'select_account');
 
             if (window.TMPT_UI) window.TMPT_UI.hideLoader();
             window.location.href = authUrl.toString();
@@ -51,54 +44,30 @@ const GDriveSync = {
         }
     },
 
-    // Step 2: Handle callback dari redirect Google
-    async handleCallback(code, state) {
+    // Step 2: Handle callback dari redirect Google (Implicit Flow)
+    async handleCallback(accessToken, expiresIn, state) {
         try {
             if (window.TMPT_UI) window.TMPT_UI.showLoader("Menyelesaikan autentikasi Google...");
 
             const savedState = sessionStorage.getItem('gdrive_oauth_state');
-            const verifier = sessionStorage.getItem('gdrive_oauth_verifier');
 
             if (!state || state !== savedState) {
                 throw new Error("Verifikasi state CSRF gagal.");
             }
 
-            const response = await fetch('https://oauth2.googleapis.com/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    client_id: this.CLIENT_ID,
-                    code_verifier: verifier,
-                    grant_type: 'authorization_code',
-                    code: code,
-                    redirect_uri: this._getRedirectUri()
-                })
-            });
-
-            if (!response.ok) {
-                const errBody = await response.text();
-                throw new Error("Gagal menukar kode otorisasi: " + errBody);
+            if (!accessToken) {
+                throw new Error("Token akses tidak ditemukan.");
             }
 
-            const tokens = await response.json();
-            
-            // Simpan access token jangka pendek di sessionStorage
-            sessionStorage.setItem('gdrive_access_token', tokens.access_token);
-            sessionStorage.setItem('gdrive_token_expires_at', Date.now() + (tokens.expires_in * 1000));
-
-            // Simpan refresh token jangka panjang terenkripsi di localStorage
-            if (tokens.refresh_token) {
-                const key = window.TMPT_Auth.getKey();
-                if (!key) throw new Error("Brankas terkunci, tidak dapat mengamankan refresh token.");
-                
-                const encrypted = await window.TMPT_Crypto.encrypt(tokens.refresh_token, key);
-                localStorage.setItem('tmpt_gdrive_refresh_token_enc', encrypted);
-            }
+            // Simpan access token di localStorage agar bertahan lebih lama
+            localStorage.setItem('gdrive_access_token', accessToken);
+            const expiresAt = Date.now() + (parseInt(expiresIn || '3600') * 1000);
+            localStorage.setItem('gdrive_token_expires_at', expiresAt);
 
             localStorage.setItem('tmpt_gdrive_connected', 'true');
             
             // Ambil informasi email pengguna
-            const email = await this._fetchUserEmail(tokens.access_token);
+            const email = await this._fetchUserEmail(accessToken);
             if (email) localStorage.setItem('tmpt_gdrive_email', email);
 
             if (window.TMPT_UI) {
@@ -127,6 +96,8 @@ const GDriveSync = {
         localStorage.removeItem('tmpt_gdrive_email');
         localStorage.removeItem('tmpt_gdrive_last_sync');
         localStorage.removeItem('tmpt_gdrive_refresh_token_enc');
+        localStorage.removeItem('gdrive_access_token');
+        localStorage.removeItem('gdrive_token_expires_at');
         sessionStorage.removeItem('gdrive_access_token');
         sessionStorage.removeItem('gdrive_token_expires_at');
         
@@ -240,8 +211,16 @@ const GDriveSync = {
                 console.warn("[GDrive] Ukuran file cadangan besar: " + (finalBlob.size / 1024 / 1024).toFixed(2) + "MB");
             }
 
+            let vaultName = "Utama";
+            if (window.TMPT_Vault) {
+                const meta = window.TMPT_Vault.getMetadata();
+                if (meta && meta.name) {
+                    vaultName = meta.name;
+                }
+            }
+            const safeVaultName = vaultName.replace(/[^a-zA-Z0-9_-]/g, '_');
             const date = new Date().toISOString().split('T')[0];
-            const filename = `TMPT-Backup-${date}.tmpt`;
+            const filename = `TMPT-Backup-${safeVaultName}-${date}.tmpt`;
 
             // Unggah berkas ke Google Drive (appDataFolder)
             await this._uploadToDrive(token, finalBlob, filename);
@@ -367,43 +346,15 @@ const GDriveSync = {
     },
 
     async _getAccessToken() {
-        const token = sessionStorage.getItem('gdrive_access_token');
-        const expiresAt = sessionStorage.getItem('gdrive_token_expires_at');
+        const token = localStorage.getItem('gdrive_access_token') || sessionStorage.getItem('gdrive_access_token');
+        const expiresAt = localStorage.getItem('gdrive_token_expires_at') || sessionStorage.getItem('gdrive_token_expires_at');
 
         if (token && expiresAt && Date.now() < parseInt(expiresAt) - 60000) {
             return token;
         }
 
-        // Coba refresh token
-        const encryptedRefreshToken = localStorage.getItem('tmpt_gdrive_refresh_token_enc');
-        if (!encryptedRefreshToken) return null;
-
-        const key = window.TMPT_Auth.getKey();
-        if (!key) return null;
-
-        try {
-            const refreshToken = await window.TMPT_Crypto.decrypt(encryptedRefreshToken, key);
-            
-            const response = await fetch('https://oauth2.googleapis.com/token', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams({
-                    client_id: this.CLIENT_ID,
-                    grant_type: 'refresh_token',
-                    refresh_token: refreshToken
-                })
-            });
-
-            if (!response.ok) throw new Error("Gagal me-refresh token.");
-            const tokens = await response.json();
-
-            sessionStorage.setItem('gdrive_access_token', tokens.access_token);
-            sessionStorage.setItem('gdrive_token_expires_at', Date.now() + (tokens.expires_in * 1000));
-            return tokens.access_token;
-        } catch (e) {
-            console.error("Gagal merefresh access token Google:", e);
-            return null;
-        }
+        console.warn("[GDrive] Token akses Google Drive kedaluwarsa atau tidak ditemukan.");
+        return null;
     },
 
     _generateRandomString(length) {

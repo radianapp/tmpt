@@ -433,7 +433,7 @@ const BackupModule = {
             }
             const safeVaultName = vaultName.replace(/[^a-zA-Z0-9_-]/g, '_');
             const date = new Date().toISOString().split('T')[0];
-            const fileName = `TMTP-Backup-${safeVaultName}-${date}.tmpt`;
+            const fileName = `TMPT-Backup-${safeVaultName}-${date}.tmpt`;
 
             const link = document.createElement('a');
             link.href = url;

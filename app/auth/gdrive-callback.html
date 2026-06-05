@@ -29,8 +29,14 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await window.TMPT_Auth.init();
             
-            const params = new URLSearchParams(window.location.search);
-            const code = params.get('code');
+            // Mendukung pembacaan dari query search maupun hash fragment
+            let params = new URLSearchParams(window.location.search);
+            if (window.location.hash) {
+                params = new URLSearchParams(window.location.hash.substring(1));
+            }
+            
+            const accessToken = params.get('access_token');
+            const expiresIn = params.get('expires_in');
             const state = params.get('state');
             const error = params.get('error');
 
@@ -42,8 +48,8 @@
                 return;
             }
 
-            if (code && state) {
-                await window.GDriveSync.handleCallback(code, state);
+            if (accessToken && state) {
+                await window.GDriveSync.handleCallback(accessToken, expiresIn, state);
             } else {
                 window.location.href = '/app/auth/settings/#section-backup';
             }
