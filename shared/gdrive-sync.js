@@ -341,7 +341,7 @@ const GDriveSync = {
         }
     },
 
-    // --- Private / Helper Methods ---
+    // --- Private / Helper Methods --- 
 
     async _uploadToDrive(token, blob, filename) {
         const metadata = {
