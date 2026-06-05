@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tmpt-cache-v5.4';
+const CACHE_NAME = 'tmpt-cache-v5.5';
 const ASSETS = [
   '/',
   '/404.html',

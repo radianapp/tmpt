@@ -192,6 +192,10 @@ const GDriveSync = {
             if (!token) throw new Error("Akses otorisasi Google kedaluwarsa atau tidak valid.");
 
             // Dapatkan payload backup zip mentah lewat modul TMPT_Backup
+            if (!window.TMPT_Backup) {
+                console.log("[GDrive] Memuat modul TMPT_Backup secara dinamis...");
+                await this._loadScript('/shared/backup.js');
+            }
             if (!window.TMPT_Backup) throw new Error("Modul Backup TMPT tidak aktif.");
             
             // 1. Dapatkan database dinamis & buat ZIP
@@ -423,6 +427,16 @@ const GDriveSync = {
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
+    },
+
+    _loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Gagal memuat script: " + src));
+            document.head.appendChild(script);
+        });
     }
 };
 
