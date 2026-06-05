@@ -184,9 +184,10 @@ const UIModule = {
     /**
      * Generic Confirm Modal (Promise based)
      */
-    async confirm(message, requiredText = null) {
+    async confirm(message, requiredText = null, title = 'Konfirmasi') {
         return new Promise((resolve) => {
             const modal = document.getElementById('confirm-modal');
+            const titleEl = document.getElementById('confirm-title');
             const msgEl = document.getElementById('confirm-message');
             const inputContainer = document.getElementById('confirm-input-container');
             const inputEl = document.getElementById('confirm-input');
@@ -195,14 +196,15 @@ const UIModule = {
             if (!modal || !msgEl || !okBtn) {
                 // Fallback jika modal tidak ada di HTML
                 if (requiredText) {
-                    const promptVal = window.prompt(`${message}\n\nKetik "${requiredText}" untuk konfirmasi:`);
+                    const promptVal = window.prompt(`${title}\n\n${message}\n\nKetik "${requiredText}" untuk konfirmasi:`);
                     resolve(promptVal === requiredText);
                 } else {
-                    resolve(window.confirm(message));
+                    resolve(window.confirm(`${title}\n\n${message}`));
                 }
                 return;
             }
 
+            if (titleEl) titleEl.textContent = title;
             msgEl.textContent = message;
             
             if (requiredText && inputContainer && inputEl) {

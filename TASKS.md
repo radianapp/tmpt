@@ -107,3 +107,19 @@
 - [x] Dukungan dinamis profile dropdown pada UI module (`shared/ui.js`)
 - [x] Implementasi setelan pilihan bahasa di Settings (`app/auth/settings/index.html`)
 - [x] Sinkronisasi bahasa tersimpan dengan enkripsi di dalam vault
+
+## Fase 13: TMPT Sync System
+- [x] `shared/sync/token-manager.js` — PKCE OAuth + token auto-refresh
+- [x] `shared/sync/providers/base.js` — Abstract sync provider interface
+- [x] `shared/sync/providers/gdrive.js` — Google Drive appDataFolder provider
+- [x] `shared/sync/snapshot-engine.js` — IndexedDB → OPFS (debounce 30 detik, max 10 snapshot)
+- [x] `shared/sync/cloud-sync-engine.js` — OPFS → Google Drive (queue + retry + rotation)
+- [x] `shared/sync/conflict-resolver.js` — Timestamp-based conflict resolution
+- [x] `shared/sync/restore.js` — Restore dari OPFS lokal atau Google Drive
+- [x] `shared/sync/version-history.js` — UI picker snapshot lokal + cloud
+- [x] `shared/sync/sync-status.js` — Status widget di header + dropdown panel
+- [x] `shared/sync/sync-settings.js` — Settings panel embed untuk halaman Settings
+- [x] Update `shared/broadcast.js` — tambah event DATA_CHANGED
+- [x] Update `shared/app-header.html` — load sync modules + inisialisasi
+- [x] Upgrade `app/auth/gdrive-callback.html` — support PKCE + backward compat Implicit Flow
+

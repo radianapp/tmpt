@@ -1163,7 +1163,7 @@ async function deleteMarkdownRecord(docId) {
   }
 }
 
-async function handleRestoreFile(id) {
+async function handleRestoreFile(id, skipRefresh = false) {
   const file = await getFile(id);
   if (!file) return;
 
@@ -1193,7 +1193,9 @@ async function handleRestoreFile(id) {
   }
 
   if (window.TMPT_UI) window.TMPT_UI.toast(`Berkas "${file.name}" dipulihkan.`, "success");
-  await refreshContent();
+  if (!skipRefresh) {
+    await refreshContent();
+  }
 }
 
 async function handleEmptyTrash() {
@@ -1257,7 +1259,7 @@ async function handleEmptyTrash() {
   await updateStorageDetails();
 }
 
-async function handleDeleteFile(id, permanent = false) {
+async function handleDeleteFile(id, permanent = false, skipRefresh = false, skipConfirm = false, skipToast = false) {
   const file = await getFile(id);
   if (!file) return;
 
@@ -1266,7 +1268,7 @@ async function handleDeleteFile(id, permanent = false) {
   }
 
   if (permanent) {
-    if (window.TMPT_UI) {
+    if (window.TMPT_UI && !skipConfirm) {
       const ok = await window.TMPT_UI.confirm(`Hapus berkas "${file.name}" secara permanen? Data tidak dapat dipulihkan.`);
       if (!ok) return;
     }
@@ -1305,7 +1307,7 @@ async function handleDeleteFile(id, permanent = false) {
     }
 
     await deleteFileMetadata(id);
-    if (window.TMPT_UI) window.TMPT_UI.toast("Berkas dihapus permanen.", "success");
+    if (window.TMPT_UI && !skipToast) window.TMPT_UI.toast("Berkas dihapus permanen.", "success");
   } else {
     file.trash = true;
     file.trash_at = new Date().toISOString();
@@ -1317,10 +1319,12 @@ async function handleDeleteFile(id, permanent = false) {
     } else if (file.type === 'markdown') {
       await updateMarkdownDocTrashed(file.app_id, true);
     }
-    if (window.TMPT_UI) window.TMPT_UI.toast("Berkas dipindahkan ke Sampah.", "success");
+    if (window.TMPT_UI && !skipToast) window.TMPT_UI.toast("Berkas dipindahkan ke Sampah.", "success");
   }
-  await refreshContent();
-  await updateStorageDetails();
+  if (!skipRefresh) {
+    await refreshContent();
+    await updateStorageDetails();
+  }
 }
 
 async function deleteCatatRecord(type, id) {
@@ -1535,25 +1539,33 @@ function updateBulkActionBar() {
         </div>
       `;
       document.getElementById('bulk-btn-restore')?.addEventListener('click', async () => {
-        for (const id of selectedFiles) {
-          await handleRestoreFile(id);
-        }
+        const ids = Array.from(selectedFiles);
         selectedFiles.clear();
+        for (const id of ids) {
+          await handleRestoreFile(id, true);
+        }
         await refreshContent();
       });
       document.getElementById('bulk-btn-delete-perm')?.addEventListener('click', async () => {
+        const ids = Array.from(selectedFiles);
         const confirmMsg = window.TMPT_I18n 
           ? (window.TMPT_I18n.getLang() === 'en' 
-             ? `Permanently delete ${selectedFiles.size} selected files from Trash?` 
-             : `Hapus secara permanen ${selectedFiles.size} berkas terpilih dari Tempat Sampah?`)
-          : `Hapus secara permanen ${selectedFiles.size} berkas terpilih dari Tempat Sampah?`;
+             ? `Permanently delete ${ids.length} selected files from Trash?` 
+             : `Hapus secara permanen ${ids.length} berkas terpilih dari Tempat Sampah?`)
+          : `Hapus secara permanen ${ids.length} berkas terpilih dari Tempat Sampah?`;
         const ok = await window.TMPT_UI.confirm(confirmMsg);
         if (!ok) return;
-        for (const id of selectedFiles) {
-          await handleDeleteFile(id, true);
-        }
         selectedFiles.clear();
+        for (const id of ids) {
+          await handleDeleteFile(id, true, true, true, true);
+        }
         await refreshContent();
+        if (window.TMPT_UI) {
+          const successMsg = window.TMPT_I18n
+            ? (window.TMPT_I18n.getLang() === 'en' ? `${ids.length} files permanently deleted.` : `${ids.length} berkas berhasil dihapus permanen.`)
+            : `${ids.length} berkas berhasil dihapus permanen.`;
+          window.TMPT_UI.toast(successMsg, "success");
+        }
       });
       document.getElementById('bulk-btn-clear')?.addEventListener('click', () => {
         selectedFiles.clear();
@@ -1582,26 +1594,34 @@ function updateBulkActionBar() {
         refreshContent();
       });
       document.getElementById('bulk-btn-star')?.addEventListener('click', async () => {
-        for (const id of selectedFiles) {
+        const ids = Array.from(selectedFiles);
+        selectedFiles.clear();
+        for (const id of ids) {
           const file = await getFile(id);
           if (file) {
             file.starred = true;
             await putFile(file);
           }
         }
-        selectedFiles.clear();
         await refreshContent();
       });
       document.getElementById('bulk-btn-delete')?.addEventListener('click', async () => {
+        const ids = Array.from(selectedFiles);
         if (window.TMPT_UI) {
-          const ok = await window.TMPT_UI.confirm(`Hapus ${selectedFiles.size} berkas terpilih?`);
+          const ok = await window.TMPT_UI.confirm(`Hapus ${ids.length} berkas terpilih?`);
           if (!ok) return;
         }
-        for (const id of selectedFiles) {
-          await handleDeleteFile(id);
-        }
         selectedFiles.clear();
+        for (const id of ids) {
+          await handleDeleteFile(id, false, true, false, true);
+        }
         await refreshContent();
+        if (window.TMPT_UI) {
+          const successMsg = window.TMPT_I18n
+            ? (window.TMPT_I18n.getLang() === 'en' ? `${ids.length} files moved to Trash.` : `${ids.length} berkas berhasil dipindahkan ke Sampah.`)
+            : `${ids.length} berkas berhasil dipindahkan ke Sampah.`;
+          window.TMPT_UI.toast(successMsg, "success");
+        }
       });
       document.getElementById('bulk-btn-move')?.addEventListener('click', () => {
         openMoveFileModal(Array.from(selectedFiles));
@@ -1982,14 +2002,15 @@ function initEventListeners() {
     await refreshContent();
   });
   document.getElementById('bulk-btn-delete')?.addEventListener('click', async () => {
+    const ids = Array.from(selectedFiles);
     if (window.TMPT_UI) {
-      const ok = await window.TMPT_UI.confirm(`Hapus ${selectedFiles.size} berkas terpilih?`);
+      const ok = await window.TMPT_UI.confirm(`Hapus ${ids.length} berkas terpilih?`);
       if (!ok) return;
     }
-    for (const id of selectedFiles) {
-      await handleDeleteFile(id);
-    }
     selectedFiles.clear();
+    for (const id of ids) {
+      await handleDeleteFile(id, false, true);
+    }
     await refreshContent();
   });
   document.getElementById('bulk-btn-move')?.addEventListener('click', () => {

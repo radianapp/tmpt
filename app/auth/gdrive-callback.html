@@ -11,48 +11,144 @@
     <script src="/shared/auth.js"></script>
     <script src="/shared/ui.js"></script>
     <script src="/shared/backup.js"></script>
+    <!-- Sync modules -->
+    <script src="/shared/sync/token-manager.js"></script>
+    <script src="/shared/sync/providers/base.js"></script>
+    <script src="/shared/sync/providers/gdrive.js"></script>
     <script src="/shared/gdrive-sync.js"></script>
 </head>
 <body>
     <main class="container" style="display: flex; height: 100vh; align-items: center; justify-content: center;">
-        <article style="text-align: center; max-width: 480px; width: 95%; border-radius: 20px; padding: 2.5rem;">
-            <div style="font-size: 3rem; margin-bottom: 1.5rem; animation: pulse 2s infinite;">☁️</div>
-            <h3 style="font-weight: 800; margin-bottom: 0.75rem;">Menghubungkan Akun</h3>
-            <p class="secondary" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
+        <article id="status-card" style="text-align: center; max-width: 480px; width: 95%; border-radius: 20px; padding: 2.5rem;">
+            <div id="status-icon" style="font-size: 3rem; margin-bottom: 1.5rem; animation: pulse 2s infinite;">☁️</div>
+            <h3 id="status-title" style="font-weight: 800; margin-bottom: 0.75rem;">Menghubungkan Akun</h3>
+            <p id="status-message" class="secondary" style="font-size: 0.95rem; line-height: 1.5; margin-bottom: 1.5rem;">
                 Harap tunggu sementara kami memverifikasi otorisasi Anda dari Google dan menyiapkan folder cloud data TMPT Anda.
             </p>
-            <span aria-busy="true" style="font-size: 1.5rem; display: block; margin: 0 auto;"></span>
+            <span aria-busy="true" id="status-spinner" style="font-size: 1.5rem; display: block; margin: 0 auto;"></span>
+            <div id="status-actions" style="display: none; margin-top: 1.5rem;"></div>
         </article>
     </main>
 
     <script>
+        function setStatus(icon, title, message, isError = false) {
+            const spinner = document.getElementById('status-spinner');
+            if (spinner) spinner.removeAttribute('aria-busy');
+
+            const iconEl = document.getElementById('status-icon');
+            if (iconEl) { iconEl.textContent = icon; iconEl.style.animation = 'none'; }
+
+            const titleEl = document.getElementById('status-title');
+            if (titleEl) {
+                titleEl.textContent = title;
+                if (isError) titleEl.style.color = '#ef4444';
+            }
+
+            const msgEl = document.getElementById('status-message');
+            if (msgEl) msgEl.textContent = message;
+        }
+
+        function showBackButton() {
+            const actions = document.getElementById('status-actions');
+            if (actions) {
+                actions.style.display = 'block';
+                actions.innerHTML = `
+                    <a href="/app/auth/settings/#section-sync" role="button" class="outline secondary" style="border-radius: 10px; font-size: 0.9rem;">
+                        ← Kembali ke Pengaturan
+                    </a>`;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
             await window.TMPT_Auth.init();
-            
-            // Mendukung pembacaan dari query search maupun hash fragment
+
+            // Baca parameter dari URL
+            // PKCE: ?code=... (query string)
+            // Legacy Implicit: #access_token=... (hash fragment)
             let params = new URLSearchParams(window.location.search);
-            if (window.location.hash) {
+            const isHashFragment = window.location.hash && window.location.hash.length > 1;
+
+            if (isHashFragment) {
                 params = new URLSearchParams(window.location.hash.substring(1));
             }
-            
-            const accessToken = params.get('access_token');
-            const expiresIn = params.get('expires_in');
-            const state = params.get('state');
-            const error = params.get('error');
 
+            const code        = params.get('code');         // PKCE flow
+            const accessToken = params.get('access_token'); // Legacy Implicit flow
+            const expiresIn   = params.get('expires_in');
+            const state       = params.get('state');
+            const error       = params.get('error');
+
+            // Handle error dari Google
             if (error) {
-                if (window.TMPT_UI) {
-                    window.TMPT_UI.toast("Otorisasi dibatalkan oleh pengguna atau gagal.", "error");
-                }
-                setTimeout(() => { window.location.href = '/app/auth/settings/#section-backup'; }, 2500);
+                setStatus('❌', 'Otorisasi Dibatalkan',
+                    'Anda membatalkan proses otorisasi atau terjadi kesalahan dari Google.', true);
+                showBackButton();
                 return;
             }
 
-            if (accessToken && state) {
-                await window.GDriveSync.handleCallback(accessToken, expiresIn, state);
-            } else {
-                window.location.href = '/app/auth/settings/#section-backup';
+            // === TMPT Sync TokenManager (Implicit Flow Utama) ===
+            if (accessToken && window.TMPT_TokenManager) {
+                try {
+                    setStatus('🔐', 'Menyimpan Token...', 'Menyelesaikan koneksi dengan Google Drive...');
+
+                    await window.TMPT_TokenManager.handleImplicitCallback(accessToken, expiresIn, state);
+
+                    setStatus('✅', 'Berhasil Terhubung!', 'Google Drive berhasil dihubungkan. Memulai sinkronisasi pertama...');
+
+                    // Jalankan sync perdana jika engine termuat
+                    try {
+                        if (window.TMPT_CloudSyncEngine) {
+                            // Coba sync manual sekali
+                            await window.TMPT_CloudSyncEngine.syncNow();
+                        } else if (window.GDriveSync) {
+                            await window.GDriveSync.uploadSync();
+                        }
+                    } catch(syncErr) {
+                        console.warn('[Callback] Sync perdana gagal (akan dicoba lagi):', syncErr);
+                    }
+
+                    setTimeout(() => {
+                        window.location.href = '/app/auth/settings/#section-sync';
+                    }, 1500);
+
+                } catch(err) {
+                    console.error('[Callback] Gagal memproses token baru:', err);
+                    // Coba fallback ke legacy flow jika gagal
+                    if (window.GDriveSync) {
+                        try {
+                            await window.GDriveSync.handleCallback(accessToken, expiresIn, state);
+                        } catch(legacyErr) {
+                            setStatus('❌', 'Gagal Menghubungkan', 'Terjadi kesalahan saat menghubungkan akun: ' + err.message, true);
+                            showBackButton();
+                        }
+                    } else {
+                        setStatus('❌', 'Gagal Menghubungkan', 'Terjadi kesalahan saat menghubungkan akun: ' + err.message, true);
+                        showBackButton();
+                    }
+                }
+                return;
             }
+
+            // === Fallback Legacy PKCE (jika ada param code tapi tidak menggunakan Implicit) ===
+            if (code && window.TMPT_TokenManager && typeof window.TMPT_TokenManager.handleCallback === 'function') {
+                try {
+                    setStatus('🔐', 'Menukar Kode Otorisasi...', 'Memverifikasi dan mendapatkan token akses dari Google...');
+                    await window.TMPT_TokenManager.handleCallback(code, state);
+                    setStatus('✅', 'Berhasil Terhubung!', 'Google Drive berhasil dihubungkan...');
+                    setTimeout(() => {
+                        window.location.href = '/app/auth/settings/#section-sync';
+                    }, 1500);
+                } catch(err) {
+                    setStatus('❌', 'Gagal Menghubungkan', err.message, true);
+                    showBackButton();
+                }
+                return;
+            }
+
+            // Tidak ada parameter yang valid
+            setStatus('❓', 'Parameter Tidak Valid',
+                'Tidak ditemukan parameter otorisasi yang valid. Silakan coba hubungkan kembali dari halaman Pengaturan.', true);
+            showBackButton();
         });
     </script>
 </body>

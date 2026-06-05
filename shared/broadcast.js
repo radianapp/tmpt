@@ -9,6 +9,7 @@ export const TMPT_EVENTS = {
   DEADLINE_SET:   'DEADLINE_SET',    // { file_id, deadline, title }
   EVENT_CREATED:  'EVENT_CREATED',   // { event_id, title, start }
   TASK_DONE:      'TASK_DONE',       // { task_id, title }
+  DATA_CHANGED:   'DATA_CHANGED',    // { app, key? } — trigger Snapshot Engine
 };
 
 export function broadcastTMPT(type, payload) {

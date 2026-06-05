@@ -296,20 +296,57 @@
             window.TMPT_UI.updateProfileUI();
         }
 
-        // Muat modul Backup Awareness & GDrive Sync secara dinamis
+        // Muat modul TMPT Sync System secara dinamis
         try {
+            // Core sync modules (urutan penting: dependencies dulu)
+            await loadScript('/shared/sync/token-manager.js');
+            await loadScript('/shared/sync/providers/base.js');
+            await loadScript('/shared/sync/providers/gdrive.js');
+            await loadScript('/shared/sync/snapshot-engine.js');
+            await loadScript('/shared/sync/cloud-sync-engine.js');
+            await loadScript('/shared/sync/conflict-resolver.js');
+            await loadScript('/shared/sync/restore.js');
+            await loadScript('/shared/sync/version-history.js');
+            await loadScript('/shared/sync/sync-status.js');
+            await loadScript('/shared/sync/sync-settings.js');
+
+            // Inisialisasi Cloud Sync Engine dengan Google Drive provider
+            if (window.TMPT_CloudSyncEngine && window.GDriveSyncProvider) {
+                window.TMPT_CloudSyncEngine.init(new GDriveSyncProvider());
+            }
+
+            // Inisialisasi Sync Status Widget di header
+            if (window.TMPT_SyncStatus) {
+                window.TMPT_SyncStatus.init();
+            }
+
+            // Backward compat: tetap load backup-awareness & gdrive-sync lama
             await loadScript('/shared/backup-awareness.js');
             await loadScript('/shared/gdrive-sync.js');
-            if (window.BackupAwareness) {
-                window.BackupAwareness.renderHeaderIcon();
-                // Jalankan reminder setelah 2 detik agar tidak mengganggu inisialisasi awal
-                setTimeout(() => window.BackupAwareness.maybeShowReminder(), 2000);
-            }
-            if (window.GDriveSync) {
+
+            // Jalankan auto-backup lama jika sync baru belum aktif
+            const isNewSyncConnected = window.TMPT_TokenManager?.isConnected();
+            const isLegacyConnected  = localStorage.getItem('tmpt_gdrive_connected') === 'true';
+
+            if (!isNewSyncConnected && isLegacyConnected && window.GDriveSync) {
                 await window.GDriveSync.checkAndAutoBackup();
             }
+
+            // Tampilkan reminder backup jika tidak ada sync aktif
+            if (!isNewSyncConnected && !isLegacyConnected && window.BackupAwareness) {
+                window.BackupAwareness.renderHeaderIcon();
+                setTimeout(() => window.BackupAwareness.maybeShowReminder(), 2000);
+            }
+
         } catch (e) {
-            console.warn("Gagal memuat modul pencadangan awan di header:", e);
+            console.warn('Gagal memuat modul sync di header:', e);
+            // Fallback: coba load backup-awareness saja
+            try {
+                await loadScript('/shared/backup-awareness.js');
+                if (window.BackupAwareness) {
+                    window.BackupAwareness.renderHeaderIcon();
+                }
+            } catch(e2) {}
         }
 
         // Setup menu mobile dinamis (sidebar / fallback modal)

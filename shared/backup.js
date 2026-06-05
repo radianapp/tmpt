@@ -78,9 +78,46 @@ const BackupModule = {
                     return;
                 }
 
+                // Map database to its main store name to show clean statistics
+                const primaryStores = {
+                    'tmpt_berkas': 'files',
+                    'tmpt_tulis': 'documents',
+                    'tmpt_hitung': 'files',
+                    'tmpt_slide': 'presentations',
+                    'tmpt_forms': 'forms',
+                    'tmpt_kalender': 'events',
+                    'tmpt_tugas': 'tasks',
+                    'tmpt_catatan': 'notes',
+                    'tmpt_vault': 'items',
+                    'tmpt_code': 'projects',
+                    'tmpt_diagram': 'diagrams',
+                    'tmpt_project': 'projects'
+                };
+
+                const targetStores = [];
+                const mainStore = primaryStores[dbName];
+
+                if (mainStore && storeNames.includes(mainStore)) {
+                    targetStores.push(mainStore);
+                } else {
+                    // Exclude technical metadata stores from total count
+                    const excludeStores = ['settings', 'config', 'tags', 'slide_settings', 'document_meta', 'reminders_queue', 'calendars'];
+                    storeNames.forEach(name => {
+                        if (!excludeStores.includes(name)) {
+                            targetStores.push(name);
+                        }
+                    });
+                }
+
+                if (targetStores.length === 0) {
+                    db.close();
+                    resolve({ name: dbName, totalRecords: 0 });
+                    return;
+                }
+
                 let completed = 0;
                 let totalRecords = 0;
-                storeNames.forEach(storeName => {
+                targetStores.forEach(storeName => {
                     try {
                         const tx = db.transaction(storeName, 'readonly');
                         const store = tx.objectStore(storeName);
@@ -88,21 +125,21 @@ const BackupModule = {
                         countReq.onsuccess = () => {
                             totalRecords += countReq.result;
                             completed++;
-                            if (completed === storeNames.length) {
+                            if (completed === targetStores.length) {
                                 db.close();
                                 resolve({ name: dbName, totalRecords });
                             }
                         };
                         countReq.onerror = () => {
                             completed++;
-                            if (completed === storeNames.length) {
+                            if (completed === targetStores.length) {
                                 db.close();
                                 resolve({ name: dbName, totalRecords });
                             }
                         };
                     } catch (err) {
                         completed++;
-                        if (completed === storeNames.length) {
+                        if (completed === targetStores.length) {
                             db.close();
                             resolve({ name: dbName, totalRecords });
                         }
@@ -183,8 +220,22 @@ const BackupModule = {
             };
 
             let dbListHtml = stats.databases.map(db => {
-                const cleanName = db.name.replace('tmpt_', '').toUpperCase();
-                return `<li><strong>Aplikasi ${cleanName}</strong>: ${db.totalRecords} data rekaman</li>`;
+                const rawName = db.name.replace('tmpt_', '');
+                let appName = rawName.toUpperCase();
+                let unit = 'data rekaman';
+
+                if (rawName === 'berkas') { appName = 'BERKAS'; unit = 'berkas/dokumen'; }
+                else if (rawName === 'tulis') { appName = 'TULIS'; unit = 'dokumen'; }
+                else if (rawName === 'hitung') { appName = 'HITUNG'; unit = 'lembar kerja'; }
+                else if (rawName === 'slide') { appName = 'SLIDE'; unit = 'presentasi'; }
+                else if (rawName === 'forms') { appName = 'FORMS'; unit = 'formulir'; }
+                else if (rawName === 'kalender') { appName = 'KALENDER'; unit = 'acara'; }
+                else if (rawName === 'tugas') { appName = 'TUGAS'; unit = 'tugas'; }
+                else if (rawName === 'catatan') { appName = 'CATATAN'; unit = 'catatan'; }
+                else if (rawName === 'code' || rawName === 'project') { appName = 'CODE'; unit = 'proyek'; }
+                else if (rawName === 'diagram') { appName = 'DIAGRAM'; unit = 'diagram'; }
+
+                return `<li><strong>Aplikasi ${appName}</strong>: ${db.totalRecords} ${unit}</li>`;
             }).join('');
 
             if (!dbListHtml) dbListHtml = '<li>Tidak ada data aplikasi aktif</li>';
@@ -629,50 +680,121 @@ const BackupModule = {
     async _restoreDatabase(dbContent) {
         const { databaseName, version, stores } = dbContent;
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(databaseName, version);
-            req.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                Object.keys(stores).forEach(storeName => {
-                    if (!db.objectStoreNames.contains(storeName)) {
-                        let keyPath = 'id';
-                        if (storeName === 'settings' || storeName === 'config') {
-                            keyPath = 'key';
-                        } else if (storeName === 'tags' && databaseName === 'tmpt_tugas') {
-                            keyPath = 'name';
+            // First, open without version to find the current active version in the browser
+            const checkReq = indexedDB.open(databaseName);
+            checkReq.onsuccess = (event) => {
+                const tempDb = event.target.result;
+                const currentVersion = tempDb.version;
+                tempDb.close();
+
+                // Open with the highest version to avoid VersionError
+                const openVersion = Math.max(version || 1, currentVersion);
+                const req = indexedDB.open(databaseName, openVersion);
+
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    Object.keys(stores).forEach(storeName => {
+                        if (!db.objectStoreNames.contains(storeName)) {
+                            let keyPath = 'id';
+                            if (storeName === 'settings' || storeName === 'config') {
+                                keyPath = 'key';
+                            } else if (storeName === 'tags' && databaseName === 'tmpt_tugas') {
+                                keyPath = 'name';
+                            }
+                            db.createObjectStore(storeName, { keyPath: keyPath });
                         }
-                        db.createObjectStore(storeName, { keyPath: keyPath });
-                    }
-                });
-            };
-            req.onsuccess = (e) => {
-                const db = e.target.result;
-                const storeNames = Object.keys(stores);
-                if (storeNames.length === 0) {
-                    db.close();
-                    resolve();
-                    return;
-                }
-
-                const tx = db.transaction(storeNames, 'readwrite');
-                storeNames.forEach(storeName => {
-                    const store = tx.objectStore(storeName);
-                    store.clear();
-                    stores[storeName].forEach(item => {
-                        store.put(item);
                     });
-                });
-
-                tx.oncomplete = () => {
-                    db.close();
-                    resolve();
                 };
 
-                tx.onerror = (err) => {
-                    db.close();
-                    reject(tx.error || err);
+                req.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const storeNames = Object.keys(stores);
+                    if (storeNames.length === 0) {
+                        db.close();
+                        resolve();
+                        return;
+                    }
+
+                    // Filter store names to only those that exist in the database schema
+                    const validStoreNames = storeNames.filter(name => db.objectStoreNames.contains(name));
+                    if (validStoreNames.length === 0) {
+                        db.close();
+                        resolve();
+                        return;
+                    }
+
+                    const tx = db.transaction(validStoreNames, 'readwrite');
+                    validStoreNames.forEach(storeName => {
+                        const store = tx.objectStore(storeName);
+                        store.clear();
+                        stores[storeName].forEach(item => {
+                            store.put(item);
+                        });
+                    });
+
+                    tx.oncomplete = () => {
+                        db.close();
+                        resolve();
+                    };
+
+                    tx.onerror = (err) => {
+                        db.close();
+                        reject(tx.error || err);
+                    };
                 };
+
+                req.onerror = (e) => reject(e.target.error);
             };
-            req.onerror = (e) => reject(e.target.error);
+
+            checkReq.onerror = () => {
+                // If it fails to open (doesn't exist yet), open with the backup version
+                const req = indexedDB.open(databaseName, version || 1);
+                req.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    Object.keys(stores).forEach(storeName => {
+                        if (!db.objectStoreNames.contains(storeName)) {
+                            let keyPath = 'id';
+                            if (storeName === 'settings' || storeName === 'config') {
+                                keyPath = 'key';
+                            } else if (storeName === 'tags' && databaseName === 'tmpt_tugas') {
+                                keyPath = 'name';
+                            }
+                            db.createObjectStore(storeName, { keyPath: keyPath });
+                        }
+                    });
+                };
+
+                req.onsuccess = (e) => {
+                    const db = e.target.result;
+                    const storeNames = Object.keys(stores);
+                    if (storeNames.length === 0) {
+                        db.close();
+                        resolve();
+                        return;
+                    }
+
+                    const tx = db.transaction(storeNames, 'readwrite');
+                    storeNames.forEach(storeName => {
+                        const store = tx.objectStore(storeName);
+                        store.clear();
+                        stores[storeName].forEach(item => {
+                            store.put(item);
+                        });
+                    });
+
+                    tx.oncomplete = () => {
+                        db.close();
+                        resolve();
+                    };
+
+                    tx.onerror = (err) => {
+                        db.close();
+                        reject(tx.error || err);
+                    };
+                };
+
+                req.onerror = (e) => reject(e.target.error);
+            };
         });
     }
 };
