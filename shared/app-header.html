@@ -310,7 +310,7 @@
             await loadScript('/shared/sync/sync-status.js');
             await loadScript('/shared/sync/sync-settings.js');
 
-            // Inisialisasi Cloud Sync Engine dengan Google Drive provider
+        // Inisialisasi Cloud Sync Engine dengan Google Drive provider
             if (window.TMPT_CloudSyncEngine && window.GDriveSyncProvider) {
                 window.TMPT_CloudSyncEngine.init(new GDriveSyncProvider());
             }
@@ -320,22 +320,32 @@
                 window.TMPT_SyncStatus.init();
             }
 
-            // Backward compat: tetap load backup-awareness & gdrive-sync lama
-            await loadScript('/shared/backup-awareness.js');
-            await loadScript('/shared/gdrive-sync.js');
-
-            // Jalankan auto-backup lama jika sync baru belum aktif
-            const isNewSyncConnected = window.TMPT_TokenManager?.isConnected();
-            const isLegacyConnected  = localStorage.getItem('tmpt_gdrive_connected') === 'true';
-
-            if (!isNewSyncConnected && isLegacyConnected && window.GDriveSync) {
-                await window.GDriveSync.checkAndAutoBackup();
+            // Force sync saat tab/window akan ditutup (jika ada snapshot pending)
+            const syncSettings = (() => {
+                try { return JSON.parse(localStorage.getItem('tmpt_sync_settings') || '{}'); } catch(e) { return {}; }
+            })();
+            if (syncSettings.sync_on_tab_close !== false && window.TMPT_TokenManager?.isConnected()) {
+                window.addEventListener('beforeunload', () => {
+                    // Gunakan sendBeacon jika snapshot engine memiliki data pending
+                    if (window.TMPT_SnapshotEngine?._hasPendingChanges?.()) {
+                        window.TMPT_CloudSyncEngine?.syncNow().catch(() => {});
+                    }
+                });
             }
 
-            // Tampilkan reminder backup jika tidak ada sync aktif
-            if (!isNewSyncConnected && !isLegacyConnected && window.BackupAwareness) {
-                window.BackupAwareness.renderHeaderIcon();
-                setTimeout(() => window.BackupAwareness.maybeShowReminder(), 2000);
+            // Tampilkan BackupAwareness hanya jika tidak ada sync aktif sama sekali
+            const isNewSyncConnected = window.TMPT_TokenManager?.isConnected()
+                || localStorage.getItem('tmpt_gdrive_connected') === 'true';
+
+            if (!isNewSyncConnected) {
+                // Load backup-awareness sebagai fallback minimal
+                try {
+                    await loadScript('/shared/backup-awareness.js');
+                    if (window.BackupAwareness) {
+                        window.BackupAwareness.renderHeaderIcon();
+                        setTimeout(() => window.BackupAwareness.maybeShowReminder(), 3000);
+                    }
+                } catch(e2) {}
             }
 
         } catch (e) {

@@ -99,6 +99,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             `;
         }
 
+        // Banner Multi-Device: Tampil sekali jika sync belum dikonfigurasi
+        const multideviceBannerDismissed = localStorage.getItem('tmpt_multidevice_banner_dismissed') === 'true';
+        const isGDriveConnected = localStorage.getItem('tmpt_gdrive_connected') === 'true';
+        if (!multideviceBannerDismissed && !isGDriveConnected) {
+            html += `
+                <article id="multidevice-banner" class="category-section" style="background: linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(16,185,129,0.05) 100%); border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid rgba(99,102,241,0.2); position: relative;">
+                    <button onclick="document.getElementById('multidevice-banner').remove(); localStorage.setItem('tmpt_multidevice_banner_dismissed', 'true');" style="position: absolute; top: 1rem; right: 1rem; background: transparent; border: none; font-size: 1.25rem; cursor: pointer; padding: 0; line-height: 1; width: auto; height: auto; color: var(--pico-muted-color);" title="Tutup banner" aria-label="Tutup banner multi-device">&times;</button>
+                    <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                        <span style="font-size: 2rem; line-height: 1; flex-shrink: 0;">📱</span>
+                        <div style="flex: 1; min-width: 0;">
+                            <h3 style="margin-top: 0; margin-bottom: 0.35rem; font-size: 1rem; font-weight: 700; color: var(--pico-h3-color);">Ingin Akses TMPT dari HP atau Laptop Lain?</h3>
+                            <p style="font-size: 0.85rem; line-height: 1.55; margin-bottom: 0.85rem; color: var(--pico-muted-color);">
+                                Aktifkan <strong>Google Drive Sync</strong> untuk menyinkronkan data Anda antar perangkat secara otomatis. Data masuk ke folder tersembunyi Google Drive milik Anda sendiri — tanpa server TMPT.
+                            </p>
+                            <div style="display: flex; gap: 0.65rem; flex-wrap: wrap;">
+                                <a href="/app/auth/multidevice/" role="button" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; border-radius: 8px; text-decoration: none; background: linear-gradient(135deg, #6366f1, #0284c7); color: white; border: none; display: inline-flex; align-items: center; gap: 0.35rem; font-weight: 600;">
+                                    ☁️ Pelajari &amp; Setup Multi-Device
+                                </a>
+                                <button class="outline secondary" onclick="document.getElementById('multidevice-banner').remove(); localStorage.setItem('tmpt_multidevice_banner_dismissed', 'true');" style="font-size: 0.8rem; padding: 0.4rem 0.85rem; border-radius: 8px; margin-bottom: 0;">Tidak sekarang</button>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+
         const categories = {
             "kerja": {
                 title: "TMPT Kerja",

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Siapkan Multi-Device — TMPT</title>
+    <meta name="description" content="Pelajari cara data TMPT disimpan dan aktifkan sinkronisasi antar perangkat dengan Google Drive.">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/assets/img/logo.svg?v=2">
+    <link rel="stylesheet" href="/shared/pico.min.css">
+    <link rel="stylesheet" href="/shared/app.css?v=2">
+    <link rel="stylesheet" href="./multidevice.css">
+    <script src="/shared/htmx.min.js"></script>
+    <script src="/shared/pwa.js"></script>
+    <script src="/shared/crypto.js"></script>
+    <script src="/shared/vault.js"></script>
+    <script src="/shared/auth.js"></script>
+    <script src="/shared/ui.js"></script>
+</head>
+<body>
+
+    <script>
+        (async () => {
+            await window.TMPT_Auth.init();
+            window.TMPT_Auth.requireAuth();
+        })();
+    </script>
+
+    <div id="header-container" hx-get="/shared/app-header.html?v=4" hx-trigger="load" hx-swap="outerHTML"></div>
+
+    <main class="container" style="max-width: 780px; margin: 2rem auto; padding-bottom: 4rem;">
+
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb" style="margin-bottom: 1.5rem;">
+            <small>
+                <a href="/app/" style="color: var(--pico-muted-color); text-decoration: none;">Dashboard</a>
+                <span style="color: var(--pico-muted-color);"> › </span>
+                <span style="color: var(--pico-color); font-weight: 600;">Siapkan Multi-Device</span>
+            </small>
+        </nav>
+
+        <!-- Hero Section -->
+        <div id="hero-section" class="mdc-hero-card">
+            <div class="mdc-hero-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 style="margin: 0 0 0.35rem; font-size: 1.75rem;">Akses TMPT di Semua Perangkat</h1>
+                <p style="margin: 0; color: var(--pico-muted-color); font-size: 1rem; line-height: 1.6;">
+                    Pelajari cara kerja penyimpanan TMPT dan pilih mode sinkronisasi yang sesuai untuk Anda.
+                </p>
+            </div>
+        </div>
+
+        <!-- ===== SEKSI 1: Penjelasan Arsitektur Storage ===== -->
+        <section class="mdc-section" id="section-storage-explained">
+            <div class="mdc-section-header">
+                <span class="mdc-section-num">1</span>
+                <h2>Bagaimana Data TMPT Disimpan?</h2>
+            </div>
+
+            <p style="color: var(--pico-muted-color); margin-bottom: 1.5rem; line-height: 1.7;">
+                TMPT dirancang <strong>local-first</strong>: semua data Anda tersimpan langsung di browser perangkat ini — tanpa server perantara, tanpa akun wajib. Ini menjamin privasi absolut dan kemampuan bekerja <em>offline</em>.
+            </p>
+
+            <div class="mdc-arch-diagram">
+                <div class="mdc-arch-layer">
+                    <div class="mdc-arch-layer-icon" style="background: rgba(99,102,241,0.1); color: #6366f1;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div>
+                        <strong>Layer 1 — IndexedDB (Aktif saat edit)</strong>
+                        <p>Tempat kerja utama. Setiap perubahan langsung tersimpan di sini tanpa latensi. Hanya tersedia di browser ini.</p>
+                    </div>
+                </div>
+                <div class="mdc-arch-arrow">↓ Snapshot otomatis tiap 30 detik</div>
+                <div class="mdc-arch-layer">
+                    <div class="mdc-arch-layer-icon" style="background: rgba(16,185,129,0.1); color: #10b981;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2z"/><circle cx="12" cy="14" r="2"/><polyline points="14 4 14 8 8 8 8 4"/></svg>
+                    </div>
+                    <div>
+                        <strong>Layer 2 — OPFS Snapshot (Riwayat Versi)</strong>
+                        <p>File <code>.tmpt</code> dibuat secara berkala dan disimpan di folder privat browser. Bisa restore ke versi lama. Masih di perangkat ini.</p>
+                    </div>
+                </div>
+                <div class="mdc-arch-arrow" id="layer3-arrow" style="opacity: 0.4;">↓ Cloud Sync (opsional — perlu diaktifkan)</div>
+                <div class="mdc-arch-layer" id="layer3-box" style="opacity: 0.5;">
+                    <div class="mdc-arch-layer-icon" style="background: rgba(59,130,246,0.1); color: #3b82f6;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                    </div>
+                    <div>
+                        <strong>Layer 3 — Google Drive / Cloud (Multi-Device)</strong>
+                        <p>Snapshot diunggah ke folder tersembunyi milik Anda di Google Drive. Perangkat lain dapat mengunduh dan melanjutkan pekerjaan.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mdc-info-box" style="margin-top: 1.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: #3b82f6;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <div>
+                    <strong>Catatan penting:</strong> Data yang di-upload ke Google Drive masuk ke folder <code>appDataFolder</code> yang tersembunyi — tidak tampil di Google Drive UI biasa Anda. Hanya TMPT yang bisa mengakses folder ini.
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEKSI 2: Masalah Multi-Device ===== -->
+        <section class="mdc-section" id="section-problem">
+            <div class="mdc-section-header">
+                <span class="mdc-section-num">2</span>
+                <h2>Mengapa Data Tidak Otomatis Tersedia di Perangkat Lain?</h2>
+            </div>
+
+            <p style="color: var(--pico-muted-color); margin-bottom: 1.25rem; line-height: 1.7;">
+                IndexedDB adalah storage yang diisolasi per <strong>origin + browser + profil OS</strong>. Data di Chrome laptop Anda <em>tidak bisa diakses</em> oleh Safari iPad — bahkan jika Anda login ke Google Account yang sama. Ini desain keamanan browser, bukan bug.
+            </p>
+
+            <div class="mdc-device-problem">
+                <div class="mdc-device-card ok">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    <div class="mdc-device-label">Laptop</div>
+                    <div class="mdc-device-status ok-text">✅ Data ada</div>
+                </div>
+                <div class="mdc-device-divider">
+                    <div class="mdc-device-barrier">🚫 Tidak terhubung</div>
+                </div>
+                <div class="mdc-device-card empty">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                    <div class="mdc-device-label">HP / Tablet</div>
+                    <div class="mdc-device-status empty-text">😢 Kosong</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEKSI 3: Solusi Tersedia ===== -->
+        <section class="mdc-section" id="section-solutions">
+            <div class="mdc-section-header">
+                <span class="mdc-section-num">3</span>
+                <h2>Pilih Mode Sinkronisasi</h2>
+            </div>
+
+            <p style="color: var(--pico-muted-color); margin-bottom: 1.5rem; line-height: 1.7;">
+                TMPT menggunakan pendekatan <em>Progressive Sync</em> — Anda memilih tier sesuai kebutuhan, tanpa memaksa fitur yang tidak diperlukan.
+            </p>
+
+            <!-- Tier Cards -->
+            <div class="mdc-tier-grid">
+
+                <!-- Tier 0 -->
+                <div class="mdc-tier-card" id="tier0-card">
+                    <div class="mdc-tier-badge" style="background: rgba(107,114,128,0.1); color: #6b7280;">Tier 0</div>
+                    <h3>💻 Lokal Saja</h3>
+                    <p class="mdc-tier-desc">Data hanya di browser ini. Cocok untuk penggunaan satu perangkat.</p>
+                    <ul class="mdc-tier-list">
+                        <li class="ok">✅ Tidak perlu akun</li>
+                        <li class="ok">✅ Privasi absolut</li>
+                        <li class="ok">✅ Kerja offline penuh</li>
+                        <li class="bad">❌ Tidak bisa diakses dari perangkat lain</li>
+                        <li class="bad">❌ Jika hapus browser = data hilang</li>
+                    </ul>
+                    <div id="tier0-status" class="mdc-tier-status active">
+                        <span>● Mode aktif saat ini</span>
+                    </div>
+                </div>
+
+                <!-- Tier 1 -->
+                <div class="mdc-tier-card highlighted" id="tier1-card">
+                    <div class="mdc-tier-badge" style="background: rgba(16,185,129,0.1); color: #10b981;">Tier 1 — Direkomendasikan</div>
+                    <h3>☁️ Google Drive Sync</h3>
+                    <p class="mdc-tier-desc">Snapshot otomatis di-upload ke Google Drive Anda. Tersinkron antar perangkat dengan delay ~30 menit.</p>
+                    <ul class="mdc-tier-list">
+                        <li class="ok">✅ Data di Drive milik Anda, bukan TMPT</li>
+                        <li class="ok">✅ Berfungsi offline (sync saat online)</li>
+                        <li class="ok">✅ Riwayat versi (bisa restore ke versi lama)</li>
+                        <li class="ok">✅ Vault/Brankas tidak pernah di-sync</li>
+                        <li class="warn">⚠️ Ada delay ~30 menit antar perangkat</li>
+                        <li class="warn">⚠️ Perlu setup OAuth Google sekali</li>
+                    </ul>
+                    <button
+                        id="btn-connect-gdrive"
+                        onclick="startGDriveSetup()"
+                        style="width: 100%; margin-top: 1rem; border-radius: 10px; font-weight: 700;">
+                        Hubungkan Google Drive →
+                    </button>
+                </div>
+
+                <!-- Tier 2 -->
+                <div class="mdc-tier-card" id="tier2-card" style="opacity: 0.75;">
+                    <div class="mdc-tier-badge" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">Tier 2 — Segera Hadir</div>
+                    <h3>⚡ TMPT Account (Real-time)</h3>
+                    <p class="mdc-tier-desc">Real-time sync antar perangkat tanpa delay. Cocok untuk tim dan kebutuhan kolaborasi.</p>
+                    <ul class="mdc-tier-list">
+                        <li class="ok">✅ Real-time sync (tanpa delay)</li>
+                        <li class="ok">✅ Kolaborasi tim</li>
+                        <li class="ok">✅ Self-hosted option tersedia</li>
+                        <li class="bad">❌ Memerlukan akun TMPT</li>
+                        <li class="bad">❌ Berbayar (free tier terbatas)</li>
+                    </ul>
+                    <button disabled style="width: 100%; margin-top: 1rem; border-radius: 10px; opacity: 0.5; cursor: not-allowed;">
+                        Segera Hadir di Q1 2027
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEKSI 4: Setup Google Drive (ditampilkan jika belum connect) ===== -->
+        <section class="mdc-section" id="section-gdrive-setup" style="display: none;">
+            <div class="mdc-section-header">
+                <span class="mdc-section-num" style="background: #3b82f6;">4</span>
+                <h2>Setup Google Drive Sync</h2>
+            </div>
+
+            <div class="mdc-steps">
+                <div class="mdc-step">
+                    <div class="mdc-step-num">1</div>
+                    <div>
+                        <strong>Klik "Hubungkan Google Drive"</strong>
+                        <p>Anda akan diarahkan ke halaman login Google. Pilih akun Google yang ingin digunakan.</p>
+                    </div>
+                </div>
+                <div class="mdc-step">
+                    <div class="mdc-step-num">2</div>
+                    <div>
+                        <strong>Setujui izin akses</strong>
+                        <p>TMPT meminta akses ke <code>drive.appdata</code> — folder tersembunyi khusus TMPT. Anda tidak akan melihat file ini di Google Drive biasa.</p>
+                    </div>
+                </div>
+                <div class="mdc-step">
+                    <div class="mdc-step-num">3</div>
+                    <div>
+                        <strong>Sync berjalan otomatis</strong>
+                        <p>Setelah terhubung, TMPT akan membuat snapshot data dan menguploadnya setiap 30 menit atau saat ada perubahan signifikan.</p>
+                    </div>
+                </div>
+                <div class="mdc-step">
+                    <div class="mdc-step-num">4</div>
+                    <div>
+                        <strong>Di perangkat lain</strong>
+                        <p>Buka TMPT → Pengaturan → Sync → Hubungkan Google Drive yang sama → Restore dari Cloud.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mdc-warn-box">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: #f59e0b;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div>
+                    <strong>Vault/Brankas tidak pernah disinkronkan.</strong> Data di Vault (password, token) adalah pengecualian keamanan — tidak akan pernah masuk ke cloud, bahkan jika Vault dienkripsi. Backup Vault harus dilakukan secara manual via Pengaturan.
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEKSI 5: Status Saat Ini ===== -->
+        <section class="mdc-section" id="section-current-status">
+            <div class="mdc-section-header">
+                <span class="mdc-section-num" id="status-section-num">4</span>
+                <h2>Status Sinkronisasi Saat Ini</h2>
+            </div>
+
+            <div id="sync-current-status-panel">
+                <div class="mdc-status-loading">
+                    <div class="mdc-spinner"></div>
+                    <span>Memuat status...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== CTA Footer ===== -->
+        <div class="mdc-footer-cta">
+            <a href="/app/" class="outline secondary" role="button" style="border-radius: 10px;">
+                ← Kembali ke Dashboard
+            </a>
+            <a href="/app/auth/settings/#section-backup" class="outline" role="button" style="border-radius: 10px;">
+                Pengaturan Backup & Sync →
+            </a>
+        </div>
+
+    </main>
+
+    <div id="toast-container" aria-live="polite"></div>
+
+    <script>
+        // ===== Inisialisasi Modul Sync =====
+        async function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+                const s = document.createElement('script');
+                s.src = src; s.onload = resolve; s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        async function initSyncModules() {
+            try {
+                await loadScript('/shared/sync/token-manager.js');
+                await loadScript('/shared/sync/providers/base.js');
+                await loadScript('/shared/sync/providers/gdrive.js');
+                await loadScript('/shared/sync/snapshot-engine.js');
+                await loadScript('/shared/sync/cloud-sync-engine.js');
+                await loadScript('/shared/sync/restore.js');
+                await loadScript('/shared/sync/sync-settings.js');
+                await loadScript('/shared/sync/version-history.js');
+
+                if (window.TMPT_CloudSyncEngine && window.GDriveSyncProvider) {
+                    window.TMPT_CloudSyncEngine.init(new GDriveSyncProvider());
+                }
+            } catch(e) {
+                console.warn('[MultiDevice] Gagal memuat modul sync:', e);
+            }
+        }
+
+        // ===== Render Status Panel =====
+        function renderSyncStatus() {
+            const panel = document.getElementById('sync-current-status-panel');
+            if (!panel) return;
+
+            const isConnected = window.TMPT_TokenManager?.isConnected()
+                || localStorage.getItem('tmpt_gdrive_connected') === 'true';
+            const email = localStorage.getItem('tmpt_gdrive_email') || '';
+            const lastSync = localStorage.getItem('tmpt_gdrive_last_sync');
+
+            // Update Layer 3 diagram opacity
+            const l3arrow = document.getElementById('layer3-arrow');
+            const l3box = document.getElementById('layer3-box');
+            if (isConnected) {
+                if (l3arrow) l3arrow.style.opacity = '1';
+                if (l3box) l3box.style.opacity = '1';
+            }
+
+            // Update tier0 status
+            const tier0Status = document.getElementById('tier0-status');
+            if (isConnected && tier0Status) {
+                tier0Status.className = 'mdc-tier-status';
+                tier0Status.innerHTML = '';
+            }
+
+            // Tier 1 card button
+            const btnConnect = document.getElementById('btn-connect-gdrive');
+
+            if (isConnected) {
+                const lastSyncStr = lastSync
+                    ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(lastSync))
+                    : 'Belum ada';
+
+                // Update Tier 1 status badge
+                const tier1Card = document.getElementById('tier1-card');
+                if (tier1Card) {
+                    const existing = tier1Card.querySelector('.mdc-tier-status');
+                    if (!existing) {
+                        const badge = document.createElement('div');
+                        badge.className = 'mdc-tier-status active';
+                        badge.innerHTML = '<span>● Aktif &amp; Terhubung</span>';
+                        tier1Card.appendChild(badge);
+                    }
+                }
+
+                if (btnConnect) {
+                    btnConnect.textContent = '🔄 Sync Sekarang';
+                    btnConnect.onclick = triggerManualSync;
+                    btnConnect.style.background = 'rgba(16,185,129,0.1)';
+                    btnConnect.style.color = '#10b981';
+                    btnConnect.style.border = '1px solid #10b981';
+                }
+
+                panel.innerHTML = `
+                    <div class="mdc-status-card connected">
+                        <div class="mdc-status-icon">☁️</div>
+                        <div>
+                            <div class="mdc-status-title">Google Drive Terhubung</div>
+                            <div class="mdc-status-sub">${email ? `Akun: <strong>${email}</strong>` : ''}</div>
+                            <div class="mdc-status-sub">Terakhir sync: <strong>${lastSyncStr}</strong></div>
+                        </div>
+                        <div style="margin-left: auto; display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
+                            <button onclick="triggerManualSync(this)" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Sync sekarang">
+                                🔄 Sync Sekarang
+                            </button>
+                            <button onclick="showRestoreOptions()" class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Restore dari cloud">
+                                📦 Restore dari Cloud
+                            </button>
+                            <button onclick="disconnectGDrive()" class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto; color: #ef4444; border-color: #ef4444;" aria-label="Putuskan koneksi">
+                                Putuskan
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mdc-sync-history" id="sync-history-panel">
+                        <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--pico-muted-color); margin-bottom: 0.5rem;">Riwayat Sync Terakhir</div>
+                        ${renderSyncHistory()}
+                    </div>
+                `;
+
+                // Nomor section
+                document.getElementById('status-section-num').textContent = '4';
+
+            } else {
+                panel.innerHTML = `
+                    <div class="mdc-status-card not-connected">
+                        <div class="mdc-status-icon">🔌</div>
+                        <div>
+                            <div class="mdc-status-title">Cloud Sync Belum Aktif</div>
+                            <div class="mdc-status-sub">Data Anda hanya tersimpan di browser ini (Tier 0 — Lokal).</div>
+                            <div class="mdc-status-sub" style="margin-top: 0.35rem;">Aktifkan Google Drive Sync di atas untuk mengakses data dari perangkat lain.</div>
+                        </div>
+                    </div>
+
+                    <div class="mdc-import-options" style="margin-top: 1rem;">
+                        <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--pico-muted-color);">Pindah dari perangkat lain?</p>
+                        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                            <button onclick="startGDriveSetup()" style="font-size: 0.875rem; padding: 0.5rem 1rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Restore dari Google Drive">
+                                ☁️ Restore dari Google Drive
+                            </button>
+                            <button onclick="importLocalFile()" class="outline secondary" style="font-size: 0.875rem; padding: 0.5rem 1rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Import dari file backup">
+                                📁 Import File .tmpt
+                            </button>
+                        </div>
+                        <input type="file" id="import-file-input" style="display: none;" accept=".tmpt" onchange="handleImportFile(this.files[0])">
+                    </div>
+                `;
+            }
+        }
+
+        function renderSyncHistory() {
+            const history = window.TMPT_CloudSyncEngine?.getSyncHistory?.() || [];
+            if (history.length === 0) {
+                return '<div style="font-size: 0.8rem; color: var(--pico-muted-color);">Belum ada riwayat sync.</div>';
+            }
+            return history.slice(0, 5).map(h => {
+                const timeStr = h.at ? new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(h.at)) : '—';
+                const sizeStr = h.size ? (h.size > 1024*1024 ? `${(h.size/1024/1024).toFixed(1)} MB` : `${(h.size/1024).toFixed(0)} KB`) : '';
+                return `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0; border-bottom: 1px solid var(--pico-muted-border-color); font-size: 0.8rem;">
+                        <span style="color: ${h.success ? '#10b981' : '#ef4444'};">${h.success ? '✓' : '✗'}</span>
+                        <span style="flex: 1;">${timeStr}</span>
+                        <span style="color: var(--pico-muted-color);">${sizeStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ===== Actions =====
+        function startGDriveSetup() {
+            // Tampilkan seksi step-by-step
+            const setupSection = document.getElementById('section-gdrive-setup');
+            if (setupSection) {
+                setupSection.style.display = '';
+                document.getElementById('status-section-num').textContent = '5';
+                setupSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // Redirect ke OAuth
+            setTimeout(() => {
+                if (window.TMPT_TokenManager) {
+                    window.TMPT_TokenManager.initiateAuth();
+                } else {
+                    window.TMPT_UI?.toast('Modul sync belum siap, coba lagi sesaat.', 'warning');
+                }
+            }, 1200);
+        }
+
+        async function triggerManualSync(btn) {
+            if (btn) { btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Menyinkron...'; btn._orig = orig; }
+            try {
+                const ok = await window.TMPT_CloudSyncEngine?.syncNow();
+                if (ok) window.TMPT_UI?.toast('✓ Data berhasil disinkronkan ke Google Drive!', 'success');
+                renderSyncStatus(); // refresh panel
+            } catch(e) {
+                window.TMPT_UI?.toast('Sync gagal: ' + e.message, 'error');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = btn._orig || '🔄 Sync Sekarang'; }
+            }
+        }
+
+        async function showRestoreOptions() {
+            try {
+                await loadScript('/shared/sync/version-history.js');
+                if (window.TMPT_VersionHistory) {
+                    window.TMPT_VersionHistory.show();
+                }
+            } catch(e) {
+                window.TMPT_UI?.toast('Gagal membuka riwayat versi.', 'error');
+            }
+        }
+
+        function disconnectGDrive() {
+            window.TMPT_TokenManager?.disconnect?.();
+            localStorage.removeItem('tmpt_gdrive_connected');
+            localStorage.removeItem('tmpt_gdrive_email');
+            localStorage.removeItem('tmpt_gdrive_last_sync');
+            window.TMPT_UI?.toast('Koneksi Google Drive diputuskan.', 'info');
+            renderSyncStatus();
+        }
+
+        function importLocalFile() {
+            document.getElementById('import-file-input')?.click();
+        }
+
+        async function handleImportFile(file) {
+            if (!file) return;
+            try {
+                await loadScript('/shared/backup.js');
+                if (window.TMPT_Backup) {
+                    await window.TMPT_Backup.importVault(file);
+                } else {
+                    throw new Error('Modul backup tidak tersedia.');
+                }
+            } catch(e) {
+                window.TMPT_UI?.toast('Import gagal: ' + e.message, 'error');
+            }
+        }
+
+        // ===== Cek apakah baru datang dari OAuth callback =====
+        async function checkOAuthCallback() {
+            const params = new URLSearchParams(window.location.search);
+            const fromOAuth = params.get('gdrive_connected');
+
+            if (fromOAuth === '1') {
+                window.TMPT_UI?.toast('✓ Google Drive berhasil dihubungkan! Sinkronisasi pertama dimulai...', 'success');
+
+                // Hapus param dari URL
+                const url = new URL(window.location.href);
+                url.searchParams.delete('gdrive_connected');
+                history.replaceState({}, '', url.toString());
+
+                // Trigger sync pertama
+                setTimeout(async () => {
+                    if (window.TMPT_SnapshotEngine) {
+                        await window.TMPT_SnapshotEngine.createSnapshot('manual');
+                    }
+                    renderSyncStatus();
+                }, 2000);
+            }
+        }
+
+        // ===== Main Init =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Apply theme
+            const theme = localStorage.getItem('tmpt_theme') || 'light';
+            document.documentElement.setAttribute('data-theme', theme);
+
+            // Render status awal (mungkin belum ada modul)
+            renderSyncStatus();
+
+            // Load sync modules secara background
+            await initSyncModules();
+
+            // Re-render setelah modul tersedia
+            renderSyncStatus();
+
+            // Cek callback OAuth
+            await checkOAuthCallback();
+        });
+    </script>
+
+</body>
+</html>
