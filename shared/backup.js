@@ -33,21 +33,13 @@ const BackupModule = {
 
     // Get list of all databases starting with tmpt_
     async _getDatabases() {
-        const defaultDbs = [
-            'tmpt_berkas',
-            'tmpt_tulis',
-            'tmpt_hitung',
-            'tmpt_slide',
-            'tmpt_forms',
-            'tmpt_kalender',
-            'tmpt_tugas',
-            'tmpt_catatan',
-            'tmpt_vault',
-            'tmpt_code',
-            'tmpt_diagram',
-            'tmpt_markdown',
-            'tmpt_json'
-        ];
+        // Gunakan registry terpusat dari shared/database.js
+                const defaultDbs = (typeof window !== 'undefined' && window.TMPT_DATABASES)
+            ? window.TMPT_DATABASES
+            : ['tmpt_berkas', 'tmpt_tulis', 'tmpt_hitung', 'tmpt_slides',
+               'tmpt_forms', 'tmpt_kalender', 'tmpt_tugas', 'tmpt_catatan',
+               'tmpt_vault', 'tmpt_code', 'tmpt_diagram', 'tmpt_markdown',
+               'tmpt_json', 'tmpt_project', 'tmpt_pomodoro', 'tmpt_regex', 'tmpt_papan'];
 
         if (!indexedDB.databases) {
             return defaultDbs.map(name => ({ name }));
@@ -56,7 +48,7 @@ const BackupModule = {
         try {
             const dbs = await indexedDB.databases();
             const names = new Set(dbs.map(d => d.name).filter(name => name && name.startsWith('tmpt_')));
-            // Ensure default databases are included just in case they haven't been created yet but might exist
+            // Pastikan semua database default masuk, meski belum dibuat
             defaultDbs.forEach(name => names.add(name));
             return Array.from(names).map(name => ({ name }));
         } catch (e) {
@@ -82,16 +74,17 @@ const BackupModule = {
                 const primaryStores = {
                     'tmpt_berkas': 'files',
                     'tmpt_tulis': 'documents',
-                    'tmpt_hitung': 'files',
-                    'tmpt_slide': 'presentations',
+                    'tmpt_slides': 'presentations',
                     'tmpt_forms': 'forms',
                     'tmpt_kalender': 'events',
                     'tmpt_tugas': 'tasks',
-                    'tmpt_catatan': 'notes',
-                    'tmpt_vault': 'items',
                     'tmpt_code': 'projects',
-                    'tmpt_diagram': 'diagrams',
-                    'tmpt_project': 'projects'
+                    'tmpt_diagram': 'documents',
+                    'tmpt_project': 'projects',
+                    'tmpt_regex': 'sessions',
+                    'tmpt_json': 'sessions',
+                    'tmpt_pomodoro': 'sessions',
+                    'tmpt_papan': 'boards'
                 };
 
                 const targetStores = [];
@@ -150,6 +143,81 @@ const BackupModule = {
         });
     },
 
+    // Parsing helpers for localStorage based apps
+    async _getLocalStorageHitungCount() {
+        const list = localStorage.getItem('hitung_file_list') || localStorage.getItem('hitung_file_list_enc');
+        if (!list) return 0;
+        try {
+            if (list.startsWith('[')) {
+                return JSON.parse(list).length;
+            }
+            // Encrypted format, count direct keys in localStorage
+            let count = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if ((key.startsWith('hitung_file_') || key.startsWith('hitung_file_enc_')) && key !== 'hitung_file_list' && key !== 'hitung_file_list_enc') {
+                    count++;
+                }
+            }
+            return count;
+        } catch (e) {
+            return 0;
+        }
+    },
+
+    async _getLocalStorageCatatanCount() {
+        let count = 0;
+        if (localStorage.getItem('catat_notes_enc') || localStorage.getItem('catat_lists_enc')) {
+            if (window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) {
+                try {
+                    const key = window.TMPT_Auth.getKey();
+                    const encNotes = localStorage.getItem('catat_notes_enc');
+                    const encLists = localStorage.getItem('catat_lists_enc');
+                    if (encNotes) {
+                        const dec = await window.TMPT_Crypto.decrypt(JSON.parse(encNotes), key);
+                        count += JSON.parse(dec).length;
+                    }
+                    if (encLists) {
+                        const dec = await window.TMPT_Crypto.decrypt(JSON.parse(encLists), key);
+                        count += JSON.parse(dec).length;
+                    }
+                } catch(e) {
+                    return -1; // Encrypted but cannot count without active key details
+                }
+            } else {
+                return -1;
+            }
+        } else {
+            const notes = localStorage.getItem('catat_notes');
+            const lists = localStorage.getItem('catat_lists');
+            if (notes) { try { count += JSON.parse(notes).length; } catch(e){} }
+            if (lists) { try { count += JSON.parse(lists).length; } catch(e){} }
+        }
+        return count;
+    },
+
+    async _getLocalStorageVaultCount() {
+        const activeVaultKey = localStorage.getItem('tmpt_active_vault_id') || 'tmpt_vault_v1';
+        const raw = localStorage.getItem(activeVaultKey);
+        if (!raw) return 0;
+        try {
+            const vaultData = JSON.parse(raw);
+            if (vaultData.payload) {
+                if (window.TMPT_Auth && window.TMPT_Auth.isUnlocked()) {
+                    const key = window.TMPT_Auth.getKey();
+                    const dec = await window.TMPT_Crypto.decrypt(vaultData.payload, key);
+                    const items = JSON.parse(dec);
+                    return Array.isArray(items) ? items.length : 0;
+                } else {
+                    return -1; // Encrypted
+                }
+            }
+        } catch(e) {
+            return -1;
+        }
+        return 0;
+    },
+
     // Calculate stats before backup
     async calculateBackupStats() {
         const stats = {
@@ -193,6 +261,28 @@ const BackupModule = {
         // 3. Database records stats
         const dbs = await this._getDatabases();
         for (const dbInfo of dbs) {
+            if (dbInfo.name === 'tmpt_hitung') {
+                const count = await this._getLocalStorageHitungCount();
+                if (count > 0) {
+                    stats.databases.push({ name: 'tmpt_hitung', totalRecords: count });
+                }
+                continue;
+            }
+            if (dbInfo.name === 'tmpt_catatan') {
+                const count = await this._getLocalStorageCatatanCount();
+                if (count > 0 || count === -1) {
+                    stats.databases.push({ name: 'tmpt_catatan', totalRecords: count });
+                }
+                continue;
+            }
+            if (dbInfo.name === 'tmpt_vault') {
+                const count = await this._getLocalStorageVaultCount();
+                if (count > 0 || count === -1) {
+                    stats.databases.push({ name: 'tmpt_vault', totalRecords: count });
+                }
+                continue;
+            }
+
             const dbStats = await this._getDatabaseStats(dbInfo.name);
             if (dbStats && dbStats.totalRecords > 0) {
                 stats.databases.push(dbStats);
@@ -227,15 +317,21 @@ const BackupModule = {
                 if (rawName === 'berkas') { appName = 'BERKAS'; unit = 'berkas/dokumen'; }
                 else if (rawName === 'tulis') { appName = 'TULIS'; unit = 'dokumen'; }
                 else if (rawName === 'hitung') { appName = 'HITUNG'; unit = 'lembar kerja'; }
-                else if (rawName === 'slide') { appName = 'SLIDE'; unit = 'presentasi'; }
+                else if (rawName === 'slides' || rawName === 'slide') { appName = 'SLIDE'; unit = 'presentasi'; }
                 else if (rawName === 'forms') { appName = 'FORMS'; unit = 'formulir'; }
                 else if (rawName === 'kalender') { appName = 'KALENDER'; unit = 'acara'; }
                 else if (rawName === 'tugas') { appName = 'TUGAS'; unit = 'tugas'; }
                 else if (rawName === 'catatan') { appName = 'CATATAN'; unit = 'catatan'; }
-                else if (rawName === 'code' || rawName === 'project') { appName = 'CODE'; unit = 'proyek'; }
+                else if (rawName === 'code') { appName = 'CODE'; unit = 'proyek'; }
+                else if (rawName === 'project') { appName = 'PROJECT'; unit = 'proyek'; }
                 else if (rawName === 'diagram') { appName = 'DIAGRAM'; unit = 'diagram'; }
+                else if (rawName === 'regex') { appName = 'REGEX'; unit = 'sesi'; }
+                else if (rawName === 'json') { appName = 'JSON'; unit = 'sesi'; }
+                else if (rawName === 'pomodoro') { appName = 'POMODORO'; unit = 'sesi'; }
+                else if (rawName === 'vault') { appName = 'VAULT (BRANKAS)'; unit = 'item terenkripsi'; }
 
-                return `<li><strong>Aplikasi ${appName}</strong>: ${db.totalRecords} ${unit}</li>`;
+                const countStr = db.totalRecords === -1 ? 'Terenkripsi Pro' : `${db.totalRecords} ${unit}`;
+                return `<li><strong>Aplikasi ${appName}</strong>: ${countStr}</li>`;
             }).join('');
 
             if (!dbListHtml) dbListHtml = '<li>Tidak ada data aplikasi aktif</li>';
@@ -657,7 +753,12 @@ const BackupModule = {
                 }
 
                 setTimeout(() => {
-                    if (window.TMPT_Auth && window.TMPT_Auth.lock) {
+                    // Cek apakah ini restore di perangkat baru (vault belum ada sebelumnya)
+                    const isNewDevice = !sessionStorage.getItem('_vault_was_unlocked');
+                    if (isNewDevice) {
+                        // Perangkat baru: vault baru saja diimport, arahkan ke login
+                        window.location.href = '/app/auth/login/';
+                    } else if (window.TMPT_Auth && window.TMPT_Auth.lock) {
                         window.TMPT_Auth.lock();
                     } else {
                         window.location.reload();
@@ -681,127 +782,79 @@ const BackupModule = {
         });
     },
 
-    // Helper to reconstruct and write data to an IndexedDB database
+    // Helper to reconstruct and write data to an IndexedDB
     async _restoreDatabase(dbContent) {
-        const { databaseName, version, stores } = dbContent;
+        const { databaseName, stores } = dbContent;
         return new Promise((resolve, reject) => {
-            // First, open without version to find the current active version in the browser
-            const checkReq = indexedDB.open(databaseName);
-            checkReq.onsuccess = (event) => {
-                const tempDb = event.target.result;
-                const currentVersion = tempDb.version;
-                tempDb.close();
-
-                // Open with the highest version to avoid VersionError
-                const openVersion = Math.max(version || 1, currentVersion);
-                const req = indexedDB.open(databaseName, openVersion);
-
-                req.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    Object.keys(stores).forEach(storeName => {
-                        if (!db.objectStoreNames.contains(storeName)) {
+            // 1. Open without version to check existing state
+            const openReq = indexedDB.open(databaseName);
+            openReq.onsuccess = (e) => {
+                const db = e.target.result;
+                const currentVersion = db.version;
+                
+                // Check if any stores from backup are missing
+                const missingStores = Object.keys(stores).filter(name => !db.objectStoreNames.contains(name));
+                
+                if (missingStores.length > 0) {
+                    db.close();
+                    const upgradeReq = indexedDB.open(databaseName, currentVersion + 1);
+                    upgradeReq.onupgradeneeded = (ev) => {
+                        const upgradeDb = ev.target.result;
+                        missingStores.forEach(storeName => {
                             let keyPath = 'id';
-                            if (storeName === 'settings' || storeName === 'config') {
-                                keyPath = 'key';
-                            } else if (storeName === 'tags' && databaseName === 'tmpt_tugas') {
-                                keyPath = 'name';
-                            }
-                            db.createObjectStore(storeName, { keyPath: keyPath });
-                        }
-                    });
-                };
-
-                req.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const storeNames = Object.keys(stores);
-                    if (storeNames.length === 0) {
-                        db.close();
-                        resolve();
-                        return;
-                    }
-
-                    // Filter store names to only those that exist in the database schema
-                    const validStoreNames = storeNames.filter(name => db.objectStoreNames.contains(name));
-                    if (validStoreNames.length === 0) {
-                        db.close();
-                        resolve();
-                        return;
-                    }
-
-                    const tx = db.transaction(validStoreNames, 'readwrite');
-                    validStoreNames.forEach(storeName => {
-                        const store = tx.objectStore(storeName);
-                        store.clear();
-                        stores[storeName].forEach(item => {
-                            store.put(item);
+                            if (storeName === 'settings' || storeName === 'config') keyPath = 'key';
+                            else if (storeName === 'tags' && databaseName === 'tmpt_tugas') keyPath = 'name';
+                            upgradeDb.createObjectStore(storeName, { keyPath });
                         });
-                    });
-
-                    tx.oncomplete = () => {
-                        db.close();
-                        resolve();
                     };
-
-                    tx.onerror = (err) => {
-                        db.close();
-                        reject(tx.error || err);
+                    upgradeReq.onsuccess = (ev) => {
+                        const upgradedDb = ev.target.result;
+                        this._writeToStores(upgradedDb, stores).then(resolve).catch(reject);
                     };
-                };
-
-                req.onerror = (e) => reject(e.target.error);
+                    upgradeReq.onerror = (ev) => reject(ev.target.error);
+                } else {
+                    this._writeToStores(db, stores).then(resolve).catch(reject);
+                }
             };
-
-            checkReq.onerror = () => {
-                // If it fails to open (doesn't exist yet), open with the backup version
-                const req = indexedDB.open(databaseName, version || 1);
-                req.onupgradeneeded = (e) => {
-                    const db = e.target.result;
-                    Object.keys(stores).forEach(storeName => {
-                        if (!db.objectStoreNames.contains(storeName)) {
-                            let keyPath = 'id';
-                            if (storeName === 'settings' || storeName === 'config') {
-                                keyPath = 'key';
-                            } else if (storeName === 'tags' && databaseName === 'tmpt_tugas') {
-                                keyPath = 'name';
-                            }
-                            db.createObjectStore(storeName, { keyPath: keyPath });
-                        }
-                    });
-                };
-
-                req.onsuccess = (e) => {
-                    const db = e.target.result;
-                    const storeNames = Object.keys(stores);
-                    if (storeNames.length === 0) {
-                        db.close();
-                        resolve();
-                        return;
-                    }
-
-                    const tx = db.transaction(storeNames, 'readwrite');
-                    storeNames.forEach(storeName => {
-                        const store = tx.objectStore(storeName);
-                        store.clear();
-                        stores[storeName].forEach(item => {
-                            store.put(item);
-                        });
-                    });
-
-                    tx.oncomplete = () => {
-                        db.close();
-                        resolve();
-                    };
-
-                    tx.onerror = (err) => {
-                        db.close();
-                        reject(tx.error || err);
-                    };
-                };
-
-                req.onerror = (e) => reject(e.target.error);
+            openReq.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                Object.keys(stores).forEach(storeName => {
+                    let keyPath = 'id';
+                    if (storeName === 'settings' || storeName === 'config') keyPath = 'key';
+                    else if (storeName === 'tags' && databaseName === 'tmpt_tugas') keyPath = 'name';
+                    db.createObjectStore(storeName, { keyPath });
+                });
             };
+            openReq.onerror = (e) => reject(e.target.error);
         });
-    }
+    },
+
+    _writeToStores(db, stores) {
+        return new Promise((resolve, reject) => {
+            const storeNames = Object.keys(stores).filter(name => db.objectStoreNames.contains(name));
+            if (storeNames.length === 0) { db.close(); resolve(); return; }
+
+            const tx = db.transaction(storeNames, 'readwrite');
+            storeNames.forEach(storeName => {
+                const store = tx.objectStore(storeName);
+                store.clear();
+                (stores[storeName] || []).forEach(item => {
+                    try {
+                        const req = store.put(item);
+                        req.onerror = (e) => {
+                            console.warn(`[Backup] Gagal menulis ke ${storeName}:`, e.target.error, item);
+                            e.preventDefault();
+                            e.stopPropagation();
+                        };
+                    } catch(err) {
+                        console.warn(`[Backup] Exception put ke ${storeName}:`, err, item);
+                    }
+                });
+            });
+            tx.oncomplete = () => { db.close(); resolve(); };
+            tx.onerror = (err) => { db.close(); reject(tx.error || err); };
+        });
+    },
 };
 
 window.TMPT_Backup = BackupModule;

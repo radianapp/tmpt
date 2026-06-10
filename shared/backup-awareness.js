@@ -187,8 +187,12 @@ const BackupAwareness = {
 
         let summaryHtml = `<div style="font-weight: 700; margin-bottom: 0.25rem;">Data dalam Brankas Anda:</div>`;
         stats.databases.forEach(db => {
-            const cleanName = db.name.replace('tmpt_', '').toUpperCase();
-            summaryHtml += `• ${cleanName}: ${db.totalRecords} data rekaman<br>`;
+            const rawName = db.name.replace('tmpt_', '');
+            let appName = rawName.toUpperCase();
+            if (rawName === 'slides') appName = 'SLIDE';
+            if (rawName === 'vault') appName = 'VAULT (BRANKAS)';
+            const countStr = db.totalRecords === -1 ? 'Terenkripsi Pro' : `${db.totalRecords} data`;
+            summaryHtml += `• ${appName}: ${countStr}<br>`;
         });
         if (stats.opfsFilesCount > 0) {
             summaryHtml += `• File OPFS: ${stats.opfsFilesCount} berkas<br>`;
@@ -261,11 +265,11 @@ const BackupAwareness = {
                 border-left: 5px solid #ef4444;
             `;
             alertBox.innerHTML = `
-                <div style="font-weight: 700;">💾 Amankan Data TMPT Anda</div>
-                <div style="font-size: 0.85rem; color: var(--pico-color);">${daysStr} Data hanya tersimpan di peramban komputer ini.</div>
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.25rem;">
-                    <a href="/app/auth/settings/#section-backup" class="btn-navy" role="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px; text-align: center; text-decoration: none; display: inline-block;" onclick="this.closest('.toast').remove();">Backup Sekarang</a>
-                    <button class="outline secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px;" onclick="BackupAwareness.snoozeReminder(); this.closest('.toast').remove();">Nanti</button>
+                <div style="font-weight: 700; color: #ffffff;">💾 Amankan Data TMPT Anda</div>
+                <div style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.85);">${daysStr} Data hanya tersimpan di peramban komputer ini.</div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <a href="/app/auth/settings/#section-backup" class="btn-navy" role="button" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px; text-align: center; text-decoration: none; display: inline-block; background: #0f172a; border-color: #0f172a; color: #ffffff;" onclick="this.closest('.toast').remove();">Backup Sekarang</a>
+                    <button class="outline" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin: 0; width: auto; border-radius: 6px; border-color: rgba(255,255,255,0.4); color: #ffffff; background: transparent;" onclick="BackupAwareness.snoozeReminder(); this.closest('.toast').remove();">Nanti</button>
                 </div>
             `;
             container.appendChild(alertBox);

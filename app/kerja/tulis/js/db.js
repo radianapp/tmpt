@@ -8,7 +8,7 @@ let db = null;
 
 export async function initTulisDB() {
   if (db) return db;
-  db = await openTmptDB(DB_NAME, DB_VERSION, (database) => {
+  db = await openTmptDB(DB_NAME, undefined, (database) => {
     if (!database.objectStoreNames.contains('documents')) {
       const store = database.createObjectStore('documents', { keyPath: 'id' });
       store.createIndex('by_updated', 'updated_at', { unique: false });

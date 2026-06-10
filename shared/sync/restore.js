@@ -125,15 +125,19 @@ const TMPT_Restore = {
 
             const manifest = JSON.parse(await manifestFile.async('string'));
 
-            // Detect format: sync format (apps/) vs backup format (databases/)
-            const hasAppsFolder    = !!zip.folder('apps');
-            const hasDatabasesFolder = !!zip.folder('databases');
+            // Detect format dengan memindai berkas secara langsung (JSZip.folder() selalu bernilai true)
+            let hasAppsFolder = false;
+            let hasDatabasesFolder = false;
+            zip.forEach((path) => {
+                if (path.startsWith('apps/')) hasAppsFolder = true;
+                if (path.startsWith('databases/')) hasDatabasesFolder = true;
+            });
 
-            if (hasAppsFolder && !hasDatabasesFolder) {
-                // Format snapshot baru (TMPT Sync v2.0)
+            if (hasAppsFolder) {
+                // Format lama (apps/)
                 await this._importSyncFormat(zip, manifest);
             } else if (hasDatabasesFolder) {
-                // Format backup lama (backup.js)
+                // Format standar (databases/)
                 if (window.TMPT_Backup) {
                     await window.TMPT_Backup.importVault(blob);
                     return;
@@ -189,15 +193,47 @@ const TMPT_Restore = {
         if (window.TMPT_UI) window.TMPT_UI.showLoader('Memulihkan basis data aplikasi...');
         const appsFolder = zip.folder('apps');
         if (appsFolder) {
+            // Gunakan registry terpusat dari shared/database.js
+            const OLD_APP_TO_DB = (typeof window !== 'undefined' && window.TMPT_OLD_APP_TO_DB)
+                ? window.TMPT_OLD_APP_TO_DB
+                : {
+                    'tulis': 'tmpt_tulis', 'hitung': 'tmpt_hitung',
+                    'slide': 'tmpt_slides', 'forms': 'tmpt_forms',
+                    'kalender': 'tmpt_kalender', 'tugas': 'tmpt_tugas',
+                    'catatan': 'tmpt_catatan', 'markdown': 'tmpt_markdown',
+                    'berkas': 'tmpt_berkas', 'code': 'tmpt_code',
+                    'diagram': 'tmpt_diagram', 'vault': 'tmpt_vault',
+                    'qr': 'tmpt_qr', 'regex': 'tmpt_regex', 'json': 'tmpt_json',
+                    'project': 'tmpt_project', 'pomodoro': 'tmpt_pomodoro',
+                    'papan': 'tmpt_papan'
+                };
+
             const appFiles = [];
             appsFolder.forEach((path, entry) => {
                 if (!entry.dir && path.endsWith('.json')) appFiles.push(entry);
             });
 
             for (const appFile of appFiles) {
-                const content = JSON.parse(await appFile.async('string'));
-                if (content.databaseName && content.stores) {
-                    await this._restoreDatabase(content);
+                try {
+                    const rawContent = JSON.parse(await appFile.async('string'));
+                    let dbContent = rawContent;
+
+                    if (!rawContent.databaseName) {
+                        const shortName = appFile.name.replace(/^apps\//, '').replace('.json', '');
+                        const dbName = OLD_APP_TO_DB[shortName] || `tmpt_${shortName}`;
+                        dbContent = {
+                            databaseName: dbName,
+                            version: rawContent.version || 1,
+                            stores: rawContent.stores || rawContent
+                        };
+                    } else {
+                        if (!rawContent.databaseName.startsWith('tmpt_')) {
+                            dbContent.databaseName = `tmpt_${rawContent.databaseName}`;
+                        }
+                    }
+                    await this._restoreDatabase(dbContent);
+                } catch(err) {
+                    console.error("Gagal restore file apps/ dalam sync:", appFile.name, err);
                 }
             }
         }
@@ -213,43 +249,85 @@ const TMPT_Restore = {
         });
 
         for (const dbFile of dbFiles) {
-            const content = JSON.parse(await dbFile.async('string'));
-            await this._restoreDatabase(content);
+            try {
+                const content = JSON.parse(await dbFile.async('string'));
+                await this._restoreDatabase(content);
+            } catch(err) {
+                console.error("Gagal restore file databases/ dalam sync:", dbFile.name, err);
+            }
         }
     },
 
     async _restoreDatabase(dbContent) {
-        const { databaseName, version, stores } = dbContent;
+        const { databaseName, stores } = dbContent;
         return new Promise((resolve, reject) => {
-            const req = indexedDB.open(databaseName, version);
-            req.onupgradeneeded = (e) => {
+            // 1. Open tanpa versi untuk cek kondisi saat ini
+            const openReq = indexedDB.open(databaseName);
+            openReq.onsuccess = (e) => {
+                const db = e.target.result;
+                const currentVersion = db.version;
+                
+                // Cari store yang belum ada di database browser
+                const missingStores = Object.keys(stores).filter(name => !db.objectStoreNames.contains(name));
+                
+                if (missingStores.length > 0) {
+                    db.close();
+                    const upgradeReq = indexedDB.open(databaseName, currentVersion + 1);
+                    upgradeReq.onupgradeneeded = (ev) => {
+                        const upgradeDb = ev.target.result;
+                        missingStores.forEach(storeName => {
+                            let keyPath = 'id';
+                            if (storeName === 'settings' || storeName === 'config') keyPath = 'key';
+                            else if (storeName === 'tags' && databaseName === 'tmpt_tugas') keyPath = 'name';
+                            upgradeDb.createObjectStore(storeName, { keyPath });
+                        });
+                    };
+                    upgradeReq.onsuccess = (ev) => {
+                        const upgradedDb = ev.target.result;
+                        this._writeToStores(upgradedDb, stores).then(resolve).catch(reject);
+                    };
+                    upgradeReq.onerror = (ev) => reject(ev.target.error);
+                } else {
+                    this._writeToStores(db, stores).then(resolve).catch(reject);
+                }
+            };
+            openReq.onupgradeneeded = (e) => {
                 const db = e.target.result;
                 Object.keys(stores).forEach(storeName => {
-                    if (!db.objectStoreNames.contains(storeName)) {
-                        let keyPath = 'id';
-                        if (storeName === 'settings' || storeName === 'config') keyPath = 'key';
-                        else if (storeName === 'tags' && databaseName === 'tmpt_tugas') keyPath = 'name';
-                        db.createObjectStore(storeName, { keyPath });
+                    let keyPath = 'id';
+                    if (storeName === 'settings' || storeName === 'config') keyPath = 'key';
+                    else if (storeName === 'tags' && databaseName === 'tmpt_tugas') keyPath = 'name';
+                    db.createObjectStore(storeName, { keyPath });
+                });
+            };
+            openReq.onerror = (e) => reject(e.target.error);
+        });
+    },
+
+    _writeToStores(db, stores) {
+        return new Promise((resolve, reject) => {
+            const storeNames = Object.keys(stores).filter(name => db.objectStoreNames.contains(name));
+            if (storeNames.length === 0) { db.close(); resolve(); return; }
+
+            const tx = db.transaction(storeNames, 'readwrite');
+            storeNames.forEach(storeName => {
+                const store = tx.objectStore(storeName);
+                store.clear();
+                (stores[storeName] || []).forEach(item => {
+                    try {
+                        const req = store.put(item);
+                        req.onerror = (e) => {
+                            console.warn(`[Restore] Gagal menulis ke ${storeName}:`, e.target.error, item);
+                            e.preventDefault();
+                            e.stopPropagation();
+                        };
+                    } catch(err) {
+                        console.warn(`[Restore] Exception put ke ${storeName}:`, err, item);
                     }
                 });
-            };
-            req.onsuccess = (e) => {
-                const db         = e.target.result;
-                const storeNames = Object.keys(stores);
-                if (storeNames.length === 0) { db.close(); resolve(); return; }
-
-                const tx = db.transaction(storeNames, 'readwrite');
-                storeNames.forEach(storeName => {
-                    const store = tx.objectStore(storeName);
-                    store.clear();
-                    (stores[storeName] || []).forEach(item => {
-                        try { store.put(item); } catch(e) {}
-                    });
-                });
-                tx.oncomplete = () => { db.close(); resolve(); };
-                tx.onerror    = (err) => { db.close(); reject(tx.error || err); };
-            };
-            req.onerror = (e) => reject(e.target.error);
+            });
+            tx.oncomplete = () => { db.close(); resolve(); };
+            tx.onerror = (err) => { db.close(); reject(tx.error || err); };
         });
     },
 

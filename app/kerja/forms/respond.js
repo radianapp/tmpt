@@ -1,7 +1,7 @@
 import { openTmptDB, dbGet, dbPut } from '/shared/db.js';
 
 const DB_NAME = 'tmpt_forms';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db = null;
 let formId = null;

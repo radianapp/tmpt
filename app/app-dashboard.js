@@ -336,19 +336,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // 6. Sidebar Toggle via Hamburger Menu in Shared Header
-    document.addEventListener('click', (e) => {
-        const toggleBtn = e.target.closest('#header-sidebar-toggle');
-        if (toggleBtn) {
-            const isMobile = window.innerWidth <= 768;
-            if (isMobile) {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('active');
-            } else {
-                const mainPanel = document.querySelector('.dashboard-main');
-                const isCollapsedNow = sidebar.classList.toggle('collapsed');
-                if (mainPanel) mainPanel.classList.toggle('collapsed');
-                localStorage.setItem('tmpt_sidebar_collapsed', isCollapsedNow ? 'true' : 'false');
-            }
+    document.addEventListener('tmpt:sidebar-toggle', (e) => {
+        e.preventDefault();
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('active');
+        } else {
+            const mainPanel = document.querySelector('.dashboard-main');
+            const isCollapsedNow = sidebar.classList.toggle('collapsed');
+            if (mainPanel) mainPanel.classList.toggle('collapsed');
+            localStorage.setItem('tmpt_sidebar_collapsed', isCollapsedNow ? 'true' : 'false');
         }
     });
 

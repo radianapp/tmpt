@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function initDB() {
   try {
-    db = await openTmptDB(DB_NAME, DB_VERSION, (dbInstance) => {
+    db = await openTmptDB(DB_NAME, undefined, (dbInstance) => {
       if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
         dbInstance.createObjectStore(STORE_NAME, { keyPath: 'id' });
       }

@@ -84,36 +84,24 @@ document.addEventListener('htmx:afterSwap', (e) => {
 });
 
 function insertHamburgerInHeader() {
-  const logoLink = document.querySelector('header nav ul li a[href="/app/"]');
-  if (logoLink && !document.getElementById('btn-sidebar-toggle-header')) {
-    const hamburger = document.createElement('a');
-    hamburger.id = 'btn-sidebar-toggle-header';
-    hamburger.href = '#';
-    hamburger.innerHTML = '☰';
-    hamburger.title = 'Tampilkan/Sembunyikan Sidebar';
-    hamburger.style.cssText = 'padding: 0.2rem 0.5rem; font-size: 1.25rem; color: var(--pico-heading-color) !important; cursor: pointer; margin-right: 0.5rem; width: auto; height: auto; display: inline-flex; align-items: center; justify-content: center; text-decoration: none;';
-    
-    hamburger.addEventListener('click', (e) => {
-      e.preventDefault();
-      const sidebar = document.getElementById('sidebar-panel');
-      if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-      }
-    });
-    
-    // Pastikan parent (li) menyusun item secara horizontal (sejajar)
-    if (logoLink.parentNode) {
-      logoLink.parentNode.style.display = 'inline-flex';
-      logoLink.parentNode.style.alignItems = 'center';
-      logoLink.parentNode.insertBefore(hamburger, logoLink);
-    }
+  const hamburgerContainer = document.getElementById('header-hamburger-container');
+  if (hamburgerContainer) {
+    hamburgerContainer.style.display = 'block';
   }
 }
+
+document.addEventListener('tmpt:sidebar-toggle', (e) => {
+  e.preventDefault();
+  const sidebar = document.getElementById('sidebar-panel');
+  if (sidebar) {
+    sidebar.classList.toggle('collapsed');
+  }
+});
 
 // === DATABASE MODULE (IndexedDB) ===
 async function initDatabase() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('tmpt_markdown', 2);
+    const request = indexedDB.open('tmpt_markdown');
     
     request.onupgradeneeded = (e) => {
       const db = e.target.result;

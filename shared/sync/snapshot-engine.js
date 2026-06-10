@@ -16,11 +16,11 @@ const TMPT_SnapshotEngine = {
     FORCE_AFTER_CHANGES: 100,     // Force snapshot setelah 100 perubahan
     SNAPSHOT_DIR:       'tmpt-snapshots',
 
-    // App yang disinkronisasi — VAULT tidak pernah dimasukkan (security policy)
+    // App yang disinkronisasi — VAULT diikutsertakan (dienkripsi)
     SYNCABLE_APPS: [
         'tulis', 'hitung', 'slide', 'forms', 'kalender',
         'tugas', 'catatan', 'markdown', 'berkas', 'diagram',
-        'code', 'regex', 'json', 'qr',
+        'code', 'regex', 'json', 'qr', 'vault', 'papan', 'project', 'pomodoro'
     ],
 
     // State
@@ -252,7 +252,8 @@ const TMPT_SnapshotEngine = {
 
         for (const appName of this.SYNCABLE_APPS) {
             try {
-                const data     = await this._exportAppDB(`tmpt_${appName}`);
+                const dbName = (window.TMPT_OLD_APP_TO_DB && window.TMPT_OLD_APP_TO_DB[appName]) || `tmpt_${appName}`;
+                const data     = await this._exportAppDB(dbName);
                 const checksum = await this._sha256(JSON.stringify(data));
 
                 appsData[appName]  = data;

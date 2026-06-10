@@ -25,6 +25,12 @@ const TMPT_TokenManager = {
      * Memulai flow autentikasi OAuth Implicit Flow
      */
     async initiateAuth() {
+        // [FIX CACHE] Paksa browser download ulang gdrive-callback.html
+        // sebelum ke Google agar saat kembali tidak pakai versi cache lama
+        try {
+            await fetch('/app/auth/gdrive-callback.html', { cache: 'reload' });
+        } catch(e) {}
+
         const state = this._generateRandomString(16);
         localStorage.setItem('tmpt_oauth_state', state);
 

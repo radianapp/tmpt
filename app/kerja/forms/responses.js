@@ -3,7 +3,7 @@ import { openTmptDB, dbGet, dbGetAll, dbDelete } from '/shared/db.js';
 import { getAppBridgeContext } from '/shared/app-bridge.js';
 
 const DB_NAME = 'tmpt_forms';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 let db = null;
 let formId = null;

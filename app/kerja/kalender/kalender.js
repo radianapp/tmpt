@@ -644,7 +644,7 @@ async function loadFilesForLinking() {
   select.innerHTML = '<option value="">Pilih Dokumen TMPT...</option>';
 
   try {
-    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
+    const req = indexedDB.open('tmpt_berkas');
     req.onsuccess = (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;
@@ -1214,7 +1214,7 @@ async function syncDeadlines() {
 
   // 1. Fetch deadlines from TMPT Berkas
   try {
-    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
+    const req = indexedDB.open('tmpt_berkas');
     req.onsuccess = async (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;
@@ -1459,14 +1459,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup Sidebar Toggle Hamburger Menu
   const setupHamburgerToggle = () => {
     const hamburgerContainer = document.getElementById('header-hamburger-container');
-    const toggleButton = document.getElementById('header-sidebar-toggle');
-    const layout = document.querySelector('.calendar-layout');
-    
-    if (hamburgerContainer && toggleButton && layout) {
+    if (hamburgerContainer) {
       hamburgerContainer.style.display = 'inline-block';
-      toggleButton.addEventListener('click', () => {
-        layout.classList.toggle('sidebar-collapsed');
-      });
     }
   };
 
@@ -1478,6 +1472,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       setupHamburgerToggle();
     });
   }
+
+  document.addEventListener('tmpt:sidebar-toggle', (e) => {
+    e.preventDefault();
+    const layout = document.querySelector('.calendar-layout');
+    if (layout) {
+      layout.classList.toggle('sidebar-collapsed');
+    }
+  });
 
   // Hook cleanup on window exit
   window.addEventListener('beforeunload', () => {

@@ -799,20 +799,19 @@ async function setupPage() {
     if (headerHamburger) {
       headerHamburger.style.display = 'block';
     }
-    const headerSidebarToggle = document.getElementById('header-sidebar-toggle');
-    if (headerSidebarToggle) {
-      // Clean up existing listener to prevent duplicates
-      const newToggle = headerSidebarToggle.cloneNode(true);
-      headerSidebarToggle.parentNode.replaceChild(newToggle, headerSidebarToggle);
-      newToggle.addEventListener('click', () => {
-        document.getElementById('sidebar-panel').classList.toggle('collapsed');
-      });
-    }
   };
 
   // Run immediately and after HTMX swaps
   showHeaderHamburger();
   document.body.addEventListener('htmx:afterOnLoad', showHeaderHamburger);
+
+  document.addEventListener('tmpt:sidebar-toggle', (e) => {
+    e.preventDefault();
+    const sidebar = document.getElementById('sidebar-panel');
+    if (sidebar) {
+      sidebar.classList.toggle('collapsed');
+    }
+  });
 
   document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
     document.getElementById('sidebar-panel').classList.add('collapsed');

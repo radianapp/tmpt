@@ -93,12 +93,22 @@
 
                     await window.TMPT_TokenManager.handleImplicitCallback(accessToken, expiresIn, state);
 
-                    setStatus('✅', 'Berhasil Terhubung!', 'Google Drive berhasil dihubungkan. Memulai sinkronisasi pertama...');
+                    // Cek apakah vault ada di perangkat ini
+                    const vaultExists = window.TMPT_Vault && window.TMPT_Vault.exists();
 
-                    // Jalankan sync perdana jika engine termuat
+                    if (!vaultExists) {
+                        // Perangkat baru: jangan upload, langsung ke restore
+                        setStatus('☁️', 'Berhasil Terhubung!', 'Mencari data Anda di Google Drive...');
+                        setTimeout(() => {
+                            window.location.href = '/app/auth/multidevice/?gdrive_connected=1';
+                        }, 1000);
+                        return;
+                    }
+
+                    // Perangkat sudah ada vault: jalankan sync perdana
+                    setStatus('✅', 'Berhasil Terhubung!', 'Google Drive berhasil dihubungkan. Memulai sinkronisasi pertama...');
                     try {
                         if (window.TMPT_CloudSyncEngine) {
-                            // Coba sync manual sekali
                             await window.TMPT_CloudSyncEngine.syncNow();
                         } else if (window.GDriveSync) {
                             await window.GDriveSync.uploadSync();
@@ -136,7 +146,11 @@
                     await window.TMPT_TokenManager.handleCallback(code, state);
                     setStatus('✅', 'Berhasil Terhubung!', 'Google Drive berhasil dihubungkan...');
                     setTimeout(() => {
-                        window.location.href = '/app/auth/settings/#section-sync';
+                        if (window.TMPT_Vault && !window.TMPT_Vault.exists()) {
+                            window.location.href = '/app/auth/multidevice/?gdrive_connected=1';
+                        } else {
+                            window.location.href = '/app/auth/settings/#section-sync';
+                        }
                     }, 1500);
                 } catch(err) {
                     setStatus('❌', 'Gagal Menghubungkan', err.message, true);

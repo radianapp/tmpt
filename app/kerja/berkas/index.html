@@ -382,28 +382,26 @@
     });
 
     // Sidebar toggle delegation untuk halaman Berkas
-    document.addEventListener('click', (e) => {
-      const toggleBtn = e.target.closest('#header-sidebar-toggle');
-      if (toggleBtn) {
-        const sidebar = document.querySelector('.berkas-sidebar');
-        if (sidebar) {
-          const isMobile = window.innerWidth <= 768;
-          if (isMobile) {
-            sidebar.classList.toggle('show');
-            let overlay = document.querySelector('.sidebar-overlay');
-            if (!overlay) {
-              overlay = document.createElement('div');
-              overlay.className = 'sidebar-overlay';
-              document.body.appendChild(overlay);
-              overlay.addEventListener('click', () => {
-                sidebar.classList.remove('show');
-                overlay.classList.remove('active');
-              });
-            }
-            overlay.classList.toggle('active');
-          } else {
-            sidebar.classList.toggle('collapsed');
+    document.addEventListener('tmpt:sidebar-toggle', (e) => {
+      e.preventDefault();
+      const sidebar = document.querySelector('.berkas-sidebar');
+      if (sidebar) {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+          sidebar.classList.toggle('show');
+          let overlay = document.querySelector('.sidebar-overlay');
+          if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'sidebar-overlay';
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => {
+              sidebar.classList.remove('show');
+              overlay.classList.remove('active');
+            });
           }
+          overlay.classList.toggle('active');
+        } else {
+          sidebar.classList.toggle('collapsed');
         }
       }
     });

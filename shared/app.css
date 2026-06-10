@@ -1387,4 +1387,53 @@ button.theme-toggle svg {
 }
 
 
+/* =====================================================
+   Sidebar Toggle Universal (Hamburger Button)
+   Semua sidebar di TMPT yang di-toggle via #header-sidebar-toggle
+   mendukung class .collapsed untuk menyembunyikan sidebar.
+   ===================================================== */
 
+/* Transisi dasar untuk semua sidebar */
+.berkas-sidebar,
+.tugas-sidebar,
+.kalender-sidebar,
+.catat-sidebar,
+.code-sidebar,
+.diagram-sidebar,
+.project-sidebar,
+aside[class*="sidebar"],
+nav.sidebar-nav {
+    transition: width 0.28s ease, opacity 0.22s ease, min-width 0.28s ease, margin 0.28s ease;
+    overflow: hidden;
+}
+
+/* State collapsed — sembunyikan sidebar */
+.berkas-sidebar.collapsed,
+.tugas-sidebar.collapsed,
+.kalender-sidebar.collapsed,
+.catat-sidebar.collapsed,
+.code-sidebar.collapsed,
+.diagram-sidebar.collapsed,
+.project-sidebar.collapsed,
+aside.collapsed,
+nav.sidebar-nav.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    margin-right: 0 !important;
+    margin-left: 0 !important;
+    padding: 0 !important;
+    flex-shrink: 0 !important;
+}
+
+/* Tombol hamburger rotasi animasi saat aktif */
+#header-sidebar-toggle[aria-expanded="false"] svg {
+    transform: rotate(0deg);
+    transition: transform 0.25s ease;
+}
+
+#header-sidebar-toggle[aria-expanded="true"] svg {
+    transform: rotate(90deg);
+    transition: transform 0.25s ease;
+}

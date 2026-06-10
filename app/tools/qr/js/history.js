@@ -10,7 +10,7 @@ let dbInstance = null;
 async function getDB() {
   if (dbInstance) return dbInstance;
 
-  dbInstance = await openTmptDB(DB_NAME, DB_VERSION, (db) => {
+  dbInstance = await openTmptDB(DB_NAME, undefined, (db) => {
     if (!db.objectStoreNames.contains(STORE_NAME)) {
       db.createObjectStore(STORE_NAME, { keyPath: 'id' });
     }

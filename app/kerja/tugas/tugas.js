@@ -41,6 +41,12 @@ async function init() {
   scheduleReminders();
   renderSidebar();
   renderActiveView();
+
+  // Tombol opsi daftar selalu tampil
+  const listOptionsBtn = document.getElementById('btn-list-options');
+  if (listOptionsBtn) {
+    listOptionsBtn.style.display = 'inline-block';
+  }
 }
 
 async function initDB() {
@@ -117,6 +123,7 @@ function renderSidebar() {
         <span class="nav-icon" style="color: ${list.color || 'inherit'}">${list.icon === '📋' ? '☑️' : (list.icon || '☑️')}</span>
         <span class="nav-label">${escapeHtml(list.name)}</span>
         <span class="badge">${count}</span>
+        <span class="sidebar-opt-btn" data-filter="${list.id}">⋮</span>
       </a>
     `;
 
@@ -230,6 +237,12 @@ function setFilter(filter) {
 
   renderSidebar();
   renderActiveView();
+
+  // Tombol opsi daftar selalu aktif
+  const listOptionsBtn = document.getElementById('btn-list-options');
+  if (listOptionsBtn) {
+    listOptionsBtn.style.display = 'inline-block';
+  }
 }
 
 // ── TASKS RENDERING ──────────────────────────────────────────────────────────
@@ -393,7 +406,10 @@ function createTaskItemElement(task) {
         ${dueHtml}
       </div>
     </div>
-    <button class="star-btn ${task.starred ? 'starred' : ''}" aria-label="Bintang" style="background: transparent; border: none; padding: 0.25rem; margin: 0; font-size: 1.25rem; cursor: pointer; line-height: 1; width: auto; color: ${task.starred ? '#f59e0b' : 'var(--pico-muted-color)'};">${task.starred ? '★' : '☆'}</button>
+    <div style="display: flex; align-items: center; gap: 0.25rem;">
+      <button class="star-btn ${task.starred ? 'starred' : ''}" aria-label="Bintang" style="background: transparent; border: none; padding: 0.25rem; margin: 0; font-size: 1.25rem; cursor: pointer; line-height: 1; width: auto; color: ${task.starred ? '#f59e0b' : 'var(--pico-muted-color)'};">${task.starred ? '★' : '☆'}</button>
+      <button class="delete-inline-btn" aria-label="Hapus" style="background: transparent; border: none; padding: 0.25rem; margin: 0; font-size: 1.1rem; cursor: pointer; line-height: 1; width: auto; color: var(--pico-muted-color); opacity: 0.6; transition: opacity 0.2s;">🗑️</button>
+    </div>
   `;
 
   item.appendChild(mainRow);
@@ -471,8 +487,17 @@ function createTaskItemElement(task) {
     renderActiveView();
   });
 
+  mainRow.querySelector('.delete-inline-btn').addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await dbDelete(db, 'tasks', task.id);
+    toast('Tugas dihapus.', 'success');
+    await loadData();
+    renderSidebar();
+    renderActiveView();
+  });
+
   item.addEventListener('click', (e) => {
-    if (e.target.closest('.task-checkbox') || e.target.closest('.star-btn') || e.target.closest('.drag-handle') || e.target.closest('input[type="checkbox"]')) return;
+    if (e.target.closest('.task-checkbox') || e.target.closest('.star-btn') || e.target.closest('.delete-inline-btn') || e.target.closest('.drag-handle') || e.target.closest('input[type="checkbox"]')) return;
     openTaskDetail(task.id);
   });
 
@@ -735,7 +760,7 @@ async function loadFilesForLinking() {
   const select = document.getElementById('modal-link-doc-select');
   select.innerHTML = '<option value="">Pilih Berkas...</option>';
   try {
-    const req = indexedDB.open('tmpt_berkas', DB_VERSIONS['tmpt_berkas']);
+    const req = indexedDB.open('tmpt_berkas');
     req.onsuccess = (e) => {
       const dbBerkas = e.target.result;
       if (!dbBerkas.objectStoreNames.contains('files')) return;
@@ -886,24 +911,115 @@ function setupEventListeners() {
     }
   });
 
-  // Top List Options Dialog Hook
+  // Helper to open options for a specific filter/list
+  const openListOptions = (filterId) => {
+    const isVirtual = (filterId === 'inbox' || filterId === 'today' || filterId === 'starred' || filterId === 'recurring' || filterId === 'done' || filterId.startsWith('tag:'));
+    
+    let title = 'Opsi Daftar';
+    let isDefaultList = false;
+
+    if (isVirtual) {
+      if (filterId === 'inbox') title = 'Opsi: Inbox';
+      else if (filterId === 'today') title = 'Opsi: Hari Ini';
+      else if (filterId === 'starred') title = 'Opsi: Berbintang';
+      else if (filterId === 'recurring') title = 'Opsi: Berulang';
+      else if (filterId === 'done') title = 'Opsi: Selesai';
+      else if (filterId.startsWith('tag:')) title = `Opsi Label: ${filterId.replace('tag:', '')}`;
+    } else {
+      const list = allLists.find(l => l.id === filterId);
+      if (list) {
+        title = `Opsi: ${list.name}`;
+        isDefaultList = !!list.is_default;
+      }
+    }
+
+    const modal = document.getElementById('list-actions-modal');
+    modal.setAttribute('data-target-filter', filterId);
+    document.getElementById('list-actions-title').textContent = title;
+    
+    // Hide/show option buttons dynamically
+    const btnRename = document.getElementById('btn-opt-rename-list');
+    const btnMove = document.getElementById('btn-opt-move-tasks');
+    const btnDelete = document.getElementById('btn-opt-delete-list');
+    const btnClear = document.getElementById('btn-opt-clear-completed');
+
+    if (isVirtual) {
+      if (btnRename) btnRename.style.display = 'none';
+      if (btnMove) btnMove.style.display = 'none';
+      if (btnDelete) btnDelete.style.display = 'none';
+    } else {
+      if (btnRename) btnRename.style.display = isDefaultList ? 'none' : 'block';
+      if (btnMove) btnMove.style.display = 'block';
+      if (btnDelete) btnDelete.style.display = isDefaultList ? 'none' : 'block';
+    }
+    if (btnClear) btnClear.style.display = 'block';
+
+    modal.showModal();
+  };
+
+  // Event delegation for sidebar option buttons
+  document.addEventListener('click', (e) => {
+    const optBtn = e.target.closest('.sidebar-opt-btn');
+    if (optBtn) {
+      e.stopPropagation();
+      e.preventDefault();
+      const filterId = optBtn.getAttribute('data-filter');
+      openListOptions(filterId);
+    }
+  });
+
+  // Top List Options Dialog Hook (kept for fallback compatibility, now triggers active filter options)
   document.getElementById('btn-list-options').addEventListener('click', () => {
-    if (currentFilter === 'inbox' || currentFilter === 'today' || currentFilter === 'starred' || currentFilter === 'recurring' || currentFilter === 'done' || currentFilter.startsWith('tag:')) {
-      toast('Daftar virtual tidak dapat diubah.', 'warning');
+    openListOptions(currentFilter);
+  });
+
+  // Action: Clear Completed Tasks Option
+  document.getElementById('btn-opt-clear-completed').addEventListener('click', async () => {
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    modal.close();
+    
+    let tasksToClear = [];
+    if (targetFilter === 'inbox') {
+      tasksToClear = allTasks.filter(t => t.list_id === 'inbox' && t.status === 'done');
+    } else if (targetFilter === 'today') {
+      const todayStr = new Date().toISOString().split('T')[0];
+      tasksToClear = allTasks.filter(t => t.due_date === todayStr && t.status === 'done');
+    } else if (targetFilter === 'starred') {
+      tasksToClear = allTasks.filter(t => t.starred && t.status === 'done');
+    } else if (targetFilter === 'recurring') {
+      tasksToClear = allTasks.filter(t => t.repeat && t.repeat !== 'none' && t.status === 'done');
+    } else if (targetFilter === 'done') {
+      tasksToClear = allTasks.filter(t => t.status === 'done');
+    } else if (targetFilter.startsWith('tag:')) {
+      const tag = targetFilter.replace('tag:', '').toLowerCase();
+      tasksToClear = allTasks.filter(t => t.status === 'done' && t.tags && t.tags.some(tg => tg.trim().toLowerCase() === tag));
+    } else {
+      tasksToClear = allTasks.filter(t => t.list_id === targetFilter && t.status === 'done');
+    }
+
+    if (tasksToClear.length === 0) {
+      toast('Tidak ada tugas selesai untuk dihapus.', 'info');
       return;
     }
 
-    const list = allLists.find(l => l.id === currentFilter);
-    if (!list) return;
+    for (const task of tasksToClear) {
+      await dbDelete(db, 'tasks', task.id);
+    }
 
-    document.getElementById('list-actions-title').textContent = `Opsi: ${list.name}`;
-    document.getElementById('list-actions-modal').showModal();
+    await loadData();
+    renderSidebar();
+    renderActiveView();
+    toast(`${tasksToClear.length} tugas selesai telah dihapus.`, 'success');
   });
 
   // Action: Rename List Option
   document.getElementById('btn-opt-rename-list').addEventListener('click', () => {
-    document.getElementById('list-actions-modal').close();
-    const list = allLists.find(l => l.id === currentFilter);
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    modal.close();
+    
+    const list = allLists.find(l => l.id === targetFilter);
     if (!list) return;
 
     document.getElementById('list-new-name-input').value = list.name;
@@ -911,7 +1027,10 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-submit-rename-list').addEventListener('click', async () => {
-    const list = allLists.find(l => l.id === currentFilter);
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    
+    const list = allLists.find(l => l.id === targetFilter);
     if (!list) return;
 
     const newName = document.getElementById('list-new-name-input').value.trim();
@@ -919,7 +1038,11 @@ function setupEventListeners() {
       list.name = newName;
       await dbPut(db, 'lists', list);
       await loadData();
-      setFilter(list.id);
+      if (currentFilter === targetFilter) {
+        setFilter(list.id);
+      } else {
+        renderSidebar();
+      }
       document.getElementById('list-rename-modal').close();
       toast('Nama daftar berhasil diubah.', 'success');
     } else {
@@ -929,15 +1052,18 @@ function setupEventListeners() {
 
   // Action: Move Tasks Option
   document.getElementById('btn-opt-move-tasks').addEventListener('click', () => {
-    document.getElementById('list-actions-modal').close();
-    const list = allLists.find(l => l.id === currentFilter);
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    modal.close();
+    
+    const list = allLists.find(l => l.id === targetFilter);
     if (!list) return;
 
     // Populate target list select
     const select = document.getElementById('list-target-select');
     select.innerHTML = '';
     allLists.forEach(l => {
-      if (l.id !== currentFilter) {
+      if (l.id !== targetFilter) {
         const opt = document.createElement('option');
         opt.value = l.id;
         opt.textContent = `${l.icon || '📋'} ${l.name}`;
@@ -955,12 +1081,15 @@ function setupEventListeners() {
   });
 
   document.getElementById('btn-submit-move-tasks').addEventListener('click', async () => {
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    
     const targetListId = document.getElementById('list-target-select').value;
     if (!targetListId) return;
 
     let moveCount = 0;
     allTasks.forEach(task => {
-      if (task.list_id === currentFilter) {
+      if (task.list_id === targetFilter) {
         task.list_id = targetListId;
         dbPut(db, 'tasks', task);
         moveCount++;
@@ -980,8 +1109,11 @@ function setupEventListeners() {
 
   // Action: Delete List Option
   document.getElementById('btn-opt-delete-list').addEventListener('click', async () => {
-    document.getElementById('list-actions-modal').close();
-    const list = allLists.find(l => l.id === currentFilter);
+    const modal = document.getElementById('list-actions-modal');
+    const targetFilter = modal.getAttribute('data-target-filter') || currentFilter;
+    modal.close();
+    
+    const list = allLists.find(l => l.id === targetFilter);
     if (!list) return;
 
     const ok = await confirm(`Hapus daftar "${list.name}" beserta seluruh tugas di dalamnya?`, { danger: true });
@@ -1109,7 +1241,7 @@ function setupEventListeners() {
     }
 
     try {
-      const req = indexedDB.open('tmpt_kalender', DB_VERSIONS['tmpt_kalender']);
+      const req = indexedDB.open('tmpt_kalender');
       req.onsuccess = async (e) => {
         const dbKalender = e.target.result;
         if (!dbKalender.objectStoreNames.contains('events')) {
@@ -1157,15 +1289,12 @@ function setupEventListeners() {
   // Modal Delete Task
   document.getElementById('btn-delete-task').addEventListener('click', async () => {
     if (activeTaskId) {
-      const ok = await confirm('Hapus tugas ini?', { danger: true });
-      if (ok) {
-        await dbDelete(db, 'tasks', activeTaskId);
-        document.getElementById('task-editor-modal').close();
-        toast('Tugas dihapus.', 'success');
-        await loadData();
-        renderSidebar();
-        renderActiveView();
-      }
+      await dbDelete(db, 'tasks', activeTaskId);
+      document.getElementById('task-editor-modal').close();
+      toast('Tugas dihapus.', 'success');
+      await loadData();
+      renderSidebar();
+      renderActiveView();
     }
   });
 
@@ -1246,17 +1375,6 @@ function setupEventListeners() {
     const hamburger = document.getElementById('header-hamburger-container');
     if (hamburger) {
       hamburger.style.display = 'block';
-      const toggle = document.getElementById('header-sidebar-toggle');
-      if (toggle) {
-        // Remove old listener if any and add new one
-        toggle.replaceWith(toggle.cloneNode(true));
-        const newToggle = document.getElementById('header-sidebar-toggle');
-        newToggle.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          document.body.classList.toggle('sidebar-collapsed');
-        });
-      }
     }
   };
 
@@ -1265,6 +1383,11 @@ function setupEventListeners() {
     if (e.detail.target.id === 'header-container') {
       setupHamburgerToggle();
     }
+  });
+
+  document.addEventListener('tmpt:sidebar-toggle', (e) => {
+    e.preventDefault();
+    document.body.classList.toggle('sidebar-collapsed');
   });
 }
 

@@ -50,6 +50,7 @@
                 <span class="nav-icon">📥</span>
                 <span class="nav-label">Inbox</span>
                 <span class="badge" id="badge-inbox">0</span>
+                <span class="sidebar-opt-btn" data-filter="inbox">⋮</span>
               </a>
             </li>
             <li>
@@ -57,6 +58,7 @@
                 <span class="nav-icon">📅</span>
                 <span class="nav-label">Hari Ini</span>
                 <span class="badge" id="badge-today">0</span>
+                <span class="sidebar-opt-btn" data-filter="today">⋮</span>
               </a>
             </li>
             <li>
@@ -64,6 +66,7 @@
                 <span class="nav-icon">⭐</span>
                 <span class="nav-label">Berbintang</span>
                 <span class="badge" id="badge-starred">0</span>
+                <span class="sidebar-opt-btn" data-filter="starred">⋮</span>
               </a>
             </li>
             <li>
@@ -71,12 +74,14 @@
                 <span class="nav-icon">🔁</span>
                 <span class="nav-label">Berulang</span>
                 <span class="badge" id="badge-recurring">0</span>
+                <span class="sidebar-opt-btn" data-filter="recurring">⋮</span>
               </a>
             </li>
             <li>
               <a href="#" class="nav-item" data-filter="done">
                 <span class="nav-icon">✅</span>
                 <span class="nav-label">Selesai</span>
+                <span class="sidebar-opt-btn" data-filter="done">⋮</span>
               </a>
             </li>
           </ul>
@@ -350,11 +355,11 @@
       </header>
       <table class="shortcuts-table">
         <tbody>
-          <tr><td><kbd>Q</kbd></td><td>Tambah tugas cepat ke list aktif</td></tr>
-          <tr><td><kbd>Ctrl+Shift+T</kbd></td><td>Fokus pencarian / Quick add global</td></tr>
-          <tr><td><kbd>Space</kbd></td><td>Tandai selesai tugas terpilih</td></tr>
-          <tr><td><kbd>Delete</kbd></td><td>Hapus tugas terpilih</td></tr>
-          <tr><td><kbd>Esc</kbd></td><td>Tutup modal aktif</td></tr>
+          <tr><td><kbd style="background-color: var(--pico-muted-border-color); color: var(--pico-color); font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);">Q</kbd></td><td>Tambah tugas cepat ke list aktif</td></tr>
+          <tr><td><kbd style="background-color: var(--pico-muted-border-color); color: var(--pico-color); font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);">Ctrl + Shift + T</kbd></td><td>Fokus pencarian / Quick add global</td></tr>
+          <tr><td><kbd style="background-color: var(--pico-muted-border-color); color: var(--pico-color); font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);">Space</kbd></td><td>Tandai selesai tugas terpilih</td></tr>
+          <tr><td><kbd style="background-color: var(--pico-muted-border-color); color: var(--pico-color); font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);">Delete</kbd></td><td>Hapus tugas terpilih</td></tr>
+          <tr><td><kbd style="background-color: var(--pico-muted-border-color); color: var(--pico-color); font-weight: bold; padding: 0.2rem 0.5rem; border-radius: 6px; box-shadow: 0 2px 0 rgba(0,0,0,0.15);">Esc</kbd></td><td>Tutup modal aktif</td></tr>
         </tbody>
       </table>
     </article>
@@ -409,6 +414,7 @@
       <div style="display: flex; flex-direction: column; gap: 0.5rem;">
         <button id="btn-opt-rename-list" class="outline secondary" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #cbd5e1; color: #2d3748; background: #fff;">✏️ Ubah Nama Daftar</button>
         <button id="btn-opt-move-tasks" class="outline secondary" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #cbd5e1; color: #2d3748; background: #fff;">📦 Pindahkan Semua Tugas</button>
+        <button id="btn-opt-clear-completed" class="outline secondary" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; border: 1px solid #cbd5e1; color: #2d3748; background: #fff;">🧹 Hapus Tugas yang Selesai</button>
         <button id="btn-opt-delete-list" class="outline danger" style="width: 100%; text-align: left; margin: 0; height: 40px; line-height: 1; font-size: 0.9rem; justify-content: flex-start; display: flex; align-items: center; gap: 0.5rem; background-color: #faf5f5; border-color: #ebd5d5; color: #b91c1c;">🗑️ Hapus Daftar</button>
       </div>
     </article>

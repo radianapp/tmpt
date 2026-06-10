@@ -134,27 +134,12 @@
     import { openTmptDB } from '/shared/db.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
-      // Sidebar Toggle Collapse/Expand
-      const sidebar = document.getElementById('papan-sidebar');
-      
-      const toggleSidebar = () => {
-        sidebar.classList.toggle('collapsed');
-      };
-
-      // Inject Hamburger menu to the loaded header dynamically
-      document.body.addEventListener('htmx:afterOnLoad', (e) => {
-        if (e.detail.target.id === 'header-container') {
-          const navUl = document.querySelector('header nav ul');
-          if (navUl) {
-            // Check if hamburger is already added
-            if (document.getElementById('header-sidebar-toggle')) return;
-
-            const li = document.createElement('li');
-            li.innerHTML = `<button id="header-sidebar-toggle" style="background: transparent; border: none; padding: 0.5rem; margin: 0 0.5rem 0 0; display: flex; width: auto; font-size: 1.25rem; cursor: pointer; color: var(--pico-heading-color);" aria-label="Toggle Sidebar">☰</button>`;
-            navUl.insertBefore(li, navUl.firstChild);
-            
-            document.getElementById('header-sidebar-toggle').onclick = toggleSidebar;
-          }
+      // Sidebar Toggle Collapse/Expand via custom event
+      document.addEventListener('tmpt:sidebar-toggle', (e) => {
+        e.preventDefault();
+        const sidebar = document.getElementById('papan-sidebar');
+        if (sidebar) {
+          sidebar.classList.toggle('collapsed');
         }
       });
 

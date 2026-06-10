@@ -188,9 +188,8 @@ const TMPT_SyncSettings = {
                     <div class="sync-toggle-row" style="border-bottom: none;">
                         <div style="flex: 1; min-width: 0; padding-right: 1rem;">
                             <div style="font-size: 0.87rem; font-weight: 600;">🔒 Vault / Brankas</div>
-                            <div style="font-size: 0.75rem; color: #ef4444;">Tidak pernah di-sync (kebijakan keamanan)</div>
+                            <div style="font-size: 0.75rem; color: #10b981;">Tersinkronisasi (dienkripsi aman)</div>
                         </div>
-                        <span style="font-size: 0.72rem; color: #ef4444; font-weight: 700; flex-shrink: 0;">Tidak pernah</span>
                     </div>
                 </div>
 

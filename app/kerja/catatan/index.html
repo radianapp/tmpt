@@ -722,7 +722,7 @@
                         const dec = await window.TMPT_Crypto.decrypt(encNotes, key);
                         notesData = JSON.parse(dec);
                     } else {
-                        notesData = getSampleNotes();
+                        notesData = [];
                         await saveNotesToStorage();
                     }
 
@@ -730,14 +730,14 @@
                         const dec = await window.TMPT_Crypto.decrypt(encLists, key);
                         listsData = JSON.parse(dec);
                     } else {
-                        listsData = getSampleLists();
+                        listsData = [];
                         await saveListsToStorage();
                     }
                 } else {
                     const storedNotes = localStorage.getItem('catat_notes');
                     const storedLists = localStorage.getItem('catat_lists');
-                    notesData = storedNotes ? JSON.parse(storedNotes) : getSampleNotes();
-                    listsData = storedLists ? JSON.parse(storedLists) : getSampleLists();
+                    notesData = storedNotes ? JSON.parse(storedNotes) : [];
+                    listsData = storedLists ? JSON.parse(storedLists) : [];
                     if (!storedNotes) saveNotesToStorage();
                     if (!storedLists) saveListsToStorage();
                 }
@@ -780,60 +780,9 @@
             }
         }
 
-        // Data Sampel Awal
-        function getSampleNotes() {
-            return [
-                {
-                    id: 'note_' + Date.now() + '_1',
-                    title: '🚀 Selamat Datang di Catat TMPT',
-                    body: 'Aplikasi pencatatan privat yang menyimpan data 100% di peramban Anda.\n\nFitur utama:\n- Tidak ada sinkronisasi server (Zero-Knowledge)\n- Label & warna kartu untuk organisasi\n- Patok catatan penting di atas\n- Tab Daftar Tugas terintegrasi di sebelahnya\n- Mode Enkripsi Pro menggunakan sandi Brankas',
-                    tags: ['panduan', 'tmpt'],
-                    color: 'amber',
-                    pinned: true,
-                    archived: false,
-                    trashed: false,
-                    updated_at: new Date().toISOString()
-                },
-                {
-                    id: 'note_' + Date.now() + '_2',
-                    title: '💡 Ide Proyek Sampingan',
-                    body: 'Membuat generator kata sandi berbasis gambar atau emoji yang mudah diingat manusia namun sulit ditebak oleh komputer.',
-                    tags: ['ide', 'proyek'],
-                    color: 'blue',
-                    pinned: false,
-                    archived: false,
-                    trashed: false,
-                    updated_at: new Date().toISOString()
-                }
-            ];
-        }
-
-        function getSampleLists() {
-            return [
-                {
-                    id: 'list_' + Date.now() + '_1',
-                    name: '🛒 Daftar Belanja Mingguan',
-                    icon: '🛒',
-                    items: [
-                        { id: 'item_1', text: 'Kopi Bubuk Arabica', checked: true },
-                        { id: 'item_2', text: 'Susu UHT 1 Liter', checked: false },
-                        { id: 'item_3', text: 'Roti Gandum', checked: false },
-                        { id: 'item_4', text: 'Telur Ayam 1 Kg', checked: true }
-                    ],
-                    updated_at: new Date().toISOString()
-                },
-                {
-                    id: 'list_' + Date.now() + '_2',
-                    name: '💼 Target Pekerjaan Hari Ini',
-                    icon: '🎯',
-                    items: [
-                        { id: 'item_5', text: 'Selesaikan implementasi Catat & Daftar', checked: true },
-                        { id: 'item_6', text: 'Review kode dengan tim keamanan', checked: false }
-                    ],
-                    updated_at: new Date().toISOString()
-                }
-            ];
-        }
+        // Tidak ada data sampel — dimulai dari kosong
+        function getSampleNotes() { return []; }
+        function getSampleLists() { return []; }
 
         // ── TAB SWITCHER (MODE) ───────────────────────────────────
         function switchMode(mode) {
@@ -1840,7 +1789,7 @@
             }
             
             const firstUl = nav.querySelector('ul');
-            if (firstUl && !nav.querySelector('.sidebar-toggle-btn')) {
+            if (firstUl && !nav.querySelector('.sidebar-toggle-btn') && !nav.querySelector('#header-sidebar-toggle')) {
                 const toggleLi = document.createElement('li');
                 toggleLi.style.display = 'flex';
                 toggleLi.style.alignItems = 'center';
@@ -1855,6 +1804,11 @@
                 firstUl.prepend(toggleLi);
             }
         };
+
+        document.addEventListener('tmpt:sidebar-toggle', (e) => {
+            e.preventDefault();
+            window.toggleSidebar();
+        });
 
         window.toggleSidebar = function() {
             const sidebar = document.querySelector('.catat-sidebar');

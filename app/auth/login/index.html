@@ -48,6 +48,11 @@
                         Import (.tmpt)
                     </button>
                 </div>
+                <div style="margin-top: 1rem;">
+                    <a href="/app/auth/multidevice/?v=2" role="button" class="outline secondary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        ☁️ Restore dari Google Drive
+                    </a>
+                </div>
             </div>
 
             <input type="file" id="import-file-login" accept=".tmpt" style="display: none;" onchange="handleLoginImport(event)">
@@ -216,6 +221,8 @@
             try {
                 const success = await window.TMPT_Auth.unlock(password);
                 if (success) {
+                    // Flag bahwa vault sudah pernah dibuka di perangkat ini
+                    sessionStorage.setItem('_vault_was_unlocked', '1');
                     window.TMPT_UI.toast("Brankas terbuka!", "success");
                     const urlParams = new URLSearchParams(window.location.search);
                     const redirectTo = urlParams.get('redirect') || '/app/';

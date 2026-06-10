@@ -20,6 +20,7 @@
     <script src="/shared/ui.js"></script>
     <script src="/shared/i18n-config.js"></script>
     <script src="/shared/i18n.js"></script>
+    <script src="/shared/database.js"></script>
     <script src="/shared/backup.js"></script>
     <script src="/shared/version.js"></script>
     <script src="/shared/generator.js"></script>
@@ -1060,9 +1061,23 @@
         async function handleDestroyVault() {
             const confirmed = await window.TMPT_UI.confirm("TINDAKAN BERBAHAYA! Anda akan menghapus SELURUH data Brankas secara permanen. Anda yakin?", "HAPUS PERMANEN");
             if (confirmed) {
+                // Hapus semua IndexedDB TMPT (dari shared/database.js)
+                const tmptDatabases = window.TMPT_DATABASES || [];
+                for (const dbName of tmptDatabases) {
+                    try { indexedDB.deleteDatabase(dbName); } catch(e) {}
+                }
+
+                // Hapus semua file OPFS
+                try {
+                    const root = await navigator.storage.getDirectory();
+                    for await (const entry of root.values()) {
+                        await root.removeEntry(entry.name, { recursive: true });
+                    }
+                } catch(e) {}
+
+                // Hapus vault (sekaligus hapus kunci GDrive, sessionStorage, redirect ke /)
                 window.TMPT_Vault.destroy();
                 localStorage.removeItem('tmpt_theme');
-                window.location.href = '/';
             }
         }
 

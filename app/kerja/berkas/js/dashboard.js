@@ -232,10 +232,210 @@ async function syncAllApps() {
   } catch (err) {
     console.error("Gagal sinkronisasi Hitung:", err);
   }
+  // 2.2. Sync Tulis (Documents)
+  try {
+    const tulisDb = await openTmptDB('tmpt_tulis', undefined, (database) => {
+      if (!database.objectStoreNames.contains('documents')) {
+        database.createObjectStore('documents', { keyPath: 'id' });
+      }
+    });
+    const documents = await dbGetAll(tulisDb, 'documents') || [];
+
+    for (const doc of documents) {
+      const key = `tulis-${doc.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = doc.created_at || new Date().toISOString();
+      const updated = doc.updated_at || doc.created_at || new Date().toISOString();
+      const size = doc.char_count || 1024;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: doc.title || 'Dokumen Tanpa Judul',
+          type: 'tulis',
+          app_id: doc.id,
+          app_db: 'tmpt_tulis',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== doc.title || existing.size_bytes !== size) {
+          existing.name = doc.title || 'Dokumen Tanpa Judul';
+          existing.size_bytes = size;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    tulisDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Tulis:", err);
+  }
+
+  // 2.3. Sync Tugas (Kanban / Tasks)
+  try {
+    const tugasDb = await openTmptDB('tmpt_tugas', undefined, (database) => {
+      if (!database.objectStoreNames.contains('tasks')) {
+        database.createObjectStore('tasks', { keyPath: 'id' });
+      }
+    });
+    const tasks = await dbGetAll(tugasDb, 'tasks') || [];
+
+    for (const task of tasks) {
+      // Hanya masukkan tugas utama (bukan subtask / detail tugas yang memiliki parent_id)
+      if (task.parent_id) continue;
+
+      const key = `tugas-${task.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = task.created_at || new Date().toISOString();
+      const updated = task.updated_at || task.created_at || new Date().toISOString();
+      const size = new Blob([task.description || '']).size;
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: task.title || 'Tugas Tanpa Judul',
+          type: 'tugas',
+          app_id: task.id,
+          app_db: 'tmpt_tugas',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: size,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: task.starred || false,
+          tags: task.tags || [],
+          trash: task.status === 'done', // Anggap tugas selesai atau disembunyikan
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== task.title || existing.size_bytes !== size || existing.starred !== (task.starred || false)) {
+          existing.name = task.title || 'Tugas Tanpa Judul';
+          existing.size_bytes = size;
+          existing.starred = task.starred || false;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    tugasDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Tugas:", err);
+  }
+
+  // 2.4. Sync Code (Projects)
+  try {
+    const codeDb = await openTmptDB('tmpt_code', undefined, (database) => {
+      if (!database.objectStoreNames.contains('projects')) {
+        database.createObjectStore('projects', { keyPath: 'id' });
+      }
+    });
+    const projects = await dbGetAll(codeDb, 'projects') || [];
+
+    for (const proj of projects) {
+      const key = `code-${proj.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = proj.last_opened || new Date().toISOString();
+      const updated = proj.last_opened || new Date().toISOString();
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: proj.name || 'Proyek Tanpa Judul',
+          type: 'code',
+          app_id: proj.id,
+          app_db: 'tmpt_code',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: 4096, // Estimasi ukuran default proyek
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== proj.name) {
+          existing.name = proj.name || 'Proyek Tanpa Judul';
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    codeDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi Code:", err);
+  }
+
+  // 2.5. Sync QR Code History
+  try {
+    const qrDb = await openTmptDB('tmpt_qr', undefined, (database) => {
+      if (!database.objectStoreNames.contains('qrcodes')) {
+        database.createObjectStore('qrcodes', { keyPath: 'id' });
+      }
+    });
+    const qrCodes = await dbGetAll(qrDb, 'qrcodes') || [];
+
+    for (const qr of qrCodes) {
+      const key = `qr-${qr.id}`;
+      syncedKeys.add(key);
+      const existing = existingAppMap.get(key);
+
+      const created = qr.created_at || new Date().toISOString();
+      const updated = qr.updated_at || qr.created_at || new Date().toISOString();
+
+      if (!existing) {
+        await putFile({
+          id: crypto.randomUUID(),
+          name: qr.title || 'QR Code Tanpa Judul',
+          type: 'qr',
+          app_id: qr.id,
+          app_db: 'tmpt_qr',
+          opfs_path: null,
+          folder_id: 'root',
+          size_bytes: qr.thumbnail ? new Blob([qr.thumbnail]).size : 1024,
+          created_at: created,
+          updated_at: updated,
+          last_opened: updated,
+          starred: qr.is_favorite || false,
+          tags: [],
+          trash: false,
+          trash_at: null
+        });
+      } else {
+        if (existing.name !== qr.title || existing.starred !== (qr.is_favorite || false)) {
+          existing.name = qr.title || 'QR Code Tanpa Judul';
+          existing.starred = qr.is_favorite || false;
+          existing.updated_at = updated;
+          await putFile(existing);
+        }
+      }
+    }
+    qrDb.close();
+  } catch (err) {
+    console.error("Gagal sinkronisasi QR:", err);
+  }
 
   // 3. Sync Papan (Drawing Boards)
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', undefined, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -288,7 +488,7 @@ async function syncAllApps() {
 
   // 4. Sync Markdown (tmpt_markdown)
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', undefined, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
       }
@@ -342,7 +542,7 @@ async function syncAllApps() {
 
   // 5.6. Sync Diagram (tmpt_diagram)
   try {
-    const diagramDb = await openTmptDB('tmpt_diagram', 2, (database) => {
+    const diagramDb = await openTmptDB('tmpt_diagram', undefined, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
       }
@@ -393,7 +593,7 @@ async function syncAllApps() {
 
   // 4.5. Sync JSON (tmpt_json)
   try {
-    const jsonDb = await openTmptDB('tmpt_json', 2, (database) => {
+    const jsonDb = await openTmptDB('tmpt_json', undefined, (database) => {
       if (!database.objectStoreNames.contains('sessions')) {
         database.createObjectStore('sessions', { keyPath: 'id' });
       }
@@ -443,7 +643,7 @@ async function syncAllApps() {
 
   // 5. Sync Forms (tmpt_forms)
   try {
-    const formsDb = await openTmptDB('tmpt_forms', 2, (database) => {
+    const formsDb = await openTmptDB('tmpt_forms', undefined, (database) => {
       if (!database.objectStoreNames.contains('forms')) {
         database.createObjectStore('forms', { keyPath: 'id' });
       }
@@ -494,7 +694,7 @@ async function syncAllApps() {
 
   // 5.5. Sync Slide (tmpt_slides)
   try {
-    const slidesDb = await openTmptDB('tmpt_slides', 2, (database) => {
+    const slidesDb = await openTmptDB('tmpt_slides', undefined, (database) => {
       if (!database.objectStoreNames.contains('presentations')) {
         database.createObjectStore('presentations', { keyPath: 'id' });
       }
@@ -545,7 +745,7 @@ async function syncAllApps() {
 
   // 5.7. Sync Project (tmpt_project)
   try {
-    const projectDb = await openTmptDB('tmpt_project', 2, (database) => {
+    const projectDb = await openTmptDB('tmpt_project', undefined, (database) => {
       if (!database.objectStoreNames.contains('projects')) {
         database.createObjectStore('projects', { keyPath: 'id' });
       }
@@ -1042,7 +1242,7 @@ async function updateCatatNoteTrashed(noteId, isTrashed) {
 
 async function updatePapanBoardStarred(boardId, isStarred) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', undefined, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1068,7 +1268,7 @@ async function updatePapanBoardStarred(boardId, isStarred) {
 
 async function updatePapanBoardTrashed(boardId, isTrashed) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', undefined, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1097,7 +1297,7 @@ async function updatePapanBoardTrashed(boardId, isTrashed) {
 
 async function deletePapanBoardRecord(boardId) {
   try {
-    const papanDb = await openTmptDB('tmpt_papan', 2, (database) => {
+    const papanDb = await openTmptDB('tmpt_papan', undefined, (database) => {
       if (!database.objectStoreNames.contains('boards')) {
         database.createObjectStore('boards', { keyPath: 'id' });
       }
@@ -1115,7 +1315,7 @@ async function deletePapanBoardRecord(boardId) {
 
 async function updateMarkdownDocTrashed(docId, isTrashed) {
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', undefined, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
       }
@@ -1144,7 +1344,7 @@ async function updateMarkdownDocTrashed(docId, isTrashed) {
 
 async function deleteMarkdownRecord(docId) {
   try {
-    const markdownDb = await openTmptDB('tmpt_markdown', 2, (database) => {
+    const markdownDb = await openTmptDB('tmpt_markdown', undefined, (database) => {
       if (!database.objectStoreNames.contains('documents')) {
         database.createObjectStore('documents', { keyPath: 'id' });
       }

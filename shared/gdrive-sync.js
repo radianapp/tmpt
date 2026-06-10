@@ -152,6 +152,9 @@ const GDriveSync = {
         localStorage.removeItem('gdrive_token_expires_at');
         sessionStorage.removeItem('gdrive_access_token');
         sessionStorage.removeItem('gdrive_token_expires_at');
+        localStorage.removeItem('tmpt_gdrive_access_token');
+        localStorage.removeItem('tmpt_gdrive_expires_at');
+        localStorage.removeItem('tmpt_sync_tokens');
         
         if (window.BackupAwareness) {
             window.BackupAwareness.renderHeaderIcon();
@@ -246,7 +249,10 @@ const GDriveSync = {
 
             const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
             
-            // 5. Enkripsi backup dengan Kata Kunci Utama
+            // 5. Ambil metadata vault (salt & iterations) untuk disertakan di payload
+            const vaultMeta = window.TMPT_Vault ? window.TMPT_Vault.getMetadata() : null;
+
+            // 6. Enkripsi backup dengan Kata Kunci Utama
             const key = window.TMPT_Auth.getKey();
             if (!key) throw new Error("Brankas terkunci. Tidak dapat mengenkripsi data.");
 
@@ -257,6 +263,9 @@ const GDriveSync = {
             const encryptedPayload = JSON.stringify({
                 format: "tmpt-encrypted-v2",
                 exported_at: new Date().toISOString(),
+                // salt_enc & iterations disimpan agar perangkat baru bisa menurunkan kunci dari kata sandi
+                salt: vaultMeta?.salt_enc || null,
+                iterations: vaultMeta?.iterations || 100000,
                 payload: encrypted
             }, null, 2);
 
@@ -301,7 +310,8 @@ const GDriveSync = {
             const token = await this._getAccessToken();
             if (!token) return [];
 
-            const res = await fetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&orderBy=createdTime desc&fields=files(id,name,createdTime,size)', {
+            const cb = new Date().getTime();
+            const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&orderBy=createdTime desc&fields=files(id,name,createdTime,size)&_cb=${cb}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -402,8 +412,24 @@ const GDriveSync = {
     },
 
     async _getAccessToken() {
-        const token = localStorage.getItem('gdrive_access_token') || sessionStorage.getItem('gdrive_access_token');
-        const expiresAt = localStorage.getItem('gdrive_token_expires_at') || sessionStorage.getItem('gdrive_token_expires_at');
+        let token = localStorage.getItem('tmpt_gdrive_access_token') || sessionStorage.getItem('tmpt_gdrive_access_token');
+        let expiresAt = localStorage.getItem('tmpt_gdrive_expires_at') || sessionStorage.getItem('tmpt_gdrive_expires_at');
+
+        if (!token) {
+            token = localStorage.getItem('gdrive_access_token') || sessionStorage.getItem('gdrive_access_token');
+            expiresAt = localStorage.getItem('gdrive_token_expires_at') || sessionStorage.getItem('gdrive_token_expires_at');
+        }
+
+        if (!token) {
+            try {
+                const stored = localStorage.getItem('tmpt_sync_tokens');
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    token = parsed.access_token;
+                    expiresAt = parsed.expires_at;
+                }
+            } catch (e) {}
+        }
 
         if (token && expiresAt && Date.now() < parseInt(expiresAt) - 60000) {
             return token;

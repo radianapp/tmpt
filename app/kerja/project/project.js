@@ -75,13 +75,11 @@ function setupHeaderAndSidebar() {
     setTimeout(() => clearInterval(checkHeader), 5000);
 
     // Sidebar Hamburger toggle listener
-    document.addEventListener('click', (e) => {
-        const toggleBtn = e.target.closest('#header-sidebar-toggle');
-        if (toggleBtn) {
-            const sidebar = document.querySelector('.project-sidebar');
-            if (sidebar) {
-                sidebar.classList.toggle('collapsed');
-            }
+    document.addEventListener('tmpt:sidebar-toggle', (e) => {
+        e.preventDefault();
+        const sidebar = document.querySelector('.project-sidebar');
+        if (sidebar) {
+            sidebar.classList.toggle('collapsed');
         }
     });
 }
@@ -97,7 +95,7 @@ function broadcastProjectChange() {
 // --- IndexedDB Core Operations ---
 async function initDatabase() {
     return new Promise((resolve, reject) => {
-        const req = indexedDB.open('tmpt_project', 2);
+        const req = indexedDB.open('tmpt_project');
         req.onupgradeneeded = (e) => {
             const database = e.target.result;
             STORES.forEach(storeName => {
@@ -120,26 +118,61 @@ async function initDatabase() {
 
 // Seed initial data if store is empty
 async function seedInitialData() {
-    const tx = db.transaction(['projects', 'members'], 'readonly');
-    const memberStore = tx.objectStore('members');
+    // Pastikan semua store sudah tersedia sebelum bertransaksi
+    // Ini penting setelah restore backup yang tidak membuat schema
+    const missingStores = STORES.filter(s => !db.objectStoreNames.contains(s));
+    if (missingStores.length > 0) {
+        console.warn('[Project] Store belum tersedia, menutup dan upgrade database...', missingStores);
+        db.close();
+        // Paksa upgrade dengan menaikkan versi agar onupgradeneeded terpanggil
+        await new Promise((resolve, reject) => {
+            const currentVersion = db.version;
+            const req = indexedDB.open('tmpt_project', currentVersion + 1);
+            req.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                STORES.forEach(storeName => {
+                    if (!database.objectStoreNames.contains(storeName)) {
+                        database.createObjectStore(storeName, { keyPath: 'id' });
+                    }
+                });
+            };
+            req.onsuccess = (e) => {
+                db = e.target.result;
+                resolve();
+            };
+            req.onerror = (e) => {
+                console.error('[Project] Gagal upgrade database:', e.target.error);
+                reject(e.target.error);
+            };
+        });
+    }
 
-    const memberCount = await new Promise(r => {
-        const req = memberStore.count();
-        req.onsuccess = () => r(req.result);
-    });
+    // Sekarang aman untuk bertransaksi
+    try {
+        const tx = db.transaction(['projects', 'members'], 'readonly');
+        const memberStore = tx.objectStore('members');
 
-    if (memberCount === 0) {
-        console.log("Seeding initial local team members...");
-        const writeTx = db.transaction(['members'], 'readwrite');
-        
-        // Members
-        const demoMembers = [
-            { id: 'm1', name: 'Budi Santoso', role: 'Developer Backend', email: 'budi@tmpt.local', capacity: 40 },
-            { id: 'm2', name: 'Siti Rahayu', role: 'Developer Frontend', email: 'siti@tmpt.local', capacity: 40 },
-            { id: 'm3', name: 'Andi Pratama', role: 'QA Engineer', email: 'andi@tmpt.local', capacity: 40 },
-            { id: 'm4', name: 'Deni Kusuma', role: 'Project Manager / PO', email: 'deni@tmpt.local', capacity: 40 }
-        ];
-        demoMembers.forEach(m => writeTx.objectStore('members').put(m));
+        const memberCount = await new Promise(r => {
+            const req = memberStore.count();
+            req.onsuccess = () => r(req.result);
+            req.onerror = () => r(0);
+        });
+
+        if (memberCount === 0) {
+            console.log("Seeding initial local team members...");
+            const writeTx = db.transaction(['members'], 'readwrite');
+            
+            // Members
+            const demoMembers = [
+                { id: 'm1', name: 'Budi Santoso', role: 'Developer Backend', email: 'budi@tmpt.local', capacity: 40 },
+                { id: 'm2', name: 'Siti Rahayu', role: 'Developer Frontend', email: 'siti@tmpt.local', capacity: 40 },
+                { id: 'm3', name: 'Andi Pratama', role: 'QA Engineer', email: 'andi@tmpt.local', capacity: 40 },
+                { id: 'm4', name: 'Deni Kusuma', role: 'Project Manager / PO', email: 'deni@tmpt.local', capacity: 40 }
+            ];
+            demoMembers.forEach(m => writeTx.objectStore('members').put(m));
+        }
+    } catch (err) {
+        console.warn('[Project] seedInitialData dilewati karena error:', err.message);
     }
 }
 

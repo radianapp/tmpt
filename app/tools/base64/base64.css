@@ -16,6 +16,12 @@
     grid-template-columns: 280px 1fr;
     gap: 1.5rem;
     margin-top: 1rem;
+    transition: grid-template-columns 0.28s ease, gap 0.28s ease;
+}
+
+.base64-layout.sidebar-collapsed {
+    grid-template-columns: 0px 1fr;
+    gap: 0;
 }
 
 @media (max-width: 992px) {

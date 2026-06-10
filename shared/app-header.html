@@ -405,46 +405,62 @@
 
     function setupMobileMenu() {
         const isMobile = window.innerWidth <= 768;
-        if (!isMobile) return;
 
-        // 1. Tambahkan menu ke sidebar jika ada di halaman aktif
-        const sidebar = document.querySelector('.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, #dashboard-sidebar, .sidebar, aside, nav.sidebar-nav');
-        if (sidebar && !document.getElementById('mobile-sidebar-actions')) {
-            const actionsDiv = document.createElement('div');
-            actionsDiv.id = 'mobile-sidebar-actions';
-            actionsDiv.style.cssText = 'padding: 1rem 0.5rem; margin-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); display: flex; flex-direction: column; gap: 0.75rem;';
-            
-            actionsDiv.innerHTML = `
-                <div style="font-size: 0.7rem; font-weight: 800; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Aktivitas TMPT</div>
-                <a href="/app/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    <span>🏠</span> Dashboard Utama
-                </a>
-                <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleAppLauncher(this, event);" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    <span>📱</span> Aplikasi TMPT
-                </a>
-                <a href="/app/auth/settings/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    <span>⚙️</span> Setelan Pengaturan
-                </a>
-                <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleTheme();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    <span>🌓</span> Ganti Tema
-                </a>
-                <a href="#" onclick="event.preventDefault(); window.TMPT_Feedback.toggleWidget();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
-                    <span>❓</span> Bantuan & Umpan Balik
-                </a>
-            `;
-            sidebar.appendChild(actionsDiv);
+        // 1. Tambahkan menu ke sidebar jika ada di halaman aktif (hanya mobile)
+        if (isMobile) {
+            const sidebar = document.querySelector('.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, #dashboard-sidebar, .sidebar, aside, nav.sidebar-nav');
+            if (sidebar && !document.getElementById('mobile-sidebar-actions')) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.id = 'mobile-sidebar-actions';
+                actionsDiv.style.cssText = 'padding: 1rem 0.5rem; margin-top: 1rem; border-top: 1px solid var(--pico-muted-border-color); display: flex; flex-direction: column; gap: 0.75rem;';
+                
+                actionsDiv.innerHTML = `
+                    <div style="font-size: 0.7rem; font-weight: 800; color: var(--pico-muted-color); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem;">Aktivitas TMPT</div>
+                    <a href="/app/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                        <span>🏠</span> Dashboard Utama
+                    </a>
+                    <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleAppLauncher(this, event);" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                        <span>📱</span> Aplikasi TMPT
+                    </a>
+                    <a href="/app/auth/settings/" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                        <span>⚙️</span> Setelan Pengaturan
+                    </a>
+                    <a href="#" onclick="event.preventDefault(); window.TMPT_UI.toggleTheme();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                        <span>🌓</span> Ganti Tema
+                    </a>
+                    <a href="#" onclick="event.preventDefault(); window.TMPT_Feedback.toggleWidget();" class="secondary" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-size: 0.85rem; font-weight: 600;">
+                        <span>❓</span> Bantuan & Umpan Balik
+                    </a>
+                `;
+                sidebar.appendChild(actionsDiv);
+            }
         }
         
-        // 2. Listener global untuk hamburger menu di halaman tanpa sidebar
+        // 2. Listener global untuk hamburger menu — memancarkan custom event
+        // Tiap app bisa mendengar event 'tmpt:sidebar-toggle' dan menanganinya sendiri.
+        // Jika tidak ada yang menangani dalam 50ms, header tampilkan modal navigasi sebagai fallback.
         document.addEventListener('click', (e) => {
             const toggleBtn = e.target.closest('#header-sidebar-toggle');
-            if (toggleBtn) {
-                const hasSidebar = document.querySelector('.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, #dashboard-sidebar, .sidebar, aside');
-                if (!hasSidebar) {
+            if (!toggleBtn) return;
+
+            // Dispatch custom event — app-specific handler bisa e.preventDefault() untuk mencegah fallback
+            const sidebarEvent = new CustomEvent('tmpt:sidebar-toggle', {
+                bubbles: true,
+                cancelable: true,
+                detail: { source: 'header-hamburger' }
+            });
+            const handled = !document.dispatchEvent(sidebarEvent);
+
+            // Jika event tidak dicegah (preventDefault), dan tidak ada sidebar di halaman, tampilkan modal
+            if (!handled) {
+                const sidebar = document.querySelector(
+                    '.berkas-sidebar, .tugas-sidebar, .kalender-sidebar, .catat-sidebar, ' +
+                    '.code-sidebar, .diagram-sidebar, .project-sidebar, ' +
+                    'aside[class*="sidebar"], nav.sidebar-nav'
+                );
+                if (!sidebar) {
                     const modal = document.getElementById('mobile-app-nav-modal');
-                    if (modal) {
-                        modal.showModal();
-                    }
+                    if (modal) modal.showModal();
                 }
             }
         });

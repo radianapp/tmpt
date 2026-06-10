@@ -2,7 +2,7 @@ import { openTmptDB, dbGet, dbGetAll, dbPut, dbDelete } from '/shared/db.js';
 import { broadcastTMPT, TMPT_EVENTS } from '/shared/broadcast.js';
 
 const DB_NAME = 'tmpt_forms';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'forms';
 
 let db = null;

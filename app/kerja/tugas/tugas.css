@@ -2,21 +2,21 @@
 
 :root {
   --tugas-sidebar-width: 280px;
-  --tugas-primary-gradient: linear-gradient(135deg, #0F6E56, #064e3b);
-  --tugas-active-bg: rgba(15, 110, 86, 0.08);
-  --tugas-hover-bg: rgba(15, 110, 86, 0.04);
+  --tugas-primary-gradient: linear-gradient(135deg, #1a73e8, #1557b0);
+  --tugas-active-bg: rgba(26, 115, 232, 0.08);
+  --tugas-hover-bg: rgba(26, 115, 232, 0.04);
 }
 
 [data-theme="dark"] {
-  --tugas-active-bg: rgba(15, 110, 86, 0.2);
-  --tugas-hover-bg: rgba(15, 110, 86, 0.1);
+  --tugas-active-bg: rgba(138, 180, 248, 0.15);
+  --tugas-hover-bg: rgba(138, 180, 248, 0.05);
 }
 
 /* Fluid Container overrides */
 .tugas-container-fluid {
   width: 100%;
   max-width: 100% !important;
-  padding: 0 1rem;
+  padding: 0 1.5rem;
   margin: 0;
 }
 
@@ -113,17 +113,17 @@ body.sidebar-collapsed .tugas-sidebar {
 
 .nav-item:hover {
   background-color: var(--tugas-hover-bg);
-  color: var(--pico-primary);
+  color: #1a73e8;
   text-decoration: none;
 }
 
 .nav-item.active {
   background-color: var(--tugas-active-bg);
-  color: #0F6E56;
+  color: #1a73e8;
 }
 
 [data-theme="dark"] .nav-item.active {
-  color: #10b981;
+  color: #8ab4f8;
 }
 
 .nav-icon {
@@ -143,9 +143,45 @@ body.sidebar-collapsed .tugas-sidebar {
   border-radius: 20px;
 }
 
+.sidebar-opt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--pico-muted-color);
+  font-size: 1.15rem;
+  font-weight: bold;
+  opacity: 0;
+  transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+  margin-left: 0.5rem;
+}
+
+.nav-item:hover .sidebar-opt-btn,
+.nav-item.active .sidebar-opt-btn {
+  opacity: 1;
+}
+
+.sidebar-opt-btn:hover {
+  background-color: rgba(26, 115, 232, 0.15) !important;
+  color: #1a73e8 !important;
+}
+
+[data-theme="dark"] .sidebar-opt-btn:hover {
+  background-color: rgba(138, 180, 248, 0.2) !important;
+  color: #8ab4f8 !important;
+}
+
 .nav-item.active .badge {
-  background-color: #0F6E56;
+  background-color: #1a73e8;
   color: white;
+}
+
+[data-theme="dark"] .nav-item.active .badge {
+  background-color: #8ab4f8;
+  color: #121212;
 }
 
 .sidebar-section {
@@ -167,20 +203,28 @@ body.sidebar-collapsed .tugas-sidebar {
   padding: 0 0.85rem;
 }
 
-.btn-icon-sm {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
+.btn-icon-sm, #btn-list-options {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--pico-color) !important;
+  padding: 0 !important;
+  margin: 0 !important;
   cursor: pointer;
-  font-size: 0.8rem;
-  width: auto;
-  height: auto;
+  width: auto !important;
+  height: auto !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
   opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
 }
 
-.btn-icon-sm:hover {
+.btn-icon-sm:hover, #btn-list-options:hover {
   opacity: 1;
+  background: transparent !important;
+  color: #1a73e8 !important;
 }
 
 .tags-cloud {
@@ -204,9 +248,9 @@ body.sidebar-collapsed .tugas-sidebar {
 }
 
 .tag-badge:hover, .tag-badge.active {
-  background-color: #0F6E56;
+  background-color: #1a73e8;
   color: white;
-  border-color: #0F6E56;
+  border-color: #1a73e8;
 }
 
 /* Main Area */
@@ -253,12 +297,38 @@ body.sidebar-collapsed .tugas-sidebar {
 
 .view-toggle-group {
   display: flex;
+  background-color: var(--pico-card-sectioning-background-color);
+  padding: 4px;
   border-radius: 10px;
-  overflow: hidden;
+  border: 1px solid var(--pico-muted-border-color);
 }
 
 .view-toggle-group button {
   font-size: 0.85rem;
+  padding: 0.35rem 1rem !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: var(--pico-color) !important;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  width: auto;
+  cursor: pointer;
+  height: auto;
+  line-height: 1.5;
+}
+
+.view-toggle-group button.primary {
+  background: #1a73e8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(26, 115, 232, 0.2) !important;
+}
+
+[data-theme="dark"] .view-toggle-group button.primary {
+  background: #3b82f6 !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3) !important;
 }
 
 /* Panels */
@@ -314,7 +384,7 @@ body.sidebar-collapsed .tugas-sidebar {
 .task-item:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border-color: #0F6E56;
+  border-color: #1a73e8;
 }
 
 .task-item.completed {
@@ -470,7 +540,7 @@ body.sidebar-collapsed .tugas-sidebar {
 .kanban-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-  border-color: #0F6E56;
+  border-color: #1a73e8;
 }
 
 .kanban-card-title {
@@ -500,8 +570,8 @@ body.sidebar-collapsed .tugas-sidebar {
 }
 
 .btn-add-card:hover {
-  border-color: #0F6E56;
-  color: #0F6E56;
+  border-color: #1a73e8;
+  color: #1a73e8;
   background-color: var(--tugas-hover-bg);
 }
 
@@ -614,9 +684,9 @@ body.sidebar-collapsed .tugas-sidebar {
   font-weight: 600;
   padding: 0.2rem 0.5rem;
   border-radius: 6px;
-  background-color: rgba(15, 110, 86, 0.1);
-  color: #0F6E56;
-  border: 1px solid rgba(15, 110, 86, 0.2);
+  background-color: rgba(26, 115, 232, 0.1);
+  color: #1a73e8;
+  border: 1px solid rgba(26, 115, 232, 0.2);
   text-decoration: none;
 }
 

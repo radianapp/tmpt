@@ -198,7 +198,7 @@ const TMPT_I18n_Config = {
             section_danger_zone: "Zona Bahaya",
             row_danger_zone: "Zona Bahaya",
             desc_danger_zone: "Tindakan ini akan menghapus seluruh data dan pengaturan secara permanen. Anda tidak bisa membatalkan tindakan ini.",
-            btn_destroy_vault: "Hapus Seluruh Brankas",
+            btn_destroy_vault: "Hapus Seluruh Tmpt",
 
             // Tentang
             section_about: "Tentang",
@@ -266,7 +266,7 @@ const TMPT_I18n_Config = {
             section_danger_zone: "Danger Zone",
             row_danger_zone: "Danger Zone",
             desc_danger_zone: "This action will permanently delete all data and settings. You cannot undo this action.",
-            btn_destroy_vault: "Destroy Entire Vault",
+            btn_destroy_vault: "Destroy Entire Tmpt",
 
             // Tentang
             section_about: "About",

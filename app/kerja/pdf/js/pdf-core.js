@@ -230,7 +230,17 @@ export async function loadAppHeader() {
     const html = await res.text();
     const tmp  = document.createElement('div');
     tmp.innerHTML = html;
+    
+    const scripts = tmp.querySelectorAll('script');
     placeholder.replaceWith(...tmp.childNodes);
+    
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+      newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+      document.body.appendChild(newScript);
+    });
+
     // Load HTMX if needed
     if (window.htmx) window.htmx.process(document.body);
   } catch (err) {

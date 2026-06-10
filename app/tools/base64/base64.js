@@ -1735,6 +1735,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    document.addEventListener('tmpt:sidebar-toggle', (e) => {
+        e.preventDefault();
+        const layout = document.querySelector('.base64-layout');
+        const sidebar = document.querySelector('.tool-sidebar');
+        if (layout && sidebar) {
+            layout.classList.toggle('sidebar-collapsed');
+            sidebar.classList.toggle('collapsed');
+        }
+    });
+
     // 13. Parse URL Parameter on Load
     const params = new URLSearchParams(window.location.search);
     const initialTool = params.get('tool');

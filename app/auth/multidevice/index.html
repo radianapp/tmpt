@@ -16,13 +16,13 @@
     <script src="/shared/vault.js"></script>
     <script src="/shared/auth.js"></script>
     <script src="/shared/ui.js"></script>
+    <script src="/shared/database.js"></script>
 </head>
 <body>
 
     <script>
         (async () => {
             await window.TMPT_Auth.init();
-            window.TMPT_Auth.requireAuth();
         })();
     </script>
 
@@ -173,7 +173,7 @@
                         <li class="ok">✅ Data di Drive milik Anda, bukan TMPT</li>
                         <li class="ok">✅ Berfungsi offline (sync saat online)</li>
                         <li class="ok">✅ Riwayat versi (bisa restore ke versi lama)</li>
-                        <li class="ok">✅ Vault/Brankas tidak pernah di-sync</li>
+                        <li class="ok">✅ Vault/Brankas tersinkronisasi aman (dienkripsi)</li>
                         <li class="warn">⚠️ Ada delay ~30 menit antar perangkat</li>
                         <li class="warn">⚠️ Perlu setup OAuth Google sekali</li>
                     </ul>
@@ -242,10 +242,10 @@
                 </div>
             </div>
 
-            <div class="mdc-warn-box">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; color: #f59e0b;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <div class="mdc-warn-box" style="border-left: 4px solid #10b981; background: rgba(16, 185, 129, 0.05);">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 <div>
-                    <strong>Vault/Brankas tidak pernah disinkronkan.</strong> Data di Vault (password, token) adalah pengecualian keamanan — tidak akan pernah masuk ke cloud, bahkan jika Vault dienkripsi. Backup Vault harus dilakukan secara manual via Pengaturan.
+                    <strong>Brankas dan Seluruh Aplikasi Tersinkronisasi.</strong> Data Anda dienkripsi sebelum dikirim ke cloud. Saat Anda memulihkan data di perangkat baru, Anda hanya perlu memasukkan Kata Kunci Utama lama Anda untuk mengaksesnya.
                 </div>
             </div>
         </section>
@@ -362,7 +362,24 @@
                     btnConnect.style.border = '1px solid #10b981';
                 }
 
+                const vaultExists = window.TMPT_Vault && window.TMPT_Vault.exists();
+                const restoreAction = vaultExists
+                    ? `showRestoreOptions()`
+                    : `autoRestoreFromCloud()`;
+
                 panel.innerHTML = `
+                    ${!vaultExists ? `
+                    <div style="background: rgba(59,130,246,0.08); border: 1.5px solid #3b82f6; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; display: flex; align-items: flex-start; gap: 0.75rem;">
+                        <span style="font-size: 1.4rem; flex-shrink:0;">☁️</span>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.25rem;">Data Anda ada di Google Drive!</div>
+                            <div style="font-size: 0.82rem; color: var(--pico-muted-color); margin-bottom: 0.6rem;">Perangkat ini belum memiliki data Tmpt. Klik tombol di bawah untuk memulihkan semua data dari cloud.</div>
+                            <button onclick="autoRestoreFromCloud()" style="font-size: 0.85rem; padding: 0.4rem 1rem; margin: 0; border-radius: 8px; width: auto; font-weight: 700;" aria-label="Pulihkan dari Google Drive">
+                                ⬇️ Pulihkan Data dari Google Drive
+                            </button>
+                        </div>
+                    </div>
+                    ` : ''}
                     <div class="mdc-status-card connected">
                         <div class="mdc-status-icon">☁️</div>
                         <div>
@@ -374,7 +391,7 @@
                             <button onclick="triggerManualSync(this)" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Sync sekarang">
                                 🔄 Sync Sekarang
                             </button>
-                            <button onclick="showRestoreOptions()" class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Restore dari cloud">
+                            <button onclick="${restoreAction}" class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto;" aria-label="Restore dari cloud">
                                 📦 Restore dari Cloud
                             </button>
                             <button onclick="disconnectGDrive()" class="outline secondary" style="font-size: 0.8rem; padding: 0.35rem 0.75rem; margin: 0; border-radius: 8px; width: auto; color: #ef4444; border-color: #ef4444;" aria-label="Putuskan koneksi">
@@ -387,6 +404,8 @@
                         ${renderSyncHistory()}
                     </div>
                 `;
+
+
 
                 // Nomor section
                 document.getElementById('status-section-num').textContent = '4';
@@ -513,20 +532,410 @@
             const fromOAuth = params.get('gdrive_connected');
 
             if (fromOAuth === '1') {
-                window.TMPT_UI?.toast('✓ Google Drive berhasil dihubungkan! Sinkronisasi pertama dimulai...', 'success');
+                window.TMPT_UI?.toast('✓ Google Drive berhasil dihubungkan!', 'success');
 
                 // Hapus param dari URL
                 const url = new URL(window.location.href);
                 url.searchParams.delete('gdrive_connected');
                 history.replaceState({}, '', url.toString());
 
-                // Trigger sync pertama
+                // Trigger action setelah berhasil connect
                 setTimeout(async () => {
-                    if (window.TMPT_SnapshotEngine) {
+                    if (window.TMPT_Vault && !window.TMPT_Vault.exists()) {
+                        // === PERANGKAT BARU: Auto-restore dari Google Drive ===
+                        await autoRestoreFromCloud();
+                    } else if (window.TMPT_SnapshotEngine) {
+                        // Perangkat sudah ada data: buat snapshot perdana
+                        window.TMPT_UI?.toast('Sinkronisasi pertama dimulai...', 'info');
                         await window.TMPT_SnapshotEngine.createSnapshot('manual');
+                        renderSyncStatus();
                     }
-                    renderSyncStatus();
                 }, 2000);
+            }
+        }
+
+        // ===== Auto-restore dari Google Drive (untuk perangkat baru) =====
+        async function autoRestoreFromCloud() {
+            const loadEl = document.getElementById('sync-current-status-panel');
+
+            function showPanel(html) {
+                if (loadEl) loadEl.innerHTML = html;
+            }
+
+            showPanel(`
+                <div style="text-align: center; padding: 2rem;">
+                    <div class="mdc-spinner" style="margin: 0 auto 1rem;"></div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Mencari data Anda di Google Drive...</div>
+                    <div style="font-size: 0.85rem; color: var(--pico-muted-color);">Harap tunggu sebentar.</div>
+                </div>`);
+
+            try {
+                await loadScript('/shared/backup.js');
+                await loadScript('/shared/gdrive-sync.js');
+                await loadScript('/shared/crypto.js');
+
+                if (!window.GDriveSync) throw new Error('Modul GDrive tidak tersedia.');
+
+                let backups = await window.GDriveSync.listBackups();
+                // Filter hanya file cadangan .tmpt (abaikan tmpt_sync_status.json)
+                backups = backups.filter(f => f.name.endsWith('.tmpt') || f.name.startsWith('TMPT-Backup-'));
+
+                if (!backups || backups.length === 0) {
+                    showPanel(`
+                        <div style="text-align: center; padding: 2rem;">
+                            <div style="font-size: 2rem; margin-bottom: 1rem;">☁️</div>
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">Belum Ada Data di Cloud</div>
+                            <div style="font-size: 0.85rem; color: var(--pico-muted-color); margin-bottom: 1.5rem;">Tidak ditemukan backup TMPT di Google Drive akun ini. Mungkin akun Google yang dipilih berbeda, atau belum pernah sync sebelumnya.</div>
+                            <button onclick="renderSyncStatus()" class="outline secondary" style="border-radius:8px; margin:0; font-size:0.9rem;">Kembali ke Status Sync</button>
+                        </div>`);
+                    return;
+                }
+
+                // Ambil backup terbaru
+                const latest = backups[0];
+                const dateStr = new Intl.DateTimeFormat('id-ID', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                }).format(new Date(latest.createdTime || latest.modifiedTime));
+
+                // Tampilkan form input kata sandi untuk dekripsi
+                showPanel(`
+                    <div style="padding: 1.5rem;">
+                        <div style="text-align: center; margin-bottom: 1.5rem;">
+                            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔐</div>
+                            <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem;">Data TMPT Ditemukan di Cloud!</div>
+                            <div style="font-size: 0.82rem; color: var(--pico-muted-color);">Backup terakhir: <strong>${dateStr}</strong></div>
+                        </div>
+                        <p style="font-size: 0.88rem; color: var(--pico-muted-color); margin-bottom: 1rem; line-height: 1.5;">
+                            Masukkan <strong>Kata Kunci Utama</strong> dari perangkat lama Anda untuk mendekripsi dan memulihkan semua data.
+                        </p>
+                        <div style="position: relative; margin-bottom: 1rem;">
+                            <input
+                                type="password"
+                                id="cloud-restore-password"
+                                placeholder="Kata Kunci Utama"
+                                style="border-radius: 10px; margin: 0; padding-right: 3rem;"
+                                aria-label="Kata Kunci Utama untuk restore"
+                            >
+                            <button
+                                type="button"
+                                onclick="toggleRestorePasswordVisibility()"
+                                style="position:absolute; right:0.75rem; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; padding:0; margin:0; font-size:1.1rem; color:var(--pico-muted-color);"
+                                aria-label="Tampilkan/sembunyikan kata sandi"
+                            >👁</button>
+                        </div>
+                        <div id="cloud-restore-error" style="display:none; color:#ef4444; font-size:0.82rem; margin-bottom:0.75rem;"></div>
+                        <button
+                            id="cloud-restore-btn"
+                            onclick="doCloudRestore('${latest.id}')"
+                            style="width:100%; border-radius:10px; margin:0; font-weight:700;"
+                        >
+                            ☁️ Pulihkan Data dari Cloud
+                        </button>
+                        <button
+                            onclick="renderSyncStatus()"
+                            class="outline secondary"
+                            style="width:100%; border-radius:10px; margin-top:0.75rem; font-size:0.88rem;"
+                        >
+                            Batal
+                        </button>
+                    </div>`);
+
+                // Focus ke input
+                setTimeout(() => document.getElementById('cloud-restore-password')?.focus(), 100);
+
+                // Tekan Enter untuk submit
+                document.getElementById('cloud-restore-password')?.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') doCloudRestore(latest.id);
+                });
+
+            } catch (e) {
+                console.error('[AutoRestore] Gagal mencari backup:', e);
+                window.TMPT_UI?.toast('Gagal mencari backup di cloud: ' + e.message, 'error');
+                renderSyncStatus();
+            }
+        }
+
+        function toggleRestorePasswordVisibility() {
+            const input = document.getElementById('cloud-restore-password');
+            if (input) input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function doCloudRestore(fileId) {
+            const pwInput = document.getElementById('cloud-restore-password');
+            const errorEl = document.getElementById('cloud-restore-error');
+            const btn = document.getElementById('cloud-restore-btn');
+            const password = pwInput?.value?.trim();
+
+            if (!password) {
+                if (errorEl) { errorEl.textContent = 'Kata Kunci tidak boleh kosong.'; errorEl.style.display = 'block'; }
+                return;
+            }
+            if (errorEl) errorEl.style.display = 'none';
+            if (btn) { btn.disabled = true; btn.textContent = 'Mengunduh & Mendekripsi...'; }
+
+            // Tampilkan dialog progress
+            const progressDialog = document.createElement('dialog');
+            progressDialog.style.cssText = 'border-radius: 20px; padding: 1.5rem; max-width: 500px; width: 95%; border: 1px solid var(--pico-muted-border-color); z-index: 10001;';
+            progressDialog.innerHTML = `
+                <article style="margin: 0; padding: 0; border: none; box-shadow: none; background: transparent;">
+                    <h3 style="font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span class="mdc-spinner" id="restore-spinner" style="width: 24px; height: 24px; border: 3px solid var(--pico-primary); border-top-color: transparent; border-radius: 50%; display: inline-block; animation: spin 1s linear infinite;"></span>
+                        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                        <span id="restore-title-txt">Memulihkan Data...</span>
+                    </h3>
+                    <p style="font-size: 0.85rem; color: var(--pico-muted-color); margin-bottom: 1.25rem;" id="restore-desc-txt">
+                        Sedang memproses pemulihan data ekosistem TMPT dari awan. Jangan tutup halaman ini.
+                    </p>
+                    <div id="restore-progress-list" style="max-height: 250px; overflow-y: auto; background: var(--pico-card-sectioning-background-color); padding: 0.75rem; border-radius: 10px; margin-bottom: 1.5rem; border: 1px solid var(--pico-muted-border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="font-size: 0.8rem; color: var(--pico-muted-color); text-align: center; padding: 0.5rem;">Mengunduh file backup...</div>
+                    </div>
+                    <div style="display: flex; justify-content: flex-end;">
+                        <button id="btn-restore-done" disabled style="margin: 0; border-radius: 8px; padding: 0.5rem 1.5rem; width: auto;" onclick="window.location.href = '/app/auth/login/';">Masuk ke Tmpt</button>
+                    </div>
+                </article>
+            `;
+            document.body.appendChild(progressDialog);
+            progressDialog.showModal();
+
+            const progressList = progressDialog.querySelector('#restore-progress-list');
+            const addProgressItem = (name, statusText, icon = '🔄') => {
+                const id = 'progress-' + name.replace(/[^a-zA-Z0-9]/g, '-');
+                let el = progressList.querySelector('#' + id);
+                if (!el) {
+                    el = document.createElement('div');
+                    el.id = id;
+                    el.style.cssText = 'display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.25rem 0; align-items: center; border-bottom: 1px solid var(--pico-muted-border-color);';
+                    progressList.appendChild(el);
+                }
+                el.innerHTML = `
+                    <span style="font-weight: 500; display: flex; align-items: center; gap: 0.4rem;">
+                        <span>${icon}</span>
+                        <span>${name}</span>
+                    </span>
+                    <span style="font-size: 0.75rem; color: var(--pico-muted-color);">${statusText}</span>
+                `;
+                return el;
+            };
+
+            try {
+                await loadScript('/shared/backup.js');
+                await loadScript('/shared/gdrive-sync.js');
+                await loadScript('/shared/crypto.js');
+
+                // 1. Download backup dari GDrive
+                const token = await window.GDriveSync._getAccessToken();
+                if (!token) throw new Error('Token Google Drive tidak valid. Silakan hubungkan kembali.');
+
+                // Gunakan cache-buster agar selalu mendapat file terbaru
+                const cacheBuster = new Date().getTime();
+                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&_cb=${cacheBuster}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Gagal mengunduh backup dari cloud.');
+                const blob = await res.blob();
+
+                progressList.innerHTML = '';
+                addProgressItem('Unduh File Backup', 'Selesai', '✅');
+
+                // 2. Parse payload
+                addProgressItem('Dekripsi & Verifikasi', 'Memproses...', '🔄');
+                const text = await blob.text();
+                let parsed = null;
+                let jsonError = null;
+                try {
+                    parsed = JSON.parse(text);
+                } catch (jsonErr) {
+                    jsonError = jsonErr;
+                }
+
+                let zipData;
+                if (parsed && parsed.format === 'tmpt-encrypted-v2') {
+                    if (!parsed.salt || !parsed.iterations) {
+                        throw new Error('Format backup di cloud belum mendukung fitur restore mandiri.');
+                    }
+                    
+                    let decryptedBase64;
+                    try {
+                        const key = await window.TMPT_Crypto.deriveKey(password, parsed.salt, parsed.iterations);
+                        decryptedBase64 = await window.TMPT_Crypto.decrypt(parsed.payload, key);
+                    } catch (e) {
+                        throw new Error('Kata Kunci salah atau gagal mendekripsi data dari cloud.');
+                    }
+
+                    const binaryString = atob(decryptedBase64);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+                    zipData = bytes.buffer;
+                } else {
+                    if (text.startsWith('PK')) {
+                        zipData = blob;
+                    } else {
+                        throw new Error('Data dari cloud rusak atau format tidak dikenali.');
+                    }
+                }
+
+                addProgressItem('Dekripsi & Verifikasi', 'Selesai', '✅');
+
+                // 3. Restore ZIP
+                const JSZip = await window.TMPT_Backup._loadJSZip();
+                let zip;
+                try {
+                    zip = await JSZip.loadAsync(zipData);
+                } catch (zipErr) {
+                    throw new Error(`Gagal membaca struktur ZIP: ${zipErr.message}`);
+                }
+
+                // Simpan koneksi GDrive perangkat baru sebelum restore
+                const gdriveKeepKeys = [
+                    'tmpt_gdrive_connected', 'tmpt_gdrive_email',
+                    'tmpt_gdrive_access_token', 'tmpt_gdrive_expires_at',
+                    'tmpt_sync_tokens', 'gdrive_access_token',
+                    'gdrive_token_expires_at', 'tmpt_gdrive_last_sync'
+                ];
+                const gdriveSnapshot = {};
+                gdriveKeepKeys.forEach(k => {
+                    const v = localStorage.getItem(k);
+                    if (v !== null) gdriveSnapshot[k] = v;
+                });
+
+                // Restore LocalStorage
+                addProgressItem('Preferensi & Pengaturan', 'Menulis...', '🔄');
+                const lsFile = zip.file('localstorage.json');
+                if (lsFile) {
+                    const lsData = JSON.parse(await lsFile.async('string'));
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && (k.startsWith('tmpt_') || k.startsWith('catat_') || k.startsWith('hitung_'))) keysToRemove.push(k);
+                    }
+                    keysToRemove.forEach(k => localStorage.removeItem(k));
+                    Object.entries(lsData).forEach(([k, v]) => localStorage.setItem(k, v));
+                }
+                Object.entries(gdriveSnapshot).forEach(([k, v]) => localStorage.setItem(k, v));
+                addProgressItem('Preferensi & Pengaturan', 'Selesai', '✅');
+
+                // Restore Databases — gunakan registry terpusat dari shared/database.js
+                const OLD_APP_TO_DB = window.TMPT_OLD_APP_TO_DB || {
+                    'tulis': 'tmpt_tulis', 'hitung': 'tmpt_hitung',
+                    'slide': 'tmpt_slides', 'forms': 'tmpt_forms',
+                    'kalender': 'tmpt_kalender', 'tugas': 'tmpt_tugas',
+                    'catatan': 'tmpt_catatan', 'markdown': 'tmpt_markdown',
+                    'berkas': 'tmpt_berkas', 'code': 'tmpt_code',
+                    'diagram': 'tmpt_diagram', 'vault': 'tmpt_vault',
+                    'qr': 'tmpt_qr', 'regex': 'tmpt_regex', 'json': 'tmpt_json',
+                    'project': 'tmpt_project', 'pomodoro': 'tmpt_pomodoro'
+                };
+
+                const dbFiles = [];
+                zip.forEach((relativePath, file) => {
+                    if (file.dir) return;
+                    if (relativePath.startsWith('databases/') && relativePath.endsWith('.json')) {
+                        dbFiles.push({ file, format: 'new' });
+                    } else if (relativePath.startsWith('apps/') && relativePath.endsWith('.json')) {
+                        dbFiles.push({ file, format: 'old' });
+                    }
+                });
+
+                for (const { file, format } of dbFiles) {
+                    const shortName = file.name.split('/').pop().replace('.json', '');
+                    const cleanAppName = shortName.replace('tmpt_', '').toUpperCase();
+                    addProgressItem(`Aplikasi ${cleanAppName}`, 'Memulihkan...', '🔄');
+                    
+                    try {
+                        const rawContent = JSON.parse(await file.async('string'));
+                        let dbContent = rawContent;
+
+                        if (format === 'old') {
+                            if (!rawContent.databaseName) {
+                                const dbName = OLD_APP_TO_DB[shortName] || `tmpt_${shortName}`;
+                                dbContent = {
+                                    databaseName: dbName,
+                                    stores: rawContent.stores || rawContent
+                                };
+                            } else {
+                                if (!rawContent.databaseName.startsWith('tmpt_')) {
+                                    dbContent.databaseName = `tmpt_${rawContent.databaseName}`;
+                                }
+                            }
+                        }
+
+                        // Hitung jumlah record yang akan ditulis
+                        let totalRecords = 0;
+                        if (dbContent.stores) {
+                            Object.values(dbContent.stores).forEach(arr => {
+                                if (Array.isArray(arr)) totalRecords += arr.length;
+                            });
+                        }
+
+                        await window.TMPT_Backup._restoreDatabase(dbContent);
+                        addProgressItem(`Aplikasi ${cleanAppName}`, `${totalRecords} data berhasil ditulis`, '✅');
+                    } catch(e) {
+                        console.error(`Gagal restore ${file.name}:`, e);
+                        addProgressItem(`Aplikasi ${cleanAppName}`, 'Gagal memulihkan data', '❌');
+                    }
+                }
+
+                // Restore OPFS files
+                addProgressItem('File Dokumen (OPFS)', 'Memproses...', '🔄');
+                const opfsFolder = zip.folder('opfs');
+                let opfsCount = 0;
+                if (opfsFolder) {
+                    let root;
+                    try {
+                        root = await navigator.storage.getDirectory();
+                    } catch (e) {
+                        if (window.TMPT_OPFS && window.TMPT_OPFS.getOpfsRoot) {
+                            root = await window.TMPT_OPFS.getOpfsRoot();
+                        }
+                    }
+
+                    if (root) {
+                        for await (const entry of root.values()) {
+                            await root.removeEntry(entry.name, { recursive: true });
+                        }
+
+                        const promises = [];
+                        opfsFolder.forEach((relativePath, fileEntry) => {
+                            if (!fileEntry.dir) {
+                                opfsCount++;
+                                promises.push(
+                                    fileEntry.async('blob').then(async (blob) => {
+                                        const cleanName = relativePath.split('/').pop();
+                                        const handle = await root.getFileHandle(cleanName, { create: true });
+                                        const writable = await handle.createWritable();
+                                        await writable.write(blob);
+                                        await writable.close();
+                                    })
+                                );
+                            }
+                        });
+                        await Promise.all(promises);
+                    }
+                }
+                addProgressItem('File Dokumen (OPFS)', `${opfsCount} file berhasil dipulihkan`, '✅');
+
+                // Selesai sukses
+                const spinner = progressDialog.querySelector('#restore-spinner');
+                if (spinner) spinner.style.display = 'none';
+                progressDialog.querySelector('#restore-title-txt').textContent = 'Pemulihan Selesai!';
+                progressDialog.querySelector('#restore-title-txt').style.color = '#10b981';
+                progressDialog.querySelector('#restore-desc-txt').textContent = 'Semua data ekosistem TMPT berhasil dipulihkan ke perangkat ini.';
+                
+                const doneBtn = progressDialog.querySelector('#btn-restore-done');
+                if (doneBtn) doneBtn.removeAttribute('disabled');
+
+            } catch (e) {
+                console.error('[doCloudRestore] Gagal:', e);
+                // Tutup dialog progress dan tampilkan error
+                progressDialog.close();
+                progressDialog.remove();
+
+                const errMsg = e.message?.includes('integrity') || e.message?.includes('decrypt') || e.message?.includes('mac')
+                    ? 'Kata Kunci salah atau backup rusak. Pastikan kata kunci sesuai dengan perangkat lama.'
+                    : e.message;
+                if (errorEl) { errorEl.textContent = errMsg; errorEl.style.display = 'block'; }
+                if (btn) { btn.disabled = false; btn.textContent = '☁️ Pulihkan Data dari Cloud'; }
             }
         }
 
@@ -547,6 +956,15 @@
 
             // Cek callback OAuth
             await checkOAuthCallback();
+
+            // Jika GDrive terhubung tapi vault belum ada → auto-trigger restore
+            const isConnected = localStorage.getItem('tmpt_gdrive_connected') === 'true';
+            const vaultExists = window.TMPT_Vault && window.TMPT_Vault.exists();
+            const fromOAuth = new URLSearchParams(window.location.search).get('gdrive_connected');
+            if (isConnected && !vaultExists && !fromOAuth) {
+                // Delay agar UI selesai render dulu
+                setTimeout(() => autoRestoreFromCloud(), 800);
+            }
         });
     </script>
 

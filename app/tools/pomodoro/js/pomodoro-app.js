@@ -766,6 +766,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveSettings(settings);
     });
 
+    document.addEventListener('tmpt:sidebar-toggle', (e) => {
+      e.preventDefault();
+      const active = taskSidebar.classList.toggle('active');
+      toggleSidebarBtn.textContent = active ? '✕ Tutup Sidebar' : '📋 Sidebar Tugas';
+      settings.show_task_sidebar = active;
+      saveSettings(settings);
+    });
+
     // Preset selection change
     document.getElementById('setting-work-preset').addEventListener('change', (e) => {
       const val = e.target.value;

@@ -145,6 +145,16 @@ const VaultModule = {
             localStorage.removeItem(this.ACTIVE_VAULT_SETTING);
         }
         
+        // Hapus semua data koneksi Google Drive
+        const gdriveKeys = [
+            'tmpt_gdrive_connected', 'tmpt_gdrive_email',
+            'tmpt_gdrive_access_token', 'tmpt_gdrive_expires_at',
+            'gdrive_access_token', 'gdrive_token_expires_at',
+            'tmpt_sync_tokens', 'tmpt_gdrive_last_sync',
+            'tmpt_oauth_state'
+        ];
+        gdriveKeys.forEach(k => localStorage.removeItem(k));
+
         sessionStorage.clear();
         window.location.href = '/';
     }
