@@ -253,12 +253,64 @@
         </article>
     </dialog>
 
+    <!-- Dialog Konfirmasi Kustom (PicoCSS) -->
+    <dialog id="sync-confirm-dialog" aria-labelledby="confirm-title">
+        <article style="max-width: 440px; width: 92vw; padding: 2rem; border-radius: 20px; text-align: left;">
+            <header style="border-bottom: none; margin-bottom: 1rem; padding: 0;">
+                <h3 id="confirm-title" style="margin: 0; font-size: 1.25rem; font-weight: 800;">Konfirmasi</h3>
+            </header>
+            <p id="confirm-message" style="font-size: 0.95rem; margin-bottom: 1.5rem; color: var(--pico-color);">
+                Apakah Anda yakin?
+            </p>
+            <footer style="display: flex; gap: 0.75rem; border-top: none; padding: 0; background: transparent; margin: 0;">
+                <button id="btn-confirm-cancel" class="outline secondary" style="margin: 0; flex: 1; border-radius: 10px;">
+                    Batal
+                </button>
+                <button id="btn-confirm-ok" class="contrast" style="margin: 0; flex: 1; border-radius: 10px;">
+                    Ya
+                </button>
+            </footer>
+        </article>
+    </dialog>
+
     <div id="toast-container" aria-live="polite"></div>
 
     <script>
     // ================================================================
     // Helpers
     // ================================================================
+    function showCustomConfirm(title, message) {
+        return new Promise((resolve) => {
+            const dialog = document.getElementById('sync-confirm-dialog');
+            const titleEl = document.getElementById('confirm-title');
+            const messageEl = document.getElementById('confirm-message');
+            const btnCancel = document.getElementById('btn-confirm-cancel');
+            const btnOk = document.getElementById('btn-confirm-ok');
+
+            titleEl.textContent = title;
+            messageEl.innerHTML = message;
+
+            const cleanup = () => {
+                btnCancel.onclick = null;
+                btnOk.onclick = null;
+            };
+
+            btnCancel.onclick = () => {
+                cleanup();
+                dialog.close();
+                resolve(false);
+            };
+
+            btnOk.onclick = () => {
+                cleanup();
+                dialog.close();
+                resolve(true);
+            };
+
+            dialog.showModal();
+        });
+    }
+
     function loadScript(src) {
         return new Promise((resolve, reject) => {
             if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
@@ -415,7 +467,7 @@
         if (!token) {
             btn.disabled = false;
             btn.innerHTML = origHTML;
-            if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+            if (await showCustomConfirm('Hubungkan Ulang?', 'Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
                 doConnect();
             } else {
                 window.TMPT_UI?.toast('Sync Save gagal: Koneksi tidak valid.', 'error');
@@ -432,7 +484,7 @@
             const msg = e.message || '';
             if (msg.includes('Koneksi Google Drive tidak valid') || msg.includes('kedaluwarsa') || msg.includes('token') || msg.includes('Token')) {
                 window.TMPT_UI?.toast('Sync Save gagal: Koneksi kedaluwarsa.', 'error');
-                if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                if (await showCustomConfirm('Hubungkan Ulang?', 'Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
                     doConnect();
                 }
             } else {
@@ -476,7 +528,7 @@
         const token = await window.GDriveSync?._getAccessToken();
         if (!token) {
             dialog.close();
-            if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+            if (await showCustomConfirm('Hubungkan Ulang?', 'Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
                 doConnect();
             } else {
                 window.TMPT_UI?.toast('Gagal mengambil data: Koneksi tidak valid.', 'error');
@@ -768,7 +820,7 @@
             const msg = e.message || '';
             if (msg.includes('Koneksi Google Drive tidak valid') || msg.includes('kedaluwarsa') || msg.includes('token') || msg.includes('Token')) {
                 window.TMPT_UI?.toast('Restore gagal: Koneksi kedaluwarsa.', 'error');
-                if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                if (await showCustomConfirm('Hubungkan Ulang?', 'Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
                     doConnect();
                 }
                 return;
@@ -804,7 +856,7 @@
 
     async function doDisconnect(e) {
         e.preventDefault();
-        const confirmed = confirm('Putuskan Google Drive dari TMPT? Data lokal tidak akan terhapus.');
+        const confirmed = await showCustomConfirm('Putuskan Google Drive?', 'Putuskan Google Drive dari TMPT? Data lokal tidak akan terhapus.');
         if (!confirmed) return;
         await loadScript('/shared/gdrive-sync.js');
         try {
