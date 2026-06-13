@@ -410,13 +410,34 @@
         await loadScript('/shared/backup.js');
         await loadScript('/shared/gdrive-sync.js');
 
+        // Cek validitas token
+        const token = await window.GDriveSync?._getAccessToken();
+        if (!token) {
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+            if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                doConnect();
+            } else {
+                window.TMPT_UI?.toast('Sync Save gagal: Koneksi tidak valid.', 'error');
+            }
+            return;
+        }
+
         try {
             const result = await window.GDriveSync.syncSave();
             window.TMPT_UI?.toast(`✓ Data berhasil disimpan ke Google Drive! (${formatSize(result.size)})`, 'success');
             await renderStatusCard();
         } catch (e) {
             console.error('[doSyncSave]', e);
-            window.TMPT_UI?.toast('Sync Save gagal: ' + e.message, 'error');
+            const msg = e.message || '';
+            if (msg.includes('Koneksi Google Drive tidak valid') || msg.includes('kedaluwarsa') || msg.includes('token') || msg.includes('Token')) {
+                window.TMPT_UI?.toast('Sync Save gagal: Koneksi kedaluwarsa.', 'error');
+                if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                    doConnect();
+                }
+            } else {
+                window.TMPT_UI?.toast('Sync Save gagal: ' + e.message, 'error');
+            }
         } finally {
             btn.disabled = false;
             btn.innerHTML = origHTML;
@@ -450,6 +471,18 @@
         // Load modules
         await loadScript('/shared/backup.js');
         await loadScript('/shared/gdrive-sync.js');
+
+        // Cek validitas token
+        const token = await window.GDriveSync?._getAccessToken();
+        if (!token) {
+            dialog.close();
+            if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                doConnect();
+            } else {
+                window.TMPT_UI?.toast('Gagal mengambil data: Koneksi tidak valid.', 'error');
+            }
+            return;
+        }
 
         // Fetch cloud info dan local stats secara paralel
         const [cloudResult, localResult] = await Promise.allSettled([
@@ -731,6 +764,15 @@
         } catch (e) {
             console.error('[_runRestore]', e);
             progressDialog.close();
+
+            const msg = e.message || '';
+            if (msg.includes('Koneksi Google Drive tidak valid') || msg.includes('kedaluwarsa') || msg.includes('token') || msg.includes('Token')) {
+                window.TMPT_UI?.toast('Restore gagal: Koneksi kedaluwarsa.', 'error');
+                if (confirm('Koneksi Google Drive telah kedaluwarsa atau tidak valid. Silakan hubungkan ulang akun Anda sekarang?')) {
+                    doConnect();
+                }
+                return;
+            }
 
             // Tampilkan kembali dialog Sync Open dengan error
             const errorEl = document.getElementById('sync-open-error');
