@@ -134,88 +134,7 @@ const TMPT_SyncSettings = {
                     </div>
                 </div>
 
-                <!-- Jadwal Sync -->
-                <div class="sync-section-title">Jadwal Sinkronisasi</div>
-                <div class="sync-card">
-                    <div class="sync-toggle-row">
-                        <div style="flex: 1; min-width: 0; padding-right: 1rem;">
-                            <div style="font-size: 0.9rem; font-weight: 600;">Sinkronisasi Otomatis</div>
-                            <div style="font-size: 0.78rem; color: var(--pico-muted-color);">Snapshot + upload otomatis setelah ada perubahan</div>
-                        </div>
-                        <div style="flex-shrink: 0; display: flex; align-items: center;">
-                            <input type="checkbox" role="switch" id="sync-toggle-auto" ${s.auto_sync ? 'checked' : ''} onchange="TMPT_SyncSettings.saveSettings({ auto_sync: this.checked })" aria-label="Toggle sinkronisasi otomatis" style="margin: 0;">
-                        </div>
-                    </div>
-                    <div style="padding: 0.65rem 0;">
-                        <div style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">Interval Snapshot</div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            ${[
-                                { label: '5 menit',    val: 5  },
-                                { label: '30 menit',   val: 30 },
-                                { label: '1 jam',      val: 60 },
-                                { label: 'Manual saja', val: 0  },
-                            ].map(opt => `
-                                <button
-                                    class="${s.sync_interval_min === opt.val ? 'btn-navy' : 'outline secondary'}"
-                                    onclick="TMPT_SyncSettings.setInterval(${opt.val}, this)"
-                                    style="font-size: 0.78rem; padding: 0.3rem 0.65rem; margin: 0; border-radius: 8px; width: auto;"
-                                    aria-label="Set interval ${opt.label}">
-                                    ${opt.label}
-                                </button>`).join('')}
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Konten yang Disinkronkan -->
-                <div class="sync-section-title">Konten yang Disinkronkan</div>
-                <div class="sync-card">
-                    <div class="sync-toggle-row">
-                        <div style="flex: 1; min-width: 0; padding-right: 1rem;">
-                            <div style="font-size: 0.87rem; font-weight: 600;">✅ Dokumen & Aplikasi</div>
-                            <div style="font-size: 0.75rem; color: var(--pico-muted-color);">Tulis, Hitung, Slide, Forms, Kalender, Tugas, Catatan</div>
-                        </div>
-                        <span style="font-size: 0.72rem; color: #10b981; font-weight: 700; flex-shrink: 0;">Selalu</span>
-                    </div>
-                    <div class="sync-toggle-row">
-                        <div style="flex: 1; min-width: 0; padding-right: 1rem;">
-                            <div style="font-size: 0.87rem; font-weight: 600;">File Berkas (PDF, Gambar)</div>
-                            <div style="font-size: 0.75rem; color: var(--pico-muted-color);">Binary files dari TMPT Berkas (bisa besar)</div>
-                        </div>
-                        <div style="flex-shrink: 0; display: flex; align-items: center;">
-                            <input type="checkbox" role="switch" id="sync-toggle-berkas" ${s.include_berkas_files ? 'checked' : ''} onchange="TMPT_SyncSettings.saveSettings({ include_berkas_files: this.checked })" aria-label="Toggle sync file berkas" style="margin: 0;">
-                        </div>
-                    </div>
-                    <div class="sync-toggle-row" style="border-bottom: none;">
-                        <div style="flex: 1; min-width: 0; padding-right: 1rem;">
-                            <div style="font-size: 0.87rem; font-weight: 600;">🔒 Vault / Brankas</div>
-                            <div style="font-size: 0.75rem; color: #10b981;">Tersinkronisasi (dienkripsi aman)</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Penyimpanan -->
-                <div class="sync-section-title">Penyimpanan</div>
-                <div class="sync-card">
-                    <div id="sync-storage-info" style="font-size: 0.85rem; color: var(--pico-muted-color);">
-                        Memuat info penyimpanan...
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
-                        <button
-                            class="outline secondary"
-                            onclick="TMPT_VersionHistory.show()"
-                            style="font-size: 0.78rem; padding: 0.35rem 0.65rem; margin: 0; border-radius: 8px; width: auto;"
-                            aria-label="Lihat riwayat versi">
-                            📦 Riwayat Versi
-                        </button>
-                        <button
-                            class="outline secondary"
-                            onclick="TMPT_SyncSettings.clearLocalSnapshots(this)"
-                            style="font-size: 0.78rem; padding: 0.35rem 0.65rem; margin: 0; border-radius: 8px; width: auto; color: #ef4444; border-color: #ef4444;"
-                            aria-label="Hapus snapshot lokal">
-                            🗑 Hapus Snapshot Lokal
-                        </button>
-                    </div>
-                </div>
             </div>
         `;
 
@@ -247,7 +166,16 @@ const TMPT_SyncSettings = {
         if (window.TMPT_UI) {
             window.TMPT_UI.toast('Koneksi Google Drive diputuskan.', 'info');
         }
-        // Re-render
+        
+        // Picu pembaruan status toolbar secara instan
+        if (window.TMPT_SyncStatus) {
+            window.TMPT_SyncStatus.updateDisplay();
+        }
+        if (window.BackupAwareness) {
+            window.BackupAwareness.renderHeaderIcon();
+        }
+
+        // Re-render panel settings
         const panel = document.getElementById('tmpt-sync-settings-panel');
         if (panel) this.renderPanel(panel.parentElement);
     },

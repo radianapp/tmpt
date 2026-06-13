@@ -48,17 +48,16 @@ const TMPT_SyncStatus = {
     _resolveState() {
         if (!navigator.onLine) return 'offline';
 
-        const engineStatus = window.TMPT_CloudSyncEngine?.getStatus();
+        const isConnected = localStorage.getItem('tmpt_gdrive_connected') === 'true'
+            || window.TMPT_TokenManager?.isConnected();
 
+        if (!isConnected) return 'not_setup';
+
+        const engineStatus = window.TMPT_CloudSyncEngine?.getStatus();
         if (engineStatus === 'syncing')     return 'syncing';
         if (engineStatus === 'snapshotting') return 'snapshotting';
         if (engineStatus === 'error')       return 'error';
         if (engineStatus === 'disabled')    return 'disabled';
-
-        const isConnected = window.TMPT_TokenManager?.isConnected()
-            || localStorage.getItem('tmpt_gdrive_connected') === 'true';
-
-        if (!isConnected) return 'not_setup';
 
         const lastSync = localStorage.getItem('tmpt_gdrive_last_sync');
         if (lastSync) return 'synced';
@@ -71,60 +70,21 @@ const TMPT_SyncStatus = {
         this.updateDisplay();
     },
 
-    // === Render ===
-
     updateDisplay() {
+        const state = this._resolveState();
+        const lastSync = localStorage.getItem('tmpt_gdrive_last_sync');
+        const email = localStorage.getItem('tmpt_gdrive_email');
+
+        const visuals = this._getStateVisuals(state, lastSync);
         const container = document.getElementById(this._containerId);
-        if (!container) return;
+        const dropdown = document.getElementById(this._dropdownId);
 
-        const state     = this._resolveState();
-        const lastSync  = localStorage.getItem('tmpt_gdrive_last_sync');
-        const email     = localStorage.getItem('tmpt_gdrive_email');
+        if (container) {
+            container.innerHTML = `<div title="${visuals.tooltip}" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; color: ${visuals.color};" onclick="window.location.href='/app/auth/settings/#section-sync'">${visuals.icon} <span style="font-size: 0.8rem; font-weight: 500;">${visuals.label}</span></div>`;
+        }
 
-        const { icon, color, label, tooltip } = this._getStateVisuals(state, lastSync);
-
-        // Render button
-        container.innerHTML = `
-            <button
-                id="header-sync-btn"
-                aria-label="${tooltip}"
-                title="${tooltip}"
-                onclick="TMPT_SyncStatus.toggleDropdown(event)"
-                style="padding: 0; display: flex; align-items: center; gap: 0.35rem; height: 40px; border-radius: 20px; background: transparent !important; border: none !important; cursor: pointer; color: var(--pico-heading-color); padding: 0 0.5rem;"
-                onmouseover="this.style.backgroundColor='var(--pico-card-sectioning-background-color)'"
-                onmouseout="this.style.backgroundColor='transparent'">
-                <span style="color: ${color}; display: flex; align-items: center;">${icon}</span>
-                ${label ? `<span style="font-size: 0.72rem; font-weight: 600; color: ${color}; white-space: nowrap; display: none;" class="sync-status-label">${label}</span>` : ''}
-            </button>
-
-            <!-- Dropdown Panel -->
-            <div id="${this._dropdownId}" style="display: none; position: absolute; top: 50px; right: 0; background: var(--pico-card-background-color); border: 1px solid var(--pico-muted-border-color); box-shadow: 0 8px 32px rgba(0,0,0,0.15); border-radius: 16px; width: 340px; padding: 0; z-index: 100900; overflow: hidden; text-align: left;">
-                ${this._buildDropdownContent(state, lastSync, email)}
-            </div>
-        `;
-
-        // Tambahkan CSS untuk label di desktop
-        if (!document.getElementById('sync-status-css')) {
-            const style = document.createElement('style');
-            style.id = 'sync-status-css';
-            style.textContent = `
-                @media (min-width: 900px) {
-                    .sync-status-label { display: inline !important; }
-                }
-                @keyframes tmpt-spin {
-                    from { transform: rotate(0deg); }
-                    to   { transform: rotate(360deg); }
-                }
-                @keyframes tmpt-pulse-dot {
-                    0%, 100% { opacity: 1; }
-                    50%      { opacity: 0.3; }
-                }
-                .sync-spinning { animation: tmpt-spin 1.2s linear infinite; }
-                .sync-pulse    { animation: tmpt-pulse-dot 1.5s ease-in-out infinite; }
-                #header-sync-status-dropdown .sync-history-item { padding: 0.4rem 0; border-bottom: 1px solid var(--pico-muted-border-color); }
-                #header-sync-status-dropdown .sync-history-item:last-child { border-bottom: none; }
-            `;
-            document.head.appendChild(style);
+        if (dropdown) {
+            dropdown.innerHTML = this._buildDropdownContent(state, lastSync, email);
         }
     },
 

@@ -4,6 +4,8 @@
   "description": "Tempat data kamu, bukan tempat data orang lain.",
   "private": true,
   "scripts": {
+    "dev": "npx serve . --no-clipboard --listen 8000",
+    "dev:py": "python bin/server.py",
     "build": "node bin/rebuild-pwa.js && node build.js",
     "pwa:rebuild": "node bin/rebuild-pwa.js",
     "cap:sync": "npm run build && npx cap sync",

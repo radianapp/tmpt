@@ -310,14 +310,30 @@
             await loadScript('/shared/sync/sync-status.js');
             await loadScript('/shared/sync/sync-settings.js');
 
-        // Inisialisasi Cloud Sync Engine dengan Google Drive provider
+            // Selalu load backup-awareness terlebih dahulu sebagai widget status dasar
+            try {
+                await loadScript('/shared/backup-awareness.js');
+                if (window.BackupAwareness) {
+                    window.BackupAwareness.renderHeaderIcon();
+                }
+            } catch (e2) {}
+
+            // Inisialisasi Cloud Sync Engine dengan Google Drive provider
             if (window.TMPT_CloudSyncEngine && window.GDriveSyncProvider) {
                 window.TMPT_CloudSyncEngine.init(new GDriveSyncProvider());
             }
 
-            // Inisialisasi Sync Status Widget di header
+            // Inisialisasi Sync Status Widget di header (jika tersambung, ini akan mengambil alih visual container)
             if (window.TMPT_SyncStatus) {
                 window.TMPT_SyncStatus.init();
+            }
+
+            // Tampilkan pengingat backup manual jika drive tidak aktif
+            const isNewSyncConnected = window.TMPT_TokenManager?.isConnected()
+                || localStorage.getItem('tmpt_gdrive_connected') === 'true';
+
+            if (!isNewSyncConnected && window.BackupAwareness) {
+                setTimeout(() => window.BackupAwareness.maybeShowReminder(), 3000);
             }
 
             // Force sync saat tab/window akan ditutup (jika ada snapshot pending)
@@ -331,21 +347,6 @@
                         window.TMPT_CloudSyncEngine?.syncNow().catch(() => {});
                     }
                 });
-            }
-
-            // Tampilkan BackupAwareness hanya jika tidak ada sync aktif sama sekali
-            const isNewSyncConnected = window.TMPT_TokenManager?.isConnected()
-                || localStorage.getItem('tmpt_gdrive_connected') === 'true';
-
-            if (!isNewSyncConnected) {
-                // Load backup-awareness sebagai fallback minimal
-                try {
-                    await loadScript('/shared/backup-awareness.js');
-                    if (window.BackupAwareness) {
-                        window.BackupAwareness.renderHeaderIcon();
-                        setTimeout(() => window.BackupAwareness.maybeShowReminder(), 3000);
-                    }
-                } catch(e2) {}
             }
 
         } catch (e) {

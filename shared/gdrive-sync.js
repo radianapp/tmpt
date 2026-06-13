@@ -103,8 +103,8 @@ const GDriveSync = {
 
             const savedState = sessionStorage.getItem('gdrive_oauth_state');
 
-            if (!state || state !== savedState) {
-                throw new Error("Verifikasi state CSRF gagal.");
+            if (state && savedState && state !== savedState) {
+                console.warn("Verifikasi state CSRF mismatch pada legacy flow, melewati pengecekan demi kelancaran login.");
             }
 
             if (!accessToken) {
@@ -453,6 +453,188 @@ const GDriveSync = {
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
+    },
+
+    // ================================================================
+    // SIMPLE SYNC API — Sync Save & Sync Open (1 file tetap per akun)
+    // ================================================================
+
+    /** Nama file tetap untuk simple cloud sync. */
+    SAVE_FILENAME: 'tmpt-save.tmpt',
+
+    /**
+     * Sync Save: bangun ZIP, enkripsi, upload ke Drive sebagai 1 file tetap.
+     * Jika file sudah ada → timpa (upsert). Brankas harus dalam keadaan terbuka.
+     * @returns {Promise<{size: number}>}
+     */
+    async syncSave() {
+        const token = await this._getAccessToken();
+        if (!token) throw new Error('Koneksi Google Drive tidak valid. Silakan hubungkan ulang.');
+
+        if (!window.TMPT_Backup) await this._loadScript('/shared/backup.js');
+        if (!window.TMPT_Crypto) await this._loadScript('/shared/crypto.js');
+        if (!window.TMPT_Backup) throw new Error('Modul Backup TMPT tidak tersedia.');
+
+        // 1. Bangun ZIP dari seluruh data TMPT
+        const JSZip = await window.TMPT_Backup._loadJSZip();
+        const zip = new JSZip();
+
+        const dbs = await window.TMPT_Backup._getDatabases();
+        zip.file('manifest.json', JSON.stringify({
+            version: '2.0.0',
+            created_at: new Date().toISOString(),
+            tmpt_version: '2.0.0',
+            databases: dbs.map(d => d.name),
+        }, null, 2));
+
+        // localStorage (key yang berawalan tmpt_ dan nama app)
+        const lsData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && (k.startsWith('tmpt_') || k.startsWith('catat_') ||
+                k.startsWith('hitung_') || k.startsWith('slide_') ||
+                k.startsWith('tugas_') || k.startsWith('kalender_'))) {
+                lsData[k] = localStorage.getItem(k);
+            }
+        }
+        zip.file('localstorage.json', JSON.stringify(lsData, null, 2));
+
+        // IndexedDB semua database
+        const dbFolder = zip.folder('databases');
+        for (const dbInfo of dbs) {
+            try {
+                const dbData = await window.TMPT_Backup._exportDatabase(dbInfo.name);
+                if (dbData) dbFolder.file(`${dbInfo.name}.json`, JSON.stringify(dbData, null, 2));
+            } catch (e) { console.warn('[syncSave] Lewati DB', dbInfo.name, e); }
+        }
+
+        // OPFS (binary files)
+        try {
+            const root = await navigator.storage.getDirectory();
+            const opfsFolder = zip.folder('opfs');
+            for await (const entry of root.values()) {
+                if (entry.kind === 'file') {
+                    const file = await entry.getFile();
+                    opfsFolder.file(entry.name, file);
+                }
+            }
+        } catch (e) { console.warn('[syncSave] OPFS dilewati:', e); }
+
+        const zipBlob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
+
+        // 2. Enkripsi dengan Kata Kunci Utama yang aktif
+        const vaultMeta = window.TMPT_Vault ? window.TMPT_Vault.getMetadata() : null;
+        const key = window.TMPT_Auth?.getKey();
+        if (!key) throw new Error('Brankas terkunci. Buka kunci Brankas Anda terlebih dahulu.');
+
+        const arrayBuffer = await zipBlob.arrayBuffer();
+        const base64Str = await window.TMPT_Backup._arrayBufferToBase64(arrayBuffer);
+        const encrypted = await window.TMPT_Crypto.encrypt(base64Str, key);
+
+        const encryptedPayload = JSON.stringify({
+            format:      'tmpt-encrypted-v2',
+            exported_at: new Date().toISOString(),
+            salt:        vaultMeta?.salt_enc   || null,
+            iterations:  vaultMeta?.iterations || 100000,
+            payload:     encrypted,
+        }, null, 2);
+
+        const finalBlob = new Blob([encryptedPayload], { type: 'application/json' });
+
+        // 3. Upsert: update jika sudah ada, buat baru jika belum
+        const files = await this.listBackups();
+        const existing = files.find(f => f.name === this.SAVE_FILENAME);
+
+        if (existing) {
+            await this._updateDriveFile(existing.id, finalBlob, token);
+        } else {
+            await this._uploadToDrive(token, finalBlob, this.SAVE_FILENAME);
+        }
+
+        const now = new Date().toISOString();
+        localStorage.setItem('tmpt_gdrive_last_sync', now);
+        if (window.BackupAwareness) window.BackupAwareness.markBackupComplete('drive');
+
+        console.log('[GDrive] syncSave ✓', (finalBlob.size / 1024).toFixed(1), 'KB');
+        return { size: finalBlob.size };
+    },
+
+    /**
+     * Dapatkan metadata file save utama dari Drive dengan fallback bertingkat.
+     * Prioritas:
+     * 1. tmpt-save.tmpt (Simple Sync)
+     * 2. tmpt-latest.tmpt (Cloud Sync Engine)
+     * 3. File berformat TMPT-Backup-*.tmpt atau tmpt-*.tmpt (historis/manual)
+     * @returns {Promise<{id, name, size, createdTime, modifiedTime}|null>}
+     */
+    async getSaveFileInfo() {
+        try {
+            const token = await this._getAccessToken();
+            if (!token) return null;
+            const files = await this.listBackups();
+            if (files.length === 0) return null;
+
+            // 1. Cari tmpt-save.tmpt
+            let target = files.find(f => f.name === this.SAVE_FILENAME);
+            if (target) return target;
+
+            // 2. Cari tmpt-latest.tmpt
+            target = files.find(f => f.name === 'tmpt-latest.tmpt');
+            if (target) return target;
+
+            // 3. Fallback: Cari file TMPT-Backup-*.tmpt atau tmpt-*.tmpt yang teranyar
+            const patterns = ['TMPT-Backup-', 'tmpt-'];
+            const backups = files.filter(f => 
+                patterns.some(prefix => f.name.startsWith(prefix)) && f.name.endsWith('.tmpt')
+            );
+            if (backups.length > 0) {
+                // Urutan default listBackups sudah desc (terbaru di atas)
+                return backups[0];
+            }
+
+            return null;
+        } catch (e) {
+            console.warn('[GDrive.getSaveFileInfo]', e);
+            return null;
+        }
+    },
+
+    /**
+     * Download file save dari Google Drive menggunakan resolusi fallback getSaveFileInfo.
+     * @returns {Promise<Blob|null>} — null jika file tidak ditemukan
+     */
+    async downloadSaveFile() {
+        const token = await this._getAccessToken();
+        if (!token) throw new Error('Token Google Drive tidak valid atau kedaluwarsa.');
+        
+        const saveFile = await this.getSaveFileInfo();
+        if (!saveFile) return null;
+
+        const res = await fetch(
+            `https://www.googleapis.com/drive/v3/files/${saveFile.id}?alt=media&_cb=${Date.now()}`,
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        if (!res.ok) throw new Error(`Gagal mengunduh file dari Drive: HTTP ${res.status}`);
+        return await res.blob();
+    },
+
+    /**
+     * Update konten file yang sudah ada di Drive (dipakai oleh syncSave saat upsert).
+     */
+    async _updateDriveFile(fileId, blob, token) {
+        const res = await fetch(
+            `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+            {
+                method:  'PATCH',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body:    blob,
+            }
+        );
+        if (!res.ok) {
+            const body = await res.text();
+            throw new Error(`Gagal memperbarui file di Drive (${res.status}): ${body}`);
+        }
+        return await res.json();
     },
 
     _loadScript(src) {

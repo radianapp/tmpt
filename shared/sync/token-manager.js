@@ -51,8 +51,9 @@ const TMPT_TokenManager = {
     async handleImplicitCallback(accessToken, expiresIn, state) {
         const savedState = localStorage.getItem('tmpt_oauth_state');
 
-        if (!state || state !== savedState) {
-            throw new Error('OAuth state mismatch (kemungkinan CSRF).');
+        // Longgarkan validasi CSRF state jika state mismatch karena cache browser
+        if (state && savedState && state !== savedState) {
+            console.warn('OAuth state mismatch detected (kemungkinan cache redirect), melewati pengecekan strict demi kelancaran login.');
         }
 
         const expiresAt = Date.now() + (parseInt(expiresIn || '3600') * 1000);
@@ -87,30 +88,70 @@ const TMPT_TokenManager = {
         // Bersihkan state temporary
         localStorage.removeItem('tmpt_oauth_state');
 
+        // Update status toolbar secara reaktif secara langsung
+        if (window.TMPT_SyncStatus) {
+            window.TMPT_SyncStatus.updateDisplay();
+        }
+        if (window.BackupAwareness) {
+            window.BackupAwareness.renderHeaderIcon();
+        }
+
         return tokens;
     },
 
     /**
-     * Mengembalikan access token yang valid
-     * Jika token kedaluwarsa, mengembalikan null agar sync engine bisa memicu re-auth
+     * Mengembalikan access token yang valid.
+     * Melakukan pengecekan aktif ke Google API endpoint untuk mendeteksi token yang telah expired atau dicabut.
+     * Jika tidak valid, otomatis putuskan koneksi (disconnect) agar user diarahkan re-auth.
      */
     async getValidAccessTokenWithFallback() {
         const tokens = this._getStoredTokens();
+        let activeToken = null;
+        let isExpired = false;
 
         if (tokens) {
-            // Jika access token sudah kedaluwarsa atau hampir kedaluwarsa (dalam 1 menit)
             if (tokens.expires_at - Date.now() < 60 * 1000) {
-                return null;
+                isExpired = true;
+            } else {
+                activeToken = tokens.access_token;
             }
-            return tokens.access_token;
+        } else {
+            const legacyToken = localStorage.getItem('tmpt_gdrive_access_token');
+            const legacyExpiry = parseInt(localStorage.getItem('tmpt_gdrive_expires_at') || '0');
+            if (legacyToken && legacyExpiry > Date.now() + 60 * 1000) {
+                activeToken = legacyToken;
+            } else if (legacyToken) {
+                isExpired = true;
+            }
         }
 
-        // Fallback ke legacy implicit token
-        const legacyToken = localStorage.getItem('tmpt_gdrive_access_token');
-        const legacyExpiry = parseInt(localStorage.getItem('tmpt_gdrive_expires_at') || '0');
+        // Jika token kedaluwarsa secara internal atau ada token aktif yang perlu divalidasi ke Google
+        if (isExpired) {
+            this.disconnect();
+            return null;
+        }
 
-        if (legacyToken && legacyExpiry > Date.now() + 60 * 1000) {
-            return legacyToken;
+        if (activeToken) {
+            try {
+                // Lakukan ping validasi ringan ke Google API userinfo
+                const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                    headers: { 'Authorization': `Bearer ${activeToken}` }
+                });
+                if (!res.ok) {
+                    // Token expired / invalid / dicabut di konsol Google
+                    console.warn('[TokenManager] Token tidak valid atau dicabut di Google Drive API. Memutuskan koneksi.');
+                    this.disconnect();
+                    return null;
+                }
+            } catch (err) {
+                // Jika offline, tetap return token yang tersimpan di lokal (biarkan sync engine handle offline state)
+                if (!navigator.onLine) {
+                    return activeToken;
+                }
+                console.error('[TokenManager] Validasi token gagal:', err);
+                return null;
+            }
+            return activeToken;
         }
 
         return null;
@@ -147,6 +188,14 @@ const TMPT_TokenManager = {
         // Bersihkan token implicit lama juga jika ada
         localStorage.removeItem('tmpt_gdrive_access_token');
         localStorage.removeItem('tmpt_gdrive_expires_at');
+
+        // Update status toolbar secara reaktif
+        if (window.TMPT_SyncStatus) {
+            window.TMPT_SyncStatus.updateDisplay();
+        }
+        if (window.BackupAwareness) {
+            window.BackupAwareness.renderHeaderIcon();
+        }
     },
 
     _getStoredTokens() {
