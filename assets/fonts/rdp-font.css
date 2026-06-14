@@ -1,0 +1,148 @@
+/*
+ * ============================================================
+ *  RDP Font Family — v1.0.0
+ *  PT Dasa Aprilindo Sentosa · radian.web.id
+ *
+ *  RDP Serif  : Playfair Display (Humanist Serif)
+ *  RDP Sans   : Plus Jakarta Sans (Geometric Humanist)
+ *  Lisensi    : SIL Open Font License 1.1
+ *
+ *  Cara pakai di Django:
+ *    1. Letakkan folder ini di: static/fonts/rdp/
+ *    2. Di base.html: <link rel="stylesheet" href="{% static 'fonts/rdp/rdp-font.css' %}">
+ *    3. Atau @import dari CSS utama kamu.
+ * ============================================================
+ */
+
+/* ── RDP SERIF (Playfair Display) ─────────────────────────── */
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Serif';
+  src: url('RDPSerif-BoldItalic.woff2') format('woff2');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+
+/* ── RDP SANS (Plus Jakarta Sans) ─────────────────────────── */
+@font-face {
+  font-family: 'RDP Sans';
+  src: url('RDPSans-Light.woff2') format('woff2');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Sans';
+  src: url('RDPSans-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Sans';
+  src: url('RDPSans-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Sans';
+  src: url('RDPSans-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'RDP Sans';
+  src: url('RDPSans-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+
+/* ── CSS VARIABLES ────────────────────────────────────────── */
+:root {
+  --rdp-serif: 'RDP Serif', Georgia, serif;
+  --rdp-sans:  'RDP Sans', system-ui, sans-serif;
+
+  /* Brand colors */
+  --rdp-navy:  #0C2340;
+  --rdp-gold:  #B87D2E;
+  --rdp-teal:  #0F6E56;
+  --rdp-cream: #F5F2EE;
+
+  /* Typographic scale */
+  --rdp-size-display: 3rem;
+  --rdp-size-h1:      2rem;
+  --rdp-size-h2:      1.5rem;
+  --rdp-size-h3:      1.125rem;
+  --rdp-size-body:    1rem;
+  --rdp-size-small:   0.875rem;
+  --rdp-size-caption: 0.75rem;
+}
+
+
+/* ── PICO CSS OVERRIDE ────────────────────────────────────── */
+/*
+  Aktifkan ini di base.html atau main.css untuk override PicoCSS:
+
+  :root {
+    --pico-font-family: var(--rdp-sans);
+  }
+  h1, h2, h3 {
+    font-family: var(--rdp-serif);
+  }
+*/
+
+
+/* ── UTILITY CLASSES ──────────────────────────────────────── */
+.rdp-serif    { font-family: var(--rdp-serif); }
+.rdp-sans     { font-family: var(--rdp-sans); }
+
+.rdp-display  { font-family: var(--rdp-serif); font-size: var(--rdp-size-display); font-weight: 700; line-height: 1.05; letter-spacing: -0.01em; }
+.rdp-h1       { font-family: var(--rdp-serif); font-size: var(--rdp-size-h1);      font-weight: 600; line-height: 1.2; }
+.rdp-h2       { font-family: var(--rdp-serif); font-size: var(--rdp-size-h2);      font-weight: 500; line-height: 1.3; }
+.rdp-h3       { font-family: var(--rdp-serif); font-size: var(--rdp-size-h3);      font-weight: 500; line-height: 1.4; }
+.rdp-body     { font-family: var(--rdp-sans);  font-size: var(--rdp-size-body);    font-weight: 400; line-height: 1.7; }
+.rdp-ui       { font-family: var(--rdp-sans);  font-size: var(--rdp-size-small);   font-weight: 500; }
+.rdp-caption  { font-family: var(--rdp-sans);  font-size: var(--rdp-size-caption); font-weight: 400; }
+.rdp-label    { font-family: var(--rdp-sans);  font-size: var(--rdp-size-caption); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.rdp-quote    { font-family: var(--rdp-serif); font-size: var(--rdp-size-h3);      font-weight: 400; font-style: italic; line-height: 1.65; }
+.rdp-numeric  { font-family: var(--rdp-sans);  font-variant-numeric: tabular-nums; }

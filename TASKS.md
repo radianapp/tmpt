@@ -123,3 +123,11 @@
 - [x] Update `shared/app-header.html` — load sync modules + inisialisasi
 - [x] Upgrade `app/auth/gdrive-callback.html` — support PKCE + backward compat Implicit Flow
 
+## Fase 14: TMPT Budget (v1.0 Client-Side - TMPT Kerja)
+- [x] Setup folder `/app/kerja/budget/` dan modular javascript
+- [x] Integrasi apps.json dan seo-config.js
+- [x] Implementasi model data IndexedDB local-first
+- [x] UI Dashboard (Rencana vs Aktual alokasi)
+- [x] Logika Month-End Tutup Buku carry forward
+- [x] Parser Impor CSV e-Statement
+- [x] Financial Advisor rule-based

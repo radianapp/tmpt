@@ -4,7 +4,7 @@ export const DB_VERSIONS = {};
 
 export async function openTmptDB(dbName, version, upgradeCallback) {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(dbName);
+    const req = indexedDB.open(dbName, version);
     req.onupgradeneeded = (e) => upgradeCallback(e.target.result);
     req.onsuccess = (e) => resolve(e.target.result);
     req.onerror = (e) => reject(e.target.error);

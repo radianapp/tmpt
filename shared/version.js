@@ -1,10 +1,10 @@
 window.TMPT_VERSION = {
     major: 2,
-    minor: 4,
+    minor: 5,
     patch: 0,
-    full: "2.4.0",
+    full: "2.5.0",
     codename: "Hitung Spreadsheet Update",
-    last_update: "2026-06-13"
+    last_update: "2026-06-14"
 };
 
 // Fungsi untuk mengisi versi ke elemen HTML
@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', populateVersion);
 
 // Jalankan setiap kali HTMX melakukan swap konten (untuk footer dll)
 document.addEventListener('htmx:afterSwap', populateVersion);
+
 
 
 

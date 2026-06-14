@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Budget — TMPT</title>
+  <link rel="manifest" href="/manifest.json">
+  
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/img/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/img/favicon-16x16.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+
+  <link rel="stylesheet" href="/shared/pico.min.css">
+  <link rel="stylesheet" href="/shared/app.css?v=3">
+  <link rel="stylesheet" href="./budget.css">
+  <script src="/shared/htmx.min.js"></script>
+  <script src="/shared/pwa.js"></script>
+  <script src="/shared/crypto.js"></script>
+  <script src="/shared/vault.js"></script>
+  <script src="/shared/auth.js"></script>
+  <script src="/shared/ui.js"></script>
+  <script src="/shared/license.js"></script>
+  <script type="module" src="/shared/seo.js" data-seo-key="budget-home"></script>
+</head>
+<body>
+  <script>
+    (async () => {
+      await window.TMPT_Auth.init();
+      window.TMPT_Auth.requireAuth();
+      if (window.TMPT_Auth.isUnlocked()) {
+        window.TMPT_Auth.setupIdleListeners();
+      }
+    })();
+  </script>
+
+  <div id="header-container" hx-get="/shared/app-header.html" hx-trigger="load" hx-swap="outerHTML"></div>
+
+  <main class="container-fluid" style="padding: 0 2rem; max-width: 100%;">
+    <div class="budget-layout-wrapper">
+      <!-- Sidebar Kiri -->
+      <aside class="budget-sidebar">
+        <nav class="sidebar-menu">
+          <button class="sidebar-nav-btn active" id="nav-dashboard" onclick="switchTab('dashboard')">
+            <span>📈</span> Dasbor Budget
+          </button>
+          <button class="sidebar-nav-btn" id="nav-transactions" onclick="switchTab('transactions')">
+            <span>💵</span> Transaksi
+          </button>
+          <button class="sidebar-nav-btn" id="nav-reports" onclick="switchTab('reports')">
+            <span>📊</span> Laporan Keuangan
+          </button>
+          <button class="sidebar-nav-btn" id="nav-goals" onclick="switchTab('goals')">
+            <span>🎯</span> Tujuan Keuangan
+          </button>
+          <button class="sidebar-nav-btn" id="nav-debts" onclick="switchTab('debts')">
+            <span>💳</span> Manajemen Hutang
+          </button>
+          <button class="sidebar-nav-btn" id="nav-advisor" onclick="switchTab('advisor')">
+            <span>💡</span> Saran Keuangan
+          </button>
+          <button class="sidebar-nav-btn" id="nav-import" onclick="switchTab('import')">
+            <span>📤</span> Impor e-Statement
+          </button>
+        </nav>
+      </aside>
+
+      <!-- Panel Kanan Utama -->
+      <section class="budget-main-content">
+        <div class="budget-hero">
+          <h1>Kelola Rencana & Realisasi Keuangan Bulanan</h1>
+          <p class="secondary" style="margin-bottom:0;">Perencanaan anggaran disiplin, pencatatan realtime, tutup buku carry forward, 100% lokal di browser Anda.</p>
+        </div>
+
+        <div id="budget-tab-content">
+          <!-- Dinamis diisi JS controller -->
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Modal Konfirmasi Umum (PicoCSS) -->
+  <dialog id="confirm-modal">
+    <article style="max-width: 480px; width: 95%;">
+      <header style="margin-bottom: 1rem; border-bottom: 1px solid var(--pico-muted-border-color); padding-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+        <h4 style="margin: 0; font-weight: 700;">Konfirmasi Tindakan</h4>
+        <button type="button" class="btn-close" style="background: transparent; border: none; font-size: 1.2rem; cursor: pointer; color: var(--pico-muted-color); padding: 0; margin: 0;" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(false)">✕</button>
+      </header>
+      <p id="confirm-message" style="margin-bottom: 1.5rem; font-size: 0.95rem; line-height: 1.5;"></p>
+      <footer style="display: flex; justify-content: flex-end; gap: 0.75rem; background: transparent; padding: 0; border-top: none;">
+        <button type="button" class="btn-gray" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(false)">Batal</button>
+        <button type="button" id="confirm-ok-btn" class="btn-navy" style="margin: 0;" onclick="document.getElementById('confirm-modal').close(); if (document.getElementById('confirm-modal')._resolve) document.getElementById('confirm-modal')._resolve(true)">Ya, Lanjutkan</button>
+      </footer>
+    </article>
+  </dialog>
+
+  <div id="toast-container" aria-live="polite"></div>
+  <script type="module" src="./js/budget-ui.js"></script>
+</body>
+</html>

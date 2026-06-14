@@ -305,5 +305,17 @@ export const SEO_CONFIG = {
       { name: 'TMPT Tools', url: '/app/tools/' },
       { name: 'Base64 Tools', url: '/app/tools/base64/' }
     ]
+  },
+  'budget-home': {
+    title: 'TMPT Budget — Manajemen Anggaran Bulanan & Transaksi Offline',
+    desc: 'Kelola keuangan pribadi & keluarga secara lokal dan privat. Buat rencana anggaran bulanan, catat transaksi pemasukan/pengeluaran, lakukan tutup buku, dan dapatkan saran finansial tanpa server.',
+    canonical: 'https://tmpt.my.id/app/kerja/budget/',
+    ogImage: '/assets/og/default-og.png',
+    schemas: ['website'],
+    breadcrumbs: [
+      { name: 'Beranda', url: '/' },
+      { name: 'TMPT Kerja', url: '/app/kerja/' },
+      { name: 'TMPT Budget', url: '/app/kerja/budget/' }
+    ]
   }
 };

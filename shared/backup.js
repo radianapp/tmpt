@@ -39,7 +39,7 @@ const BackupModule = {
             : ['tmpt_berkas', 'tmpt_tulis', 'tmpt_hitung', 'tmpt_slides',
                'tmpt_forms', 'tmpt_kalender', 'tmpt_tugas', 'tmpt_catatan',
                'tmpt_vault', 'tmpt_code', 'tmpt_diagram', 'tmpt_markdown',
-               'tmpt_json', 'tmpt_project', 'tmpt_pomodoro', 'tmpt_regex', 'tmpt_papan'];
+               'tmpt_json', 'tmpt_project', 'tmpt_pomodoro', 'tmpt_regex', 'tmpt_papan', 'tmpt_budget'];
 
         if (!indexedDB.databases) {
             return defaultDbs.map(name => ({ name }));
